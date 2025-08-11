@@ -43,6 +43,7 @@ Use the same AI techniques that cybercriminals employ to train and protect your 
 
 **Core Innovation:**
 - 🤖 **LLM-powered scenarios** that adapt in real-time
+- 🔌 **Native integrations in everyday tools** (Teams/Slack chatbot, email, ticketing) for easy rollout and higher-fidelity simulations
 - 🎮 **Interactive simulations** mirroring actual attack vectors
 - 📊 **Behavioral scoring** tracking decision-making patterns
 - 🔄 **Continuous learning** that evolves with threats

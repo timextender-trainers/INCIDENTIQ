@@ -4,9 +4,13 @@
 
 In today's digital age, cybercriminals are leveraging Large Language Models (LLMs) to significantly amplify their attack capabilities. These AI-powered threats are becoming more sophisticated, personalized, and successful than ever before:
 
-- **Increased Attack Volume**: LLMs enable hackers to generate thousands of convincing phishing emails, social engineering scripts, and malicious content at unprecedented scale
-- **Enhanced Success Rates**: AI-crafted attacks are more persuasive, using natural language processing to create contextually relevant and psychologically manipulative content
-- **Adaptive Strategies**: Hackers use LLMs to analyze target organizations and craft highly personalized attack vectors that exploit specific vulnerabilities
+- **Increased Attack Volume**: LLMs enable hackers to generate thousands of convincing phishing emails, social engineering scripts, and malicious content at unprecedented scale. CrowdStrike's 2025 Global Threat Report shows a 442% surge in vishing (voice phishing) attacks in the second half of 2024, demonstrating the rapid scaling capabilities of AI-enhanced attacks.
+
+- **Enhanced Success Rates**: AI-crafted attacks are more persuasive, using natural language processing to create contextually relevant and psychologically manipulative content. Microsoft Threat Intelligence reports that North Korean actors like Jasper Sleet are leveraging AI to improve both the scale and sophistication of their operations since 2024.
+
+- **Adaptive Strategies**: Hackers use LLMs to analyze target organizations and craft highly personalized attack vectors that exploit specific vulnerabilities. The 2025 Verizon Data Breach Investigations Report indicates that 79% of detections were malware-free, showing attackers are increasingly using sophisticated social engineering and AI-powered techniques rather than traditional malware.
+
+*Sources: CrowdStrike 2025 Global Threat Report, Microsoft Security Blog 2024-2025, Verizon 2025 Data Breach Investigations Report*
 
 ## � The Problem with Traditional Security Training
 
@@ -168,7 +172,7 @@ Organizations using IncidentIQ can confidently support their employees' certific
 - **Flexible Pricing**: Per-employee, department-based, or enterprise-wide licensing options
 - **Implementation Support**: Dedicated customer success team ensures rapid deployment and adoption
 
-## �🚀 Getting Started
+## 🚀 Getting Started
 
 Transform your organization's security posture with IncidentIQ's AI-powered training platform. Contact us to schedule a demo and see how personalized, interactive security training can protect your most valuable assets – your people and your data.
 

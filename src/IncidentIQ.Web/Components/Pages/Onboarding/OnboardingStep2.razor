@@ -1,0 +1,633 @@
+@page "/onboarding/step2"
+@using Microsoft.AspNetCore.Components.Forms
+@using System.ComponentModel.DataAnnotations
+@inject NavigationManager Navigation
+
+<PageTitle>Role Selection - Personalization | IncidentIQ</PageTitle>
+
+<div class="onboarding-container">
+    <div class="onboarding-header">
+        <div class="progress-indicator">
+            <div class="step completed">1</div>
+            <div class="step-connector completed"></div>
+            <div class="step active">2</div>
+            <div class="step-connector"></div>
+            <div class="step">3</div>
+            <div class="step-connector"></div>
+            <div class="step">4</div>
+            <div class="step-connector"></div>
+            <div class="step">5</div>
+        </div>
+        <h1 class="onboarding-title">What's Your Role?</h1>
+        <p class="onboarding-subtitle">Help us understand your daily responsibilities so our AI can create realistic security scenarios for your work environment</p>
+    </div>
+
+    <div class="onboarding-content">
+        <EditForm Model="@roleSelection" OnValidSubmit="@HandleSubmit">
+            <DataAnnotationsValidator />
+            
+            <div class="role-grid">
+                @foreach (var role in availableRoles)
+                {
+                    <div class="role-card @(roleSelection.SelectedRoleId == role.Id ? "selected" : "")" 
+                         @onclick="() => SelectRole(role.Id)">
+                        @if (roleSelection.SelectedRoleId == role.Id)
+                        {
+                            <div class="role-check">✓</div>
+                        }
+                        <div class="role-icon">@role.Icon</div>
+                        <h3 class="role-title">@role.Title</h3>
+                        <p class="role-description">@role.Description</p>
+                        <div class="role-scenarios">
+                            <strong>Example scenarios:</strong>
+                            <ul>
+                                @foreach (var scenario in role.ExampleScenarios)
+                                {
+                                    <li>@scenario</li>
+                                }
+                            </ul>
+                        </div>
+                        <div class="role-risk-level">
+                            <span class="risk-label">Typical Risk Level:</span>
+                            <span class="risk-badge risk-@role.RiskLevel.ToLower()">@role.RiskLevel</span>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <ValidationMessage For="@(() => roleSelection.SelectedRoleId)" class="validation-message" />
+
+            <div class="custom-role-section">
+                <div class="divider">
+                    <span>or</span>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <InputCheckbox @bind-Value="roleSelection.IsCustomRole" />
+                        <span class="checkbox-text">My role isn't listed above - I'll provide custom details</span>
+                    </label>
+                </div>
+
+                @if (roleSelection.IsCustomRole)
+                {
+                    <div class="custom-role-details">
+                        <div class="form-group">
+                            <label for="customRole" class="form-label">Describe Your Role *</label>
+                            <InputTextArea id="customRole" @bind-Value="roleSelection.CustomRoleDescription" 
+                                         class="form-textarea" rows="4"
+                                         placeholder="Describe your daily responsibilities, the systems you use, and the type of data you work with..." />
+                            <ValidationMessage For="@(() => roleSelection.CustomRoleDescription)" class="validation-message" />
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" @onclick="GoBack">
+                    <i class="icon-arrow-left"></i>
+                    Back to Basic Info
+                </button>
+                <button type="submit" class="btn btn-primary" disabled="@(!IsFormValid())">
+                    Continue to Experience Level
+                    <i class="icon-arrow-right"></i>
+                </button>
+            </div>
+        </EditForm>
+
+        <!-- AI Insight Panel -->
+        <div class="ai-insight">
+            <div class="insight-icon">🎯</div>
+            <h3>AI Personalization</h3>
+            <p>Based on your role selection, our AI will:</p>
+            <ul class="insight-list">
+                <li>Create industry-specific phishing emails</li>
+                <li>Generate realistic social engineering scenarios</li>
+                <li>Design role-appropriate security challenges</li>
+                <li>Provide contextual security tips for your work environment</li>
+            </ul>
+            @if (!string.IsNullOrEmpty(selectedRoleInsight))
+            {
+                <div class="role-specific-insight">
+                    <strong>For @GetSelectedRoleTitle():</strong>
+                    <p>@selectedRoleInsight</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+.role-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--spacing-6);
+    margin-bottom: var(--spacing-8);
+}
+
+.role-card {
+    background: var(--neutral-0);
+    border: 2px solid var(--neutral-200);
+    border-radius: var(--radius-2xl);
+    padding: var(--spacing-6);
+    cursor: pointer;
+    transition: var(--transition-all);
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+}
+
+.role-card::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent 40%, rgba(99, 102, 241, 0.02) 50%, transparent 60%);
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+    transition: transform 0.8s ease;
+    opacity: 0;
+}
+
+.role-card:hover::after {
+    transform: translateX(0) translateY(0) rotate(45deg);
+    opacity: 1;
+}
+
+.role-card:hover {
+    border-color: var(--primary-300);
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: var(--shadow-xl);
+}
+
+.role-card.selected {
+    border-color: var(--primary-500);
+    background: linear-gradient(135deg, var(--primary-50), var(--neutral-0));
+    box-shadow: 0 0 0 4px var(--primary-100), var(--shadow-primary-lg);
+    transform: translateY(-4px) scale(1.05);
+}
+
+.role-card.selected::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-500), var(--primary-600));
+    border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+}
+
+.role-card.selected .role-check {
+    position: absolute;
+    top: var(--spacing-3);
+    right: var(--spacing-3);
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    box-shadow: var(--shadow-lg);
+    animation: checkmark-appear 0.3s var(--easing-bounce);
+    z-index: 10;
+}
+
+@keyframes checkmark-appear {
+    0% {
+        transform: scale(0) rotate(-180deg);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+    }
+}
+
+.role-icon {
+    font-size: 2.5rem;
+    margin-bottom: var(--spacing-4);
+    text-align: center;
+}
+
+.role-title {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-2);
+    text-align: center;
+}
+
+.role-description {
+    color: var(--color-text-secondary);
+    margin-bottom: var(--spacing-4);
+    line-height: 1.5;
+    text-align: center;
+    font-size: var(--font-size-sm);
+}
+
+.role-scenarios {
+    margin-bottom: var(--spacing-4);
+    font-size: var(--font-size-xs);
+}
+
+.role-scenarios strong {
+    color: var(--color-text-primary);
+    display: block;
+    margin-bottom: var(--spacing-2);
+}
+
+.role-scenarios ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.role-scenarios li {
+    padding: var(--spacing-1) 0;
+    color: var(--color-text-tertiary);
+    position: relative;
+    padding-left: var(--spacing-4);
+}
+
+.role-scenarios li::before {
+    content: "•";
+    color: var(--color-primary-500);
+    position: absolute;
+    left: 0;
+}
+
+.role-risk-level {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: var(--spacing-3);
+    border-top: 1px solid var(--color-border);
+}
+
+.risk-label {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+    font-weight: var(--font-weight-medium);
+}
+
+.risk-badge {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    padding: var(--spacing-1) var(--spacing-2);
+    border-radius: var(--border-radius-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.risk-high { background: var(--color-danger-100); color: var(--color-danger-700); }
+.risk-medium { background: var(--color-warning-100); color: var(--color-warning-700); }
+.risk-low { background: var(--color-success-100); color: var(--color-success-700); }
+
+.custom-role-section {
+    margin-top: var(--spacing-8);
+    padding-top: var(--spacing-8);
+}
+
+.divider {
+    text-align: center;
+    margin-bottom: var(--spacing-6);
+    position: relative;
+    color: var(--color-text-tertiary);
+    font-size: var(--font-size-sm);
+}
+
+.divider::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--color-border);
+    z-index: 1;
+}
+
+.divider span {
+    background: var(--color-surface);
+    padding: 0 var(--spacing-4);
+    position: relative;
+    z-index: 2;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+    cursor: pointer;
+    margin-bottom: var(--spacing-4);
+}
+
+.checkbox-text {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+}
+
+.custom-role-details {
+    background: var(--color-primary-50);
+    border: 1px solid var(--color-primary-200);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-6);
+    margin-top: var(--spacing-4);
+}
+
+.form-textarea {
+    width: 100%;
+    padding: var(--spacing-3) var(--spacing-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    font-size: var(--font-size-sm);
+    font-family: inherit;
+    resize: vertical;
+    min-height: 100px;
+}
+
+.form-textarea:focus {
+    outline: none;
+    border-color: var(--color-primary-500);
+    box-shadow: 0 0 0 3px var(--color-primary-100);
+}
+
+.ai-insight {
+    background: linear-gradient(135deg, var(--neutral-0), var(--primary-25));
+    border: 1px solid var(--primary-200);
+    border-radius: var(--radius-2xl);
+    padding: var(--spacing-6);
+    position: sticky;
+    top: var(--spacing-8);
+    backdrop-filter: blur(10px);
+    box-shadow: var(--shadow-lg);
+    transition: var(--transition-all);
+}
+
+.ai-insight:hover {
+    box-shadow: var(--shadow-xl);
+    transform: translateY(-2px);
+}
+
+.insight-icon {
+    font-size: 2rem;
+    margin-bottom: var(--spacing-4);
+    text-align: center;
+}
+
+.ai-insight h3 {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-3);
+    text-align: center;
+}
+
+.ai-insight > p {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-4);
+}
+
+.insight-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 var(--spacing-4) 0;
+}
+
+.insight-list li {
+    padding: var(--spacing-2) 0;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    position: relative;
+    padding-left: var(--spacing-6);
+}
+
+.insight-list li::before {
+    content: "🤖";
+    position: absolute;
+    left: 0;
+    top: var(--spacing-2);
+}
+
+.role-specific-insight {
+    background: var(--color-primary-50);
+    border-left: 3px solid var(--color-primary-500);
+    padding: var(--spacing-4);
+    border-radius: var(--border-radius-sm);
+}
+
+.role-specific-insight strong {
+    color: var(--color-primary-700);
+    display: block;
+    margin-bottom: var(--spacing-2);
+    font-size: var(--font-size-sm);
+}
+
+.role-specific-insight p {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    margin: 0;
+    line-height: 1.5;
+}
+
+@@media (max-width: 1024px) {
+    .onboarding-content {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-8);
+    }
+    
+    .ai-insight {
+        position: static;
+    }
+}
+
+@@media (max-width: 768px) {
+    .role-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+@code {
+    private RoleSelection roleSelection = new();
+    private string selectedRoleInsight = "";
+
+    private List<Role> availableRoles = new()
+    {
+        new Role
+        {
+            Id = "developer",
+            Title = "Software Developer",
+            Icon = "💻",
+            Description = "Builds applications, handles code repositories, and manages development tools",
+            RiskLevel = "Medium",
+            ExampleScenarios = new[] { "Malicious code dependencies", "Compromised dev tools", "Source code theft attempts" },
+            Insight = "Developers often face unique threats like supply chain attacks, malicious packages, and social engineering targeting their access to codebases and production systems."
+        },
+        new Role
+        {
+            Id = "marketing",
+            Title = "Marketing Professional",
+            Icon = "📈",
+            Description = "Manages campaigns, social media, and customer communications",
+            RiskLevel = "High",
+            ExampleScenarios = new[] { "Brand impersonation scams", "Social media account takeovers", "Customer data phishing" },
+            Insight = "Marketing teams are frequent targets due to their public presence and access to customer data. Training focuses on social media security and brand protection."
+        },
+        new Role
+        {
+            Id = "finance",
+            Title = "Finance & Accounting",
+            Icon = "💰",
+            Description = "Handles financial data, payments, and sensitive business information",
+            RiskLevel = "High",
+            ExampleScenarios = new[] { "Invoice fraud attempts", "Wire transfer scams", "Financial data breaches" },
+            Insight = "Finance teams face sophisticated fraud attempts including CEO impersonation, invoice manipulation, and wire transfer fraud. Training emphasizes verification procedures."
+        },
+        new Role
+        {
+            Id = "hr",
+            Title = "Human Resources",
+            Icon = "👥",
+            Description = "Manages employee data, recruitment, and internal communications",
+            RiskLevel = "High",
+            ExampleScenarios = new[] { "Fake job applications", "Employee data theft", "Payroll fraud attempts" },
+            Insight = "HR professionals handle sensitive personal data and are targets for social engineering attacks aimed at gaining employee information or internal access."
+        },
+        new Role
+        {
+            Id = "sales",
+            Title = "Sales Professional",
+            Icon = "🎯",
+            Description = "Manages client relationships, proposals, and sales communications",
+            RiskLevel = "Medium",
+            ExampleScenarios = new[] { "Client impersonation", "Contract manipulation", "Lead generation scams" },
+            Insight = "Sales teams interact with external contacts frequently, making them vulnerable to client impersonation and business email compromise attacks."
+        },
+        new Role
+        {
+            Id = "executive",
+            Title = "Executive/Management",
+            Icon = "👔",
+            Description = "Makes strategic decisions and handles confidential business information",
+            RiskLevel = "High",
+            ExampleScenarios = new[] { "CEO fraud attempts", "Strategic info theft", "Executive impersonation" },
+            Insight = "Executives are high-value targets for advanced persistent threats, CEO fraud, and attacks aimed at stealing strategic business information."
+        },
+        new Role
+        {
+            Id = "operations",
+            Title = "Operations/Admin",
+            Icon = "⚙️",
+            Description = "Manages daily operations, vendor relationships, and administrative tasks",
+            RiskLevel = "Medium",
+            ExampleScenarios = new[] { "Vendor impersonation", "Process disruption", "Administrative fraud" },
+            Insight = "Operations teams often have broad access to systems and vendor relationships, making them targets for supply chain and administrative fraud attacks."
+        },
+        new Role
+        {
+            Id = "it",
+            Title = "IT/Technical Support",
+            Icon = "🛠️",
+            Description = "Manages systems, provides technical support, and handles IT infrastructure",
+            RiskLevel = "High",
+            ExampleScenarios = new[] { "Privileged access attacks", "System compromise", "Tech support scams" },
+            Insight = "IT professionals are prime targets due to their elevated system access. Training focuses on recognizing attacks targeting administrative privileges and infrastructure."
+        }
+    };
+
+    private void SelectRole(string roleId)
+    {
+        roleSelection.SelectedRoleId = roleId;
+        roleSelection.IsCustomRole = false;
+        roleSelection.CustomRoleDescription = "";
+        
+        var selectedRole = availableRoles.FirstOrDefault(r => r.Id == roleId);
+        selectedRoleInsight = selectedRole?.Insight ?? "";
+    }
+
+    private string GetSelectedRoleTitle()
+    {
+        var selectedRole = availableRoles.FirstOrDefault(r => r.Id == roleSelection.SelectedRoleId);
+        return selectedRole?.Title ?? "your role";
+    }
+
+    private bool IsFormValid()
+    {
+        if (roleSelection.IsCustomRole)
+        {
+            return !string.IsNullOrWhiteSpace(roleSelection.CustomRoleDescription);
+        }
+        return !string.IsNullOrEmpty(roleSelection.SelectedRoleId);
+    }
+
+    private void HandleSubmit()
+    {
+        // Store role selection in session/service
+        Navigation.NavigateTo("/onboarding/step3");
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/onboarding/step1");
+    }
+
+    public class RoleSelection
+    {
+        public string? SelectedRoleId { get; set; }
+        public bool IsCustomRole { get; set; }
+        [RequiredIf(nameof(IsCustomRole), true, ErrorMessage = "Please describe your role")]
+        public string? CustomRoleDescription { get; set; }
+    }
+
+    public class Role
+    {
+        public required string Id { get; set; }
+        public required string Title { get; set; }
+        public required string Icon { get; set; }
+        public required string Description { get; set; }
+        public required string RiskLevel { get; set; }
+        public required string[] ExampleScenarios { get; set; }
+        public required string Insight { get; set; }
+    }
+
+    // Custom validation attribute
+    public class RequiredIfAttribute : ValidationAttribute
+    {
+        private readonly string _propertyName;
+        private readonly object _desiredValue;
+
+        public RequiredIfAttribute(string propertyName, object desiredValue)
+        {
+            _propertyName = propertyName;
+            _desiredValue = desiredValue;
+        }
+
+        protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
+        {
+            var property = validationContext.ObjectType.GetProperty(_propertyName);
+            if (property == null)
+            {
+                return new ValidationResult($"Unknown property: {_propertyName}");
+            }
+
+            var propertyValue = property.GetValue(validationContext.ObjectInstance);
+            
+            if (Equals(propertyValue, _desiredValue))
+            {
+                if (value == null || string.IsNullOrWhiteSpace(value.ToString()))
+                {
+                    return new ValidationResult(ErrorMessage);
+                }
+            }
+
+            return ValidationResult.Success;
+        }
+    }
+}

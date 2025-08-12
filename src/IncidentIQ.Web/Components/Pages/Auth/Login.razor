@@ -1,0 +1,439 @@
+@page "/login"
+@using Microsoft.AspNetCore.Identity
+@using IncidentIQ.Infrastructure.Data
+@rendermode InteractiveServer
+@inject NavigationManager Navigation
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@inject ILogger<Login> Logger
+
+<PageTitle>Sign In - IncidentIQ</PageTitle>
+
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h1 class="auth-title">Welcome Back</h1>
+            <p class="auth-subtitle">Continue your personalized cybersecurity training journey</p>
+        </div>
+
+        <EditForm Model="loginModel" OnValidSubmit="HandleLogin" class="auth-form">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="validation-summary" />
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-error">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    @errorMessage
+                </div>
+            }
+
+            <div class="form-group">
+                <label for="email" class="form-label">Email Address</label>
+                <InputText id="email" type="email" class="form-input" @bind-Value="loginModel.Email" placeholder="Enter your email address" />
+                <ValidationMessage For="() => loginModel.Email" class="validation-message" />
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <InputText id="password" type="password" class="form-input" @bind-Value="loginModel.Password" placeholder="Enter your password" />
+                <ValidationMessage For="() => loginModel.Password" class="validation-message" />
+            </div>
+
+            <div class="form-options">
+                <label class="checkbox-option">
+                    <InputCheckbox @bind-Value="loginModel.RememberMe" />
+                    <span>Remember me for 30 days</span>
+                </label>
+                <a href="/forgot-password" class="auth-link">Forgot your password?</a>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-lg" disabled="@isSubmitting">
+                    @if (isSubmitting)
+                    {
+                        <i class="bi bi-arrow-clockwise spin"></i>
+                        <span>Signing In...</span>
+                    }
+                    else
+                    {
+                        <i class="bi bi-shield-check"></i>
+                        <span>Sign In to Training</span>
+                    }
+                </button>
+            </div>
+        </EditForm>
+
+        <div class="divider">
+            <span>or</span>
+        </div>
+
+        <div class="quick-access">
+            <h3 class="quick-access-title">New to IncidentIQ?</h3>
+            <p class="quick-access-description">
+                Join thousands of security professionals getting personalized cybersecurity training
+            </p>
+            <button class="btn btn-secondary btn-lg" @onclick="NavigateToRegister">
+                <i class="bi bi-person-plus"></i>
+                <span>Create Free Account</span>
+            </button>
+        </div>
+
+        <div class="security-features">
+            <h4 class="features-title">Why Security Teams Choose Us</h4>
+            <div class="features-grid">
+                <div class="feature-item">
+                    <i class="bi bi-robot feature-icon"></i>
+                    <span>AI-Powered Scenarios</span>
+                </div>
+                <div class="feature-item">
+                    <i class="bi bi-person-workspace feature-icon"></i>
+                    <span>Role-Based Training</span>
+                </div>
+                <div class="feature-item">
+                    <i class="bi bi-graph-up-arrow feature-icon"></i>
+                    <span>Measurable ROI</span>
+                </div>
+                <div class="feature-item">
+                    <i class="bi bi-clock feature-icon"></i>
+                    <span>Real-Time Coaching</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.auth-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--color-primary-50) 0%, var(--color-surface) 100%);
+    padding: var(--spacing-6);
+}
+
+.auth-card {
+    background: var(--color-surface);
+    border-radius: var(--border-radius-xl);
+    box-shadow: var(--shadow-xl);
+    padding: var(--spacing-8);
+    width: 100%;
+    max-width: 480px;
+    border: 1px solid var(--color-border);
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: var(--spacing-8);
+}
+
+.auth-title {
+    font-size: 2rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-2);
+}
+
+.auth-subtitle {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-base);
+    margin: 0;
+    line-height: 1.5;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-4);
+    margin-bottom: var(--spacing-6);
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-2);
+}
+
+.form-label {
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-primary);
+    font-size: var(--font-size-sm);
+}
+
+.form-input {
+    padding: var(--spacing-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    font-size: var(--font-size-base);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--color-primary-500);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: var(--spacing-2) 0;
+}
+
+.checkbox-option {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+}
+
+.auth-link {
+    color: var(--color-primary-600);
+    text-decoration: none;
+    font-weight: var(--font-weight-medium);
+    font-size: var(--font-size-sm);
+}
+
+.auth-link:hover {
+    text-decoration: underline;
+}
+
+.form-actions {
+    margin-top: var(--spacing-4);
+}
+
+.btn-lg {
+    padding: var(--spacing-4) var(--spacing-6);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    border-radius: var(--border-radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-2);
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+.btn-lg:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.divider {
+    text-align: center;
+    margin: var(--spacing-6) 0;
+    position: relative;
+    color: var(--color-text-tertiary);
+    font-size: var(--font-size-sm);
+}
+
+.divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background-color: var(--color-border);
+    z-index: 1;
+}
+
+.divider span {
+    background: var(--color-surface);
+    padding: 0 var(--spacing-4);
+    z-index: 2;
+    position: relative;
+}
+
+.quick-access {
+    text-align: center;
+    margin-bottom: var(--spacing-6);
+}
+
+.quick-access-title {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-2);
+}
+
+.quick-access-description {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-4);
+    line-height: 1.5;
+}
+
+.security-features {
+    border-top: 1px solid var(--color-border);
+    padding-top: var(--spacing-6);
+}
+
+.features-title {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    text-align: center;
+    margin-bottom: var(--spacing-4);
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-4);
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+    font-weight: var(--font-weight-medium);
+}
+
+.feature-icon {
+    color: var(--color-primary-600);
+    font-size: var(--font-size-sm);
+}
+
+.spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.alert {
+    padding: var(--spacing-3);
+    border-radius: var(--border-radius-md);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-4);
+}
+
+.alert-error {
+    background-color: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #b91c1c;
+}
+
+.validation-summary {
+    color: #b91c1c;
+    background-color: #fef2f2;
+    border: 1px solid #fecaca;
+    padding: var(--spacing-3);
+    border-radius: var(--border-radius-md);
+    font-size: var(--font-size-sm);
+}
+
+.validation-message {
+    color: #b91c1c;
+    font-size: var(--font-size-xs);
+    margin-top: var(--spacing-1);
+}
+
+@media (max-width: 768px) {
+    .auth-container {
+        padding: var(--spacing-4);
+    }
+    
+    .auth-card {
+        padding: var(--spacing-6);
+    }
+    
+    .form-options {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-2);
+    }
+}
+</style>
+
+@code {
+    private readonly LoginModel loginModel = new();
+    private string errorMessage = string.Empty;
+    private bool isSubmitting = false;
+
+    private async Task HandleLogin()
+    {
+        isSubmitting = true;
+        errorMessage = string.Empty;
+        
+        try
+        {
+            var result = await SignInManager.PasswordSignInAsync(
+                loginModel.Email, 
+                loginModel.Password, 
+                loginModel.RememberMe, 
+                lockoutOnFailure: false
+            );
+
+            if (result.Succeeded)
+            {
+                Logger.LogInformation("User logged in.");
+                
+                // Check if user has completed onboarding
+                var user = await UserManager.FindByEmailAsync(loginModel.Email);
+                if (user != null)
+                {
+                    if (!user.CompletedOnboarding)
+                    {
+                        Navigation.NavigateTo("/onboarding/step1");
+                    }
+                    else
+                    {
+                        Navigation.NavigateTo("/dashboard");
+                    }
+                }
+                else
+                {
+                    Navigation.NavigateTo("/dashboard");
+                }
+            }
+            else if (result.IsLockedOut)
+            {
+                errorMessage = "Your account has been locked due to multiple failed login attempts.";
+            }
+            else
+            {
+                errorMessage = "Invalid email or password. Please try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error occurred during login");
+            errorMessage = "An unexpected error occurred. Please try again.";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void NavigateToRegister()
+    {
+        Navigation.NavigateTo("/register");
+    }
+
+    public class LoginModel
+    {
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Please enter a valid email address")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Password is required")]
+        public string Password { get; set; } = string.Empty;
+
+        public bool RememberMe { get; set; }
+    }
+}

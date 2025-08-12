@@ -1,0 +1,792 @@
+@page "/training/personalized/{recommendationId}"
+@using IncidentIQ.Application.Interfaces
+@using IncidentIQ.Application.Models
+@inject IPersonalizedScenarioService ScenarioService
+@inject IUserProfileService ProfileService
+@inject NavigationManager Navigation
+
+<PageTitle>Personalized Training - @scenarioTitle | IncidentIQ</PageTitle>
+
+<div class="training-container">
+    @if (currentScenario != null)
+    {
+        <!-- Training Header -->
+        <div class="training-header">
+            <div class="breadcrumb">
+                <a href="/onboarding/step5">← Back to Dashboard</a>
+            </div>
+            <h1 class="training-title">@currentScenario.Title</h1>
+            <div class="scenario-metadata">
+                <div class="metadata-item">
+                    <span class="metadata-label">Type:</span>
+                    <span class="metadata-value scenario-type">@FormatScenarioType(currentScenario.ScenarioType)</span>
+                </div>
+                <div class="metadata-item">
+                    <span class="metadata-label">Difficulty:</span>
+                    <span class="metadata-value difficulty-@currentScenario.DifficultyLevel">@currentScenario.DifficultyLevel.ToUpper()</span>
+                </div>
+                <div class="metadata-item">
+                    <span class="metadata-label">Duration:</span>
+                    <span class="metadata-value">@currentScenario.EstimatedDurationMinutes min</span>
+                </div>
+                <div class="metadata-item">
+                    <span class="metadata-label">Company:</span>
+                    <span class="metadata-value">@currentScenario.CompanyContext</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Personalization Context -->
+        <div class="personalization-banner">
+            <div class="banner-icon">🎯</div>
+            <div class="banner-content">
+                <h3>Personalized for You</h3>
+                <p>This scenario has been specifically tailored for <strong>@userProfile?.JobTitle</strong> professionals at <strong>@userProfile?.Company</strong> in the <strong>@userProfile?.Industry</strong> industry.</p>
+            </div>
+        </div>
+
+        <!-- Learning Objectives -->
+        <div class="learning-objectives">
+            <h3>What You'll Learn</h3>
+            <ul class="objectives-list">
+                @foreach (var objective in currentScenario.LearningObjectives)
+                {
+                    <li>@objective</li>
+                }
+            </ul>
+        </div>
+
+        <!-- Email Scenario Display -->
+        @if (!string.IsNullOrEmpty(currentScenario.Content.EmailBody))
+        {
+            <div class="email-scenario">
+                <div class="email-header">
+                    <h3>📧 Email Security Challenge</h3>
+                    <p>You received this email in your <strong>@userProfile?.Company</strong> inbox. What would you do?</p>
+                </div>
+                
+                <div class="fake-email">
+                    <div class="email-meta">
+                        <div class="email-from">
+                            <strong>From:</strong> @currentScenario.Content.EmailSender
+                        </div>
+                        <div class="email-to">
+                            <strong>To:</strong> @userProfile?.FirstName.ToLower()@ExtractEmailDomain(userProfile?.Email)
+                        </div>
+                        <div class="email-subject">
+                            <strong>Subject:</strong> @currentScenario.Content.EmailSubject
+                        </div>
+                        <div class="email-date">
+                            <strong>Date:</strong> @DateTime.Now.ToString("MMM dd, yyyy h:mm tt")
+                        </div>
+                    </div>
+                    
+                    <div class="email-body">
+                        @((MarkupString)FormatEmailBody(currentScenario.Content.EmailBody))
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="action-btn reply" @onclick="@(() => SelectAction(\"reply\"))">
+                        📨 Reply
+                    </button>
+                    <button class="action-btn forward" @onclick="@(() => SelectAction(\"forward\"))">
+                        ↗ Forward
+                    </button>
+                    <button class="action-btn click-link" @onclick="@(() => SelectAction(\"click_link\"))">
+                        🔗 Click Link
+                    </button>
+                    <button class="action-btn report" @onclick="@(() => SelectAction(\"report_phishing\"))">
+                        🚨 Report as Phishing
+                    </button>
+                    <button class="action-btn delete" @onclick="@(() => SelectAction(\"delete\"))">
+                        🗑 Delete
+                    </button>
+                    <button class="action-btn verify" @onclick="@(() => SelectAction(\"verify_sender\"))">
+                        ✅ Verify Sender
+                    </button>
+                </div>
+            </div>
+        }
+
+        <!-- Feedback Section -->
+        @if (!string.IsNullOrEmpty(selectedAction))
+        {
+            <div class="feedback-section @(isCorrectAction ? "correct" : "incorrect")">
+                <div class="feedback-header">
+                    <div class="feedback-icon">@(isCorrectAction ? "✅" : "❌")</div>
+                    <h3>@(isCorrectAction ? "Excellent Choice!" : "Let's Learn from This")</h3>
+                </div>
+                
+                @if (isCorrectAction)
+                {
+                    <div class="feedback-content">
+                        <p><strong>Why this was correct:</strong></p>
+                        <p>@currentScenario.Content.CorrectAction</p>
+                        <p>You successfully identified the security threat and took appropriate action to protect <strong>@userProfile?.Company</strong> from potential compromise.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="feedback-content">
+                        <p><strong>Why this could be dangerous:</strong></p>
+                        <p>@currentScenario.Content.IncorrectConsequence</p>
+                        <p><strong>What you should have done:</strong></p>
+                        <p>@currentScenario.Content.CorrectAction</p>
+                    </div>
+                }
+
+                <!-- Red Flags Analysis -->
+                <div class="red-flags-analysis">
+                    <h4>🚩 Red Flags in This Email</h4>
+                    <ul class="red-flags-list">
+                        @foreach (var flag in currentScenario.Content.RedFlags)
+                        {
+                            <li>@flag</li>
+                        }
+                    </ul>
+                </div>
+
+                <!-- Industry-Specific Insights -->
+                <div class="industry-insights">
+                    <h4>💡 @userProfile?.Industry Industry Insights</h4>
+                    <p>Attacks like this are particularly common in the @userProfile?.Industry sector because:</p>
+                    <ul>
+                        @foreach (var insight in GetIndustryInsights())
+                        {
+                            <li>@insight</li>
+                        }
+                    </ul>
+                </div>
+
+                <!-- Next Steps -->
+                <div class="next-steps">
+                    <h4>🎯 Recommended Next Steps</h4>
+                    <div class="next-step-actions">
+                        <button class="btn btn-primary" @onclick="CompleteScenario">
+                            Complete Training
+                        </button>
+                        <button class="btn btn-secondary" @onclick="TryAnotherScenario">
+                            Try Another Scenario
+                        </button>
+                        <button class="btn btn-outline" @onclick="ViewAnalytics">
+                            View My Progress
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="loading-scenario">
+            <div class="loading-spinner"></div>
+            <p>Loading your personalized training scenario...</p>
+        </div>
+    }
+</div>
+
+<style>
+.training-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: var(--spacing-6);
+    background: var(--color-surface);
+}
+
+.training-header {
+    margin-bottom: var(--spacing-8);
+}
+
+.breadcrumb a {
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    font-size: var(--font-size-sm);
+    transition: color 0.3s ease;
+}
+
+.breadcrumb a:hover {
+    color: var(--color-primary-600);
+}
+
+.training-title {
+    font-size: 2rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    margin: var(--spacing-4) 0;
+}
+
+.scenario-metadata {
+    display: flex;
+    gap: var(--spacing-6);
+    flex-wrap: wrap;
+    margin-top: var(--spacing-4);
+}
+
+.metadata-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+
+.metadata-label {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    font-weight: var(--font-weight-medium);
+}
+
+.metadata-value {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-primary);
+    font-weight: var(--font-weight-semibold);
+}
+
+.scenario-type {
+    background: var(--color-primary-100);
+    color: var(--color-primary-700);
+    padding: var(--spacing-1) var(--spacing-2);
+    border-radius: var(--border-radius-sm);
+}
+
+.difficulty-easy { color: var(--color-success-600); }
+.difficulty-intermediate { color: var(--color-warning-600); }
+.difficulty-challenging { color: var(--color-danger-600); }
+.difficulty-expert { color: var(--color-danger-700); }
+
+.personalization-banner {
+    background: linear-gradient(135deg, var(--color-success-50), var(--color-success-100));
+    border: 1px solid var(--color-success-200);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-6);
+    margin-bottom: var(--spacing-8);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-4);
+}
+
+.banner-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+}
+
+.banner-content h3 {
+    color: var(--color-success-700);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--spacing-2);
+}
+
+.banner-content p {
+    color: var(--color-text-secondary);
+    margin: 0;
+    line-height: 1.5;
+}
+
+.learning-objectives {
+    background: var(--color-primary-50);
+    border: 1px solid var(--color-primary-200);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-6);
+    margin-bottom: var(--spacing-8);
+}
+
+.learning-objectives h3 {
+    color: var(--color-primary-700);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--spacing-4);
+}
+
+.objectives-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.objectives-list li {
+    padding: var(--spacing-2) 0;
+    padding-left: var(--spacing-6);
+    position: relative;
+    color: var(--color-text-secondary);
+}
+
+.objectives-list li::before {
+    content: "🎯";
+    position: absolute;
+    left: 0;
+    top: var(--spacing-2);
+}
+
+.email-scenario {
+    margin-bottom: var(--spacing-8);
+}
+
+.email-header {
+    margin-bottom: var(--spacing-6);
+    text-align: center;
+    padding: var(--spacing-4);
+    background: var(--color-warning-50);
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--color-warning-200);
+}
+
+.email-header h3 {
+    color: var(--color-warning-700);
+    margin-bottom: var(--spacing-2);
+}
+
+.email-header p {
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
+.fake-email {
+    background: white;
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    margin-bottom: var(--spacing-6);
+    box-shadow: var(--shadow-sm);
+}
+
+.email-meta {
+    background: var(--color-surface);
+    padding: var(--spacing-4);
+    border-bottom: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md) var(--border-radius-md) 0 0;
+    font-family: 'Courier New', monospace;
+    font-size: var(--font-size-sm);
+}
+
+.email-meta > div {
+    margin-bottom: var(--spacing-2);
+}
+
+.email-meta > div:last-child {
+    margin-bottom: 0;
+}
+
+.email-body {
+    padding: var(--spacing-6);
+    line-height: 1.6;
+    color: var(--color-text-primary);
+}
+
+.action-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-3);
+    margin-bottom: var(--spacing-8);
+}
+
+.action-btn {
+    padding: var(--spacing-3) var(--spacing-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    background: var(--color-surface);
+    color: var(--color-text-primary);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-2);
+}
+
+.action-btn:hover {
+    background: var(--color-primary-50);
+    border-color: var(--color-primary-300);
+    color: var(--color-primary-700);
+    transform: translateY(-1px);
+}
+
+.feedback-section {
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-8);
+    margin-bottom: var(--spacing-8);
+    border: 2px solid;
+}
+
+.feedback-section.correct {
+    background: var(--color-success-50);
+    border-color: var(--color-success-200);
+}
+
+.feedback-section.incorrect {
+    background: var(--color-danger-50);
+    border-color: var(--color-danger-200);
+}
+
+.feedback-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-4);
+    margin-bottom: var(--spacing-6);
+}
+
+.feedback-icon {
+    font-size: 2rem;
+}
+
+.feedback-header h3 {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    margin: 0;
+}
+
+.correct .feedback-header h3 {
+    color: var(--color-success-700);
+}
+
+.incorrect .feedback-header h3 {
+    color: var(--color-danger-700);
+}
+
+.feedback-content {
+    margin-bottom: var(--spacing-6);
+}
+
+.feedback-content p {
+    margin-bottom: var(--spacing-3);
+    line-height: 1.6;
+    color: var(--color-text-secondary);
+}
+
+.feedback-content strong {
+    color: var(--color-text-primary);
+}
+
+.red-flags-analysis,
+.industry-insights {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-4);
+    margin-bottom: var(--spacing-4);
+}
+
+.red-flags-analysis h4,
+.industry-insights h4 {
+    color: var(--color-text-primary);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--spacing-3);
+}
+
+.red-flags-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.red-flags-list li {
+    padding: var(--spacing-2) 0;
+    padding-left: var(--spacing-6);
+    position: relative;
+    color: var(--color-text-secondary);
+}
+
+.red-flags-list li::before {
+    content: "🚩";
+    position: absolute;
+    left: 0;
+    top: var(--spacing-2);
+}
+
+.industry-insights ul {
+    margin-top: var(--spacing-3);
+    padding-left: var(--spacing-4);
+}
+
+.industry-insights li {
+    margin-bottom: var(--spacing-2);
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+}
+
+.next-steps {
+    background: var(--color-primary-50);
+    border: 1px solid var(--color-primary-200);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-6);
+    text-align: center;
+}
+
+.next-steps h4 {
+    color: var(--color-primary-700);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--spacing-4);
+}
+
+.next-step-actions {
+    display: flex;
+    gap: var(--spacing-4);
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: var(--spacing-3) var(--spacing-6);
+    border-radius: var(--border-radius-md);
+    font-weight: var(--font-weight-medium);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-primary {
+    background: var(--color-primary-600);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--color-primary-700);
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: var(--color-surface);
+    color: var(--color-primary-600);
+    border: 1px solid var(--color-primary-300);
+}
+
+.btn-secondary:hover {
+    background: var(--color-primary-50);
+}
+
+.btn-outline {
+    background: transparent;
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
+}
+
+.btn-outline:hover {
+    background: var(--color-surface);
+    color: var(--color-text-primary);
+}
+
+.loading-scenario {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-16);
+    text-align: center;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--color-border);
+    border-top: 3px solid var(--color-primary-500);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: var(--spacing-4);
+}
+
+@@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@@media (max-width: 768px) {
+    .training-container {
+        padding: var(--spacing-4);
+    }
+    
+    .scenario-metadata {
+        flex-direction: column;
+        gap: var(--spacing-2);
+    }
+    
+    .personalization-banner {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .action-buttons {
+        grid-template-columns: 1fr;
+    }
+    
+    .next-step-actions {
+        flex-direction: column;
+    }
+    
+    .btn {
+        width: 100%;
+    }
+}
+</style>
+
+@code {
+    [Parameter] public string RecommendationId { get; set; } = "";
+    
+    private TrainingScenario? currentScenario;
+    private UserProfile? userProfile;
+    private string scenarioTitle = "Loading...";
+    private string selectedAction = "";
+    private bool isCorrectAction = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            await LoadScenario();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading scenario: {ex.Message}");
+        }
+    }
+
+    private async Task LoadScenario()
+    {
+        // For demo purposes, we'll use a test user ID
+        var userId = "demo-user-123";
+        
+        // Load user profile
+        userProfile = await ProfileService.GetUserProfileAsync(userId);
+        
+        if (userProfile == null)
+        {
+            // Create demo profile
+            userProfile = new UserProfile
+            {
+                UserId = userId,
+                FirstName = "Alex",
+                LastName = "Johnson",
+                Company = "TechCorp Solutions",
+                JobTitle = "Software Engineer",
+                Industry = "Technology",
+                SelectedRoleId = "developer",
+                ExperienceLevel = "intermediate",
+                Email = "alex.johnson@techcorp.com"
+            };
+        }
+
+        // Get scenario template and generate personalized scenario
+        var templates = await ScenarioService.GetTemplatesForRoleAsync(userProfile.SelectedRoleId ?? "developer");
+        var template = templates.FirstOrDefault();
+        
+        if (template != null)
+        {
+            currentScenario = await ScenarioService.CreatePersonalizedScenarioAsync(userId, template);
+            scenarioTitle = currentScenario.Title;
+        }
+    }
+
+    private void SelectAction(string action)
+    {
+        selectedAction = action;
+        
+        // Determine if the action was correct
+        isCorrectAction = action switch
+        {
+            "report_phishing" => true,
+            "verify_sender" => true,
+            "delete" => true, // Acceptable but not best practice
+            _ => false
+        };
+
+        StateHasChanged();
+    }
+
+    private string FormatScenarioType(string scenarioType)
+    {
+        return scenarioType switch
+        {
+            "phishing" => "Email Phishing",
+            "social_engineering" => "Social Engineering",
+            "wire_fraud" => "Wire Fraud",
+            "supply_chain" => "Supply Chain Attack",
+            _ => ToTitleCase(scenarioType.Replace("_", " "))
+        };
+    }
+
+    private string FormatEmailBody(string? emailBody)
+    {
+        if (string.IsNullOrEmpty(emailBody)) return "";
+        
+        // Convert line breaks to HTML
+        return emailBody.Replace("\n", "<br>").Replace("\r", "");
+    }
+
+    private string ExtractEmailDomain(string? email)
+    {
+        if (string.IsNullOrEmpty(email)) return "@techcorp.com";
+        
+        var parts = email.Split('@');
+        return parts.Length > 1 ? $"@{parts[1]}" : "@techcorp.com";
+    }
+
+    private List<string> GetIndustryInsights()
+    {
+        return userProfile?.Industry switch
+        {
+            "Technology" => new List<string>
+            {
+                "Tech companies are prime targets for supply chain attacks",
+                "Developers have access to sensitive intellectual property",
+                "Remote work increases phishing attack surface"
+            },
+            "Financial Services" => new List<string>
+            {
+                "Financial institutions face regulatory compliance requirements",
+                "High-value targets for wire fraud and data theft",
+                "Customer trust is critical for business operations"
+            },
+            "Healthcare" => new List<string>
+            {
+                "HIPAA compliance requires strict data protection",
+                "Patient data is valuable on the dark web",
+                "Medical devices can be entry points for attackers"
+            },
+            _ => new List<string>
+            {
+                "Cybersecurity awareness is crucial for all industries",
+                "Social engineering attacks are becoming more sophisticated",
+                "Regular training helps build security-conscious culture"
+            }
+        };
+    }
+
+    private async Task CompleteScenario()
+    {
+        // In a real implementation, we'd record the completion
+        await ScenarioService.UpdateScenarioPerformanceAsync(
+            userProfile?.UserId ?? "demo-user-123", 
+            currentScenario?.Id ?? "", 
+            isCorrectAction ? 1.0 : 0.0, 
+            TimeSpan.FromMinutes(5)
+        );
+
+        Navigation.NavigateTo("/onboarding/step5");
+    }
+
+    private void TryAnotherScenario()
+    {
+        Navigation.NavigateTo("/onboarding/step5");
+    }
+
+    private void ViewAnalytics()
+    {
+        Navigation.NavigateTo("/analytics");
+    }
+
+    private string ToTitleCase(string input)
+    {
+        if (string.IsNullOrEmpty(input)) return input;
+        
+        var words = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        for (int i = 0; i < words.Length; i++)
+        {
+            words[i] = char.ToUpper(words[i][0]) + words[i].Substring(1).ToLower();
+        }
+        
+        return string.Join(" ", words);
+    }
+}

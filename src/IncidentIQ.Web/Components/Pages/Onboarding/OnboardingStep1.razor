@@ -1,0 +1,464 @@
+@page "/onboarding/step1"
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Authorization
+@using System.ComponentModel.DataAnnotations
+@attribute [Authorize]
+@inject NavigationManager Navigation
+
+<PageTitle>Get Started - Basic Information | IncidentIQ</PageTitle>
+
+<div class="onboarding-container">
+    <div class="onboarding-header">
+        <div class="progress-indicator">
+            <div class="step active">1</div>
+            <div class="step-connector"></div>
+            <div class="step">2</div>
+            <div class="step-connector"></div>
+            <div class="step">3</div>
+            <div class="step-connector"></div>
+            <div class="step">4</div>
+            <div class="step-connector"></div>
+            <div class="step">5</div>
+        </div>
+        <h1 class="onboarding-title">Enhance Your Security Profile</h1>
+        <p class="onboarding-subtitle">Help us create more realistic and personalized training scenarios by sharing details about your work environment</p>
+    </div>
+
+    <div class="onboarding-content">
+        <EditForm Model="@userInfo" OnValidSubmit="@HandleSubmit">
+            <DataAnnotationsValidator />
+            
+            <div class="form-section">
+                <h2 class="section-title">Work Environment Context</h2>
+                <p class="section-description">This information helps our AI create realistic phishing emails and social engineering scenarios specific to your workplace.</p>
+                
+                <div class="form-group">
+                    <label for="colleagues" class="form-label">Colleague Names</label>
+                    <InputTextArea id="colleagues" @bind-Value="userInfo.Colleagues" class="form-input textarea" rows="3" 
+                                   placeholder="e.g., Sarah Johnson (Manager), Mike Chen (Developer), Lisa Rodriguez (HR)" />
+                    <div class="form-hint">Enter names of colleagues you work with regularly. This helps create realistic impersonation scenarios.</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="tools" class="form-label">Tools & Systems You Use</label>
+                    <InputTextArea id="tools" @bind-Value="userInfo.ToolsAndSystems" class="form-input textarea" rows="3" 
+                                   placeholder="e.g., Slack, Jira, AWS, GitHub, Salesforce, Office 365" />
+                    <div class="form-hint">List the main software and platforms you use at work. This helps create targeted attack scenarios.</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="projects" class="form-label">Recent Projects or Initiatives</label>
+                    <InputTextArea id="projects" @bind-Value="userInfo.RecentProjects" class="form-input textarea" rows="3" 
+                                   placeholder="e.g., Mobile app redesign, Q4 marketing campaign, customer data migration" />
+                    <div class="form-hint">Current or recent work projects. This helps create contextually relevant social engineering scenarios.</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="companySize" class="form-label">Company Size (Approximate)</label>
+                    <InputSelect id="companySize" @bind-Value="userInfo.CompanySize" class="form-input">
+                        <option value="">Select company size</option>
+                        <option value="1-10">1-10 employees (Startup)</option>
+                        <option value="11-50">11-50 employees (Small business)</option>
+                        <option value="51-200">51-200 employees (Medium business)</option>
+                        <option value="201-1000">201-1,000 employees (Large business)</option>
+                        <option value="1000+">1,000+ employees (Enterprise)</option>
+                    </InputSelect>
+                    <div class="form-hint">Company size affects the types of attacks you might face</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="industry" class="form-label">Industry</label>
+                    <InputSelect id="industry" @bind-Value="userInfo.Industry" class="form-input">
+                        <option value="">Select industry</option>
+                        <option value="technology">Technology</option>
+                        <option value="healthcare">Healthcare</option>
+                        <option value="finance">Finance & Banking</option>
+                        <option value="retail">Retail & E-commerce</option>
+                        <option value="manufacturing">Manufacturing</option>
+                        <option value="education">Education</option>
+                        <option value="government">Government</option>
+                        <option value="consulting">Consulting</option>
+                        <option value="media">Media & Entertainment</option>
+                        <option value="other">Other</option>
+                    </InputSelect>
+                    <div class="form-hint">Different industries face different types of security threats</div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" @onclick="GoBack">
+                    <i class="icon-arrow-left"></i>
+                    Back to Welcome
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    Continue to Security Assessment
+                    <i class="icon-arrow-right"></i>
+                </button>
+            </div>
+        </EditForm>
+
+        <!-- AI Preview -->
+        <div class="ai-preview">
+            <div class="preview-icon">🤖</div>
+            <h3>How we use this information</h3>
+            <p>Our AI analyzes your work context to create realistic phishing emails using your colleagues' names, familiar tools, and current projects. This makes the training scenarios feel authentic and relevant to your daily work.</p>
+        </div>
+    </div>
+</div>
+
+<style>
+.onboarding-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--primary-50) 0%, var(--neutral-25) 50%, var(--neutral-0) 100%);
+    padding: var(--spacing-8) var(--spacing-4);
+    position: relative;
+    overflow: hidden;
+}
+
+.onboarding-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 70% 30%, rgba(99, 102, 241, 0.04) 0%, transparent 40%),
+        radial-gradient(circle at 30% 70%, rgba(99, 102, 241, 0.06) 0%, transparent 40%);
+    pointer-events: none;
+}
+
+.onboarding-header {
+    max-width: 800px;
+    margin: 0 auto var(--spacing-12);
+    text-align: center;
+}
+
+.progress-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: var(--spacing-8);
+}
+
+.step {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--color-border);
+    color: var(--color-text-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: var(--font-weight-semibold);
+    font-size: var(--font-size-sm);
+    transition: all 0.3s var(--easing-smooth);
+}
+
+.step.active {
+    background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
+    color: white;
+    box-shadow: 0 0 0 4px var(--primary-100), var(--shadow-primary);
+    transform: scale(1.1);
+}
+
+.step.completed {
+    background: linear-gradient(135deg, var(--success-500), var(--success-600));
+    color: white;
+    transform: scale(1.05);
+}
+
+.step-connector.completed {
+    background: linear-gradient(90deg, var(--success-500), var(--primary-500));
+    height: 3px;
+}
+
+.step-connector {
+    width: 60px;
+    height: 2px;
+    background: var(--color-border);
+    margin: 0 var(--spacing-2);
+}
+
+.onboarding-title {
+    font-size: 2.5rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-4);
+}
+
+.onboarding-subtitle {
+    font-size: var(--font-size-lg);
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.onboarding-content {
+    max-width: 800px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: var(--spacing-12);
+    align-items: start;
+}
+
+.form-section {
+    background: var(--neutral-0);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-2xl);
+    padding: var(--spacing-8);
+    box-shadow: var(--shadow-md);
+    position: relative;
+    backdrop-filter: blur(10px);
+    transition: var(--transition-all);
+}
+
+.form-section:hover {
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary-200);
+}
+
+.section-title {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-6);
+    padding-bottom: var(--spacing-4);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.form-group {
+    margin-bottom: var(--spacing-6);
+}
+
+.form-label {
+    display: block;
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-2);
+    font-size: var(--font-size-sm);
+}
+
+.form-input {
+    width: 100%;
+    padding: var(--spacing-3) var(--spacing-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    font-size: var(--font-size-md);
+    transition: all 0.3s var(--easing-smooth);
+    background: var(--color-surface);
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 3px var(--primary-100), var(--shadow-primary);
+    transform: translateY(-1px);
+}
+
+.form-input.textarea {
+    resize: vertical;
+    min-height: 80px;
+    font-family: inherit;
+}
+
+.section-description {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-6);
+    line-height: 1.5;
+    font-style: italic;
+}
+
+.form-hint {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-tertiary);
+    margin-top: var(--spacing-1);
+    font-style: italic;
+}
+
+.validation-message {
+    font-size: var(--font-size-xs);
+    color: var(--color-danger-600);
+    margin-top: var(--spacing-1);
+}
+
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: var(--spacing-8);
+    padding-top: var(--spacing-6);
+    border-top: 1px solid var(--color-border);
+}
+
+.btn {
+    padding: var(--spacing-3) var(--spacing-6);
+    border-radius: var(--border-radius-md);
+    font-weight: var(--font-weight-medium);
+    font-size: var(--font-size-sm);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    transition: all 0.3s var(--easing-smooth);
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.btn-primary:hover::before {
+    left: 100%;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--primary-700), var(--primary-800));
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-primary-lg);
+}
+
+.btn-secondary {
+    background: transparent;
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
+}
+
+.btn-secondary:hover {
+    background: var(--color-primary-50);
+    color: var(--color-primary-700);
+    border-color: var(--color-primary-200);
+}
+
+.ai-preview {
+    background: linear-gradient(135deg, var(--neutral-0), var(--primary-25));
+    border: 1px solid var(--primary-200);
+    border-radius: var(--radius-2xl);
+    padding: var(--spacing-6);
+    text-align: center;
+    box-shadow: var(--shadow-lg);
+    position: sticky;
+    top: var(--spacing-8);
+    backdrop-filter: blur(10px);
+    transition: var(--transition-all);
+}
+
+.ai-preview:hover {
+    box-shadow: var(--shadow-xl);
+    transform: translateY(-2px);
+}
+
+.preview-icon {
+    font-size: 2.5rem;
+    margin-bottom: var(--spacing-4);
+}
+
+.ai-preview h3 {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-3);
+}
+
+.ai-preview p {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    line-height: 1.6;
+}
+
+.icon-arrow-left::before { content: "←"; }
+.icon-arrow-right::before { content: "→"; }
+
+@@media (max-width: 1024px) {
+    .onboarding-content {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-8);
+    }
+    
+    .ai-preview {
+        position: static;
+    }
+}
+
+@@media (max-width: 768px) {
+    .onboarding-container {
+        padding: var(--spacing-4) var(--spacing-2);
+    }
+    
+    .progress-indicator {
+        overflow-x: auto;
+        padding-bottom: var(--spacing-2);
+    }
+    
+    .onboarding-title {
+        font-size: 2rem;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+        gap: var(--spacing-4);
+    }
+    
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+
+@code {
+    private WorkEnvironmentInfo userInfo = new();
+
+    protected override void OnInitialized()
+    {
+        // Pre-populate with demo data for development
+        userInfo.Colleagues = "Sarah Johnson (Manager), Mike Chen (Senior Developer), Lisa Rodriguez (HR)";
+        userInfo.ToolsAndSystems = "Slack, Jira, GitHub, AWS, Docker, Visual Studio Code";
+        userInfo.RecentProjects = "Mobile app security audit, API authentication redesign, Customer data encryption upgrade";
+        userInfo.CompanySize = "201-1000";
+        userInfo.Industry = "technology";
+    }
+
+    private void HandleSubmit()
+    {
+        // Store user info in session/service
+        // For now, navigate to next step
+        Navigation.NavigateTo("/onboarding/step2");
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/dashboard");
+    }
+
+    public class WorkEnvironmentInfo
+    {
+        public string Colleagues { get; set; } = "";
+        
+        public string ToolsAndSystems { get; set; } = "";
+        
+        public string RecentProjects { get; set; } = "";
+        
+        public string CompanySize { get; set; } = "";
+        
+        public string Industry { get; set; } = "";
+    }
+}

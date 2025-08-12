@@ -1,0 +1,885 @@
+@page "/onboarding/step5"
+@using IncidentIQ.Application.Interfaces
+@using IncidentIQ.Application.Models
+@inject NavigationManager Navigation
+@inject IPersonalizedScenarioService ScenarioService
+@inject IUserProfileService ProfileService
+
+<PageTitle>Welcome to Your Personalized Dashboard | IncidentIQ</PageTitle>
+
+<div class="onboarding-container">
+    <div class="onboarding-header">
+        <div class="progress-indicator">
+            <div class="step completed">1</div>
+            <div class="step-connector completed"></div>
+            <div class="step completed">2</div>
+            <div class="step-connector completed"></div>
+            <div class="step completed">3</div>
+            <div class="step-connector completed"></div>
+            <div class="step completed">4</div>
+            <div class="step-connector completed"></div>
+            <div class="step completed">5</div>
+        </div>
+        <div class="success-animation">
+            <div class="success-icon">🎉</div>
+            <h1 class="onboarding-title">Welcome to IncidentIQ, Alex!</h1>
+            <p class="onboarding-subtitle">Your personalized cybersecurity training environment is ready. Let's explore what we've prepared for you.</p>
+        </div>
+    </div>
+
+    <div class="dashboard-preview">
+        <!-- Personalized Recommendations -->
+        <div class="recommendations-section">
+            <h2 class="section-title">
+                <span class="title-icon">🎯</span>
+                Personalized for You
+            </h2>
+            <div class="recommendations-grid">
+                @if (personalizedRecommendations.Any())
+                {
+                    @foreach (var recommendation in personalizedRecommendations.Take(3))
+                    {
+                        <div class="recommendation-card priority-@recommendation.Priority">
+                            <div class="card-header">
+                                <div class="card-icon">@GetScenarioIcon(recommendation.ScenarioType)</div>
+                                <div class="card-meta">
+                                    <h3>@recommendation.Title</h3>
+                                    <span class="difficulty-badge @GetDifficultyClass(recommendation.EstimatedDurationMinutes)">@GetDifficultyLabel(recommendation.EstimatedDurationMinutes)</span>
+                                </div>
+                            </div>
+                            <p class="card-description">
+                                @recommendation.Description
+                            </p>
+                            <div class="personalization-context">
+                                <div class="context-item">
+                                    <strong>Company Context:</strong> @recommendation.CompanySpecificContext
+                                </div>
+                                <div class="context-item">
+                                    <strong>Industry:</strong> @recommendation.IndustryContext
+                                </div>
+                            </div>
+                            <div class="card-stats">
+                                <div class="stat">
+                                    <span class="stat-label">Learning Outcomes:</span>
+                                    <span class="stat-value">@recommendation.LearningOutcomes.Count objectives</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-label">Duration:</span>
+                                    <span class="stat-value">@recommendation.EstimatedDurationMinutes minutes</span>
+                                </div>
+                            </div>
+                            <div class="recommendation-reason">
+                                <small><strong>Why this matters:</strong> @recommendation.ReasonForRecommendation</small>
+                            </div>
+                            <button class="btn @(recommendation.Priority == "high" ? "btn-primary" : "btn-secondary")" 
+                                    @onclick="() => StartPersonalizedTraining(recommendation.Id)">
+                                Start Training
+                            </button>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="loading-recommendations">
+                        <div class="loading-spinner"></div>
+                        <p>Loading your personalized training recommendations...</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- AI Coach Introduction -->
+        <div class="coach-introduction">
+            <div class="coach-card">
+                <div class="coach-avatar">🤖</div>
+                <div class="coach-content">
+                    <h3>Meet SecuritySensei, Your AI Coach</h3>
+                    <p>I'm your personalized AI security coach, calibrated for your role as a Software Engineer at TechCorp Solutions. I'll provide real-time guidance, explain the 'why' behind security decisions, and adapt to your learning pace.</p>
+                    <div class="coach-capabilities">
+                        <div class="capability">
+                            <span class="capability-icon">💡</span>
+                            <span>Real-time threat analysis</span>
+                        </div>
+                        <div class="capability">
+                            <span class="capability-icon">📈</span>
+                            <span>Progress tracking & insights</span>
+                        </div>
+                        <div class="capability">
+                            <span class="capability-icon">🎯</span>
+                            <span>Personalized difficulty adjustment</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Wins -->
+        <div class="quick-wins-section">
+            <h2 class="section-title">
+                <span class="title-icon">⚡</span>
+                Quick Wins - Start Here
+            </h2>
+            <div class="quick-wins-grid">
+                <div class="quick-win-card">
+                    <div class="win-icon">📧</div>
+                    <h4>Spot the Phish</h4>
+                    <p>Test your ability to identify suspicious emails in under 5 minutes</p>
+                    <button class="btn btn-sm btn-primary" @onclick="@(() => StartQuickWin(\"spot-phish\"))">
+                        2 min challenge
+                    </button>
+                </div>
+                
+                <div class="quick-win-card">
+                    <div class="win-icon">🔍</div>
+                    <h4>URL Safety Check</h4>
+                    <p>Learn to identify malicious links and suspicious domains quickly</p>
+                    <button class="btn btn-sm btn-primary" @onclick="@(() => StartQuickWin(\"url-check\"))">
+                        3 min lesson
+                    </button>
+                </div>
+                
+                <div class="quick-win-card">
+                    <div class="win-icon">🛡️</div>
+                    <h4>Security Habits Quiz</h4>
+                    <p>Quick assessment of your current security practices and habits</p>
+                    <button class="btn btn-sm btn-primary" @onclick="@(() => StartQuickWin(\"habits-quiz\"))">
+                        5 min quiz
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Personalized Insights -->
+        <div class="insights-section">
+            <h2 class="section-title">
+                <span class="title-icon">📊</span>
+                Your Security Profile Insights
+            </h2>
+            <div class="insights-grid">
+                <div class="insight-card">
+                    <div class="insight-header">
+                        <span class="insight-icon">👥</span>
+                        <h4>Role-Based Risk Assessment</h4>
+                    </div>
+                    <div class="insight-content">
+                        <div class="risk-meter">
+                            <div class="risk-level medium" style="width: 65%"></div>
+                        </div>
+                        <p><strong>Medium Risk Profile:</strong> As a Software Engineer, you have elevated exposure to supply chain attacks, malicious code repositories, and social engineering targeting developer tools.</p>
+                    </div>
+                </div>
+                
+                <div class="insight-card">
+                    <div class="insight-header">
+                        <span class="insight-icon">🏢</span>
+                        <h4>Industry Threat Landscape</h4>
+                    </div>
+                    <div class="insight-content">
+                        <div class="threat-stats">
+                            <div class="threat-stat">
+                                <span class="stat-number">78%</span>
+                                <span class="stat-label">of tech companies experienced phishing attacks</span>
+                            </div>
+                            <div class="threat-stat">
+                                <span class="stat-number">45%</span>
+                                <span class="stat-label">involved supply chain compromises</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="insight-card">
+                    <div class="insight-header">
+                        <span class="insight-icon">🎯</span>
+                        <h4>Personalized Learning Path</h4>
+                    </div>
+                    <div class="insight-content">
+                        <div class="learning-path">
+                            <div class="path-step completed">Email Security</div>
+                            <div class="path-arrow">→</div>
+                            <div class="path-step current">Social Engineering</div>
+                            <div class="path-arrow">→</div>
+                            <div class="path-step pending">Secure Development</div>
+                            <div class="path-arrow">→</div>
+                            <div class="path-step pending">Advanced Threats</div>
+                        </div>
+                        <p>Your learning path is optimized for intermediate-level security knowledge with focus on developer-specific threats.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-section">
+            <div class="primary-actions">
+                <button class="btn btn-primary btn-lg" @onclick="StartFirstTraining">
+                    <span class="btn-icon">🚀</span>
+                    Begin Your First Training Session
+                </button>
+                <button class="btn btn-secondary btn-lg" @onclick="ExploreDashboard">
+                    <span class="btn-icon">📊</span>
+                    Explore Full Dashboard
+                </button>
+            </div>
+            <div class="secondary-actions">
+                <button class="btn btn-link" @onclick="CustomizeSettings">
+                    Customize Training Preferences
+                </button>
+                <button class="btn btn-link" @onclick="ViewProgress">
+                    View Progress & Analytics
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.success-animation {
+    text-align: center;
+    margin-bottom: var(--spacing-12);
+}
+
+.success-icon {
+    font-size: 4rem;
+    margin-bottom: var(--spacing-6);
+    animation: celebrate 2s ease-in-out;
+}
+
+@@keyframes celebrate {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    25% { transform: scale(1.2) rotate(-10deg); }
+    50% { transform: scale(1.1) rotate(10deg); }
+    75% { transform: scale(1.2) rotate(-5deg); }
+}
+
+.dashboard-preview {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-8);
+}
+
+.title-icon {
+    font-size: 1.5rem;
+}
+
+.recommendations-section {
+    margin-bottom: var(--spacing-16);
+}
+
+.recommendations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: var(--spacing-6);
+}
+
+.recommendation-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-6);
+    transition: all 0.3s var(--easing-smooth);
+    position: relative;
+    overflow: hidden;
+}
+
+.recommendation-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--gradient);
+}
+
+.recommendation-card.priority-high::before {
+    background: var(--danger-500);
+}
+
+.recommendation-card.priority-medium::before {
+    background: var(--warning-500);
+}
+
+.recommendation-card.priority-low::before {
+    background: var(--success-500);
+}
+
+.recommendation-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary-200);
+}
+
+.card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-4);
+    margin-bottom: var(--spacing-4);
+}
+
+.card-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+}
+
+.card-meta h3 {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-2);
+}
+
+.difficulty-badge {
+    display: inline-block;
+    padding: var(--spacing-1) var(--spacing-3);
+    border-radius: var(--border-radius-sm);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.difficulty-badge.easy { background: var(--success-100); color: var(--success-700); }
+.difficulty-badge.moderate { background: var(--warning-100); color: var(--warning-700); }
+.difficulty-badge.challenging { background: var(--danger-100); color: var(--danger-700); }
+
+.card-description {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: var(--spacing-4);
+    font-size: var(--font-size-sm);
+}
+
+.personalization-context {
+    background: var(--success-50);
+    border-left: 3px solid var(--success-500);
+    padding: var(--spacing-4);
+    margin-bottom: var(--spacing-4);
+    border-radius: var(--border-radius-sm);
+}
+
+.personalization-context .context-item {
+    margin-bottom: var(--spacing-2);
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.personalization-context .context-item:last-child {
+    margin-bottom: 0;
+}
+
+.personalization-context strong {
+    color: var(--success-700);
+}
+
+.recommendation-reason {
+    background: var(--primary-50);
+    border-radius: var(--border-radius-sm);
+    padding: var(--spacing-3);
+    margin-bottom: var(--spacing-4);
+    border-left: 3px solid var(--primary-500);
+}
+
+.recommendation-reason small {
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+.loading-recommendations {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-16);
+    text-align: center;
+}
+
+.loading-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--border);
+    border-top: 3px solid var(--primary-500);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: var(--spacing-4);
+}
+
+.card-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-4);
+    margin-bottom: var(--spacing-6);
+    padding: var(--spacing-4);
+    background: var(--primary-50);
+    border-radius: var(--border-radius-md);
+}
+
+.stat {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-label {
+    font-size: var(--font-size-xs);
+    color: var(--text-tertiary);
+    margin-bottom: var(--spacing-1);
+}
+
+.stat-value {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+}
+
+.coach-introduction {
+    margin-bottom: var(--spacing-16);
+}
+
+.coach-card {
+    background: linear-gradient(135deg, var(--primary-50), var(--primary-100));
+    border: 1px solid var(--primary-200);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-8);
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-6);
+}
+
+.coach-avatar {
+    font-size: 3rem;
+    background: var(--primary-600);
+    color: white;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.coach-content h3 {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-3);
+}
+
+.coach-content p {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: var(--spacing-4);
+}
+
+.coach-capabilities {
+    display: flex;
+    gap: var(--spacing-6);
+    flex-wrap: wrap;
+}
+
+.capability {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.capability-icon {
+    font-size: 1rem;
+}
+
+.quick-wins-section {
+    margin-bottom: var(--spacing-16);
+}
+
+.quick-wins-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-4);
+}
+
+.quick-win-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-6);
+    text-align: center;
+    transition: all 0.3s var(--easing-smooth);
+}
+
+.quick-win-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary-200);
+}
+
+.win-icon {
+    font-size: 2.5rem;
+    margin-bottom: var(--spacing-3);
+}
+
+.quick-win-card h4 {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-2);
+}
+
+.quick-win-card p {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-4);
+    line-height: 1.5;
+}
+
+.btn-sm {
+    padding: var(--spacing-2) var(--spacing-4);
+    font-size: var(--font-size-sm);
+}
+
+.insights-section {
+    margin-bottom: var(--spacing-16);
+}
+
+.insights-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: var(--spacing-6);
+}
+
+.insight-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-6);
+}
+
+.insight-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+    margin-bottom: var(--spacing-4);
+}
+
+.insight-icon {
+    font-size: 1.5rem;
+}
+
+.insight-header h4 {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+}
+
+.risk-meter {
+    width: 100%;
+    height: 8px;
+    background: var(--border);
+    border-radius: var(--border-radius-sm);
+    margin-bottom: var(--spacing-3);
+    overflow: hidden;
+}
+
+.risk-level {
+    height: 100%;
+    border-radius: var(--border-radius-sm);
+    transition: width 0.6s var(--easing-smooth);
+}
+
+.risk-level.medium {
+    background: linear-gradient(90deg, var(--warning-400), var(--warning-500));
+}
+
+.threat-stats {
+    display: grid;
+    gap: var(--spacing-3);
+}
+
+.threat-stat {
+    display: flex;
+    align-items: baseline;
+    gap: var(--spacing-3);
+}
+
+.stat-number {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--primary-600);
+}
+
+.stat-label {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.learning-path {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    flex-wrap: wrap;
+    margin-bottom: var(--spacing-3);
+}
+
+.path-step {
+    padding: var(--spacing-2) var(--spacing-3);
+    border-radius: var(--border-radius-sm);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    white-space: nowrap;
+}
+
+.path-step.completed {
+    background: var(--success-100);
+    color: var(--success-700);
+}
+
+.path-step.current {
+    background: var(--primary-100);
+    color: var(--primary-700);
+}
+
+.path-step.pending {
+    background: var(--border);
+    color: var(--text-tertiary);
+}
+
+.path-arrow {
+    color: var(--text-tertiary);
+}
+
+.action-section {
+    text-align: center;
+    padding: var(--spacing-12) 0;
+}
+
+.primary-actions {
+    display: flex;
+    gap: var(--spacing-4);
+    justify-content: center;
+    margin-bottom: var(--spacing-6);
+    flex-wrap: wrap;
+}
+
+.btn-lg {
+    padding: var(--spacing-4) var(--spacing-8);
+    font-size: var(--font-size-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-lg:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.btn-icon {
+    font-size: 1.2rem;
+}
+
+.secondary-actions {
+    display: flex;
+    gap: var(--spacing-6);
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn-link {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    text-decoration: underline;
+    cursor: pointer;
+    padding: var(--spacing-2);
+}
+
+.btn-link:hover {
+    color: var(--primary-600);
+}
+
+@@media (max-width: 1024px) {
+    .coach-card {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .coach-capabilities {
+        justify-content: center;
+    }
+}
+
+@@media (max-width: 768px) {
+    .recommendations-grid,
+    .insights-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .primary-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .btn-lg {
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    .card-stats {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+    
+    .learning-path {
+        justify-content: center;
+    }
+}
+</style>
+
+@code {
+    private List<PersonalizedRecommendation> personalizedRecommendations = new();
+    private UserProfile? userProfile;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            await LoadPersonalizedContent();
+        }
+        catch (Exception ex)
+        {
+            // Log error and show fallback content
+            Console.WriteLine($"Error loading personalized content: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadPersonalizedContent()
+    {
+        // For demo purposes, we'll use a test user ID
+        // In production, this would come from authentication
+        var userId = "demo-user-123";
+        
+        // Load user profile
+        userProfile = await ProfileService.GetUserProfileAsync(userId);
+        
+        if (userProfile == null)
+        {
+            // Create a demo profile for the onboarding flow
+            userProfile = new UserProfile
+            {
+                UserId = userId,
+                FirstName = "Alex",
+                LastName = "Johnson",
+                Company = "TechCorp Solutions",
+                JobTitle = "Software Engineer",
+                Industry = "Technology",
+                SelectedRoleId = "developer",
+                ExperienceLevel = "intermediate"
+            };
+        }
+
+        // Generate personalized recommendations
+        personalizedRecommendations = await ScenarioService.GeneratePersonalizedRecommendationsAsync(userId);
+        
+        StateHasChanged();
+    }
+
+    private void StartTraining(string trainingType)
+    {
+        Navigation.NavigateTo($"/training/{trainingType}");
+    }
+
+    private void StartPersonalizedTraining(string recommendationId)
+    {
+        Navigation.NavigateTo($"/training/personalized/{recommendationId}");
+    }
+
+    private void StartQuickWin(string quickWinType)
+    {
+        Navigation.NavigateTo($"/quickwin/{quickWinType}");
+    }
+
+    private void StartFirstTraining()
+    {
+        if (personalizedRecommendations.Any())
+        {
+            var firstRecommendation = personalizedRecommendations.First();
+            StartPersonalizedTraining(firstRecommendation.Id);
+        }
+        else
+        {
+            Navigation.NavigateTo("/training/phishing");
+        }
+    }
+
+    private void ExploreDashboard()
+    {
+        Navigation.NavigateTo("/dashboard");
+    }
+
+    private void CustomizeSettings()
+    {
+        Navigation.NavigateTo("/settings");
+    }
+
+    private void ViewProgress()
+    {
+        Navigation.NavigateTo("/analytics");
+    }
+
+    private string GetScenarioIcon(string scenarioType)
+    {
+        return scenarioType switch
+        {
+            "phishing" => "📧",
+            "social_engineering" => "📞",
+            "wire_fraud" => "💰",
+            "invoice_fraud" => "🧾",
+            "account_takeover" => "🔒",
+            "supply_chain" => "🔗",
+            "code_review" => "👨‍💻",
+            "privilege_escalation" => "🛡️",
+            "strategic_theft" => "📊",
+            "malware" => "🦠",
+            _ => "🎯"
+        };
+    }
+
+    private string GetDifficultyClass(int estimatedMinutes)
+    {
+        return estimatedMinutes switch
+        {
+            <= 10 => "easy",
+            <= 15 => "moderate",
+            <= 25 => "challenging",
+            _ => "expert"
+        };
+    }
+
+    private string GetDifficultyLabel(int estimatedMinutes)
+    {
+        return estimatedMinutes switch
+        {
+            <= 10 => "Quick Start",
+            <= 15 => "Standard",
+            <= 25 => "In-Depth",
+            _ => "Comprehensive"
+        };
+    }
+}

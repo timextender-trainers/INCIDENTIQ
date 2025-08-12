@@ -1,0 +1,574 @@
+@page "/dashboard"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Identity
+@using IncidentIQ.Infrastructure.Data
+@using IncidentIQ.Domain.Enums
+@using IncidentIQ.Application.Interfaces
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject UserManager<ApplicationUser> UserManager
+@inject IUserProfileService UserProfileService
+
+<PageTitle>Dashboard - IncidentIQ</PageTitle>
+
+<!-- Quick Stats Overview -->
+<div class="grid grid-cols-4 mb-8">
+    <div class="enterprise-card">
+        <div class="card-body text-center">
+            <div style="color: var(--success); font-size: 2.5rem; margin-bottom: var(--space-2);">
+                <i class="bi bi-shield-check-fill"></i>
+            </div>
+            <h3 style="font-size: 2rem; font-weight: 700; color: var(--gray-900); margin: 0;">87%</h3>
+            <p style="color: var(--gray-500); margin: 0; font-size: 0.9rem;">Security Score</p>
+        </div>
+    </div>
+    
+    <div class="enterprise-card">
+        <div class="card-body text-center">
+            <div style="color: var(--primary-blue); font-size: 2.5rem; margin-bottom: var(--space-2);">
+                <i class="bi bi-trophy-fill"></i>
+            </div>
+            <h3 style="font-size: 2rem; font-weight: 700; color: var(--gray-900); margin: 0;">12</h3>
+            <p style="color: var(--gray-500); margin: 0; font-size: 0.9rem;">Completed Scenarios</p>
+        </div>
+    </div>
+    
+    <div class="enterprise-card">
+        <div class="card-body text-center">
+            <div style="color: var(--warning); font-size: 2.5rem; margin-bottom: var(--space-2);">
+                <i class="bi bi-lightning-fill"></i>
+            </div>
+            <h3 style="font-size: 2rem; font-weight: 700; color: var(--gray-900); margin: 0;">3</h3>
+            <p style="color: var(--gray-500); margin: 0; font-size: 0.9rem;">Active Threats</p>
+        </div>
+    </div>
+    
+    <div class="enterprise-card">
+        <div class="card-body text-center">
+            <div style="color: var(--navy-medium); font-size: 2.5rem; margin-bottom: var(--space-2);">
+                <i class="bi bi-calendar-week-fill"></i>
+            </div>
+            <h3 style="font-size: 2rem; font-weight: 700; color: var(--gray-900); margin: 0;">7d</h3>
+            <p style="color: var(--gray-500); margin: 0; font-size: 0.9rem;">Streak</p>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Grid -->
+<div class="grid grid-cols-3 mb-8">
+    <!-- Training Scenarios -->
+    <div class="enterprise-card" style="grid-column: span 2;">
+        <div class="card-header">
+            <h2 class="card-title">Recommended Training</h2>
+            <p class="card-subtitle">Personalized scenarios based on your role and recent threats</p>
+        </div>
+        <div class="card-body">
+            <div class="grid grid-cols-1" style="gap: var(--space-4);">
+                @foreach (var scenario in GetRoleSpecificScenarios())
+                {
+                    <div class="training-scenario @(selectedScenario == scenario.Id ? "selected" : "")" @onclick="() => SelectScenario(scenario.Id)">
+                        <div class="scenario-icon" style="background: @scenario.IconGradient;">
+                            <i class="@scenario.IconClass"></i>
+                        </div>
+                        <div class="scenario-content">
+                            <h4 class="scenario-title">@scenario.Title</h4>
+                            <p class="scenario-description">@scenario.Description</p>
+                            <div class="scenario-meta">
+                                <span class="meta-item">
+                                    <i class="bi bi-clock"></i> @scenario.Duration min
+                                </span>
+                                <span class="meta-item">
+                                    <i class="bi bi-star-fill"></i> @scenario.Difficulty
+                                </span>
+                                <span class="meta-item">
+                                    <i class="bi bi-people"></i> @scenario.TargetRole
+                                </span>
+                            </div>
+                        </div>
+                        <div class="scenario-action">
+                            <button class="btn-primary" @onclick="() => StartScenario(scenario.Id)" @onclick:stopPropagation="true">
+                                Start Training
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Coach Panel -->
+    <div class="enterprise-card">
+        <div class="card-header">
+            <h3 class="card-title">AI Security Coach</h3>
+            <p class="card-subtitle">Real-time guidance and insights</p>
+        </div>
+        <div class="card-body">
+            <div class="ai-coach-panel">
+                <div class="coach-avatar">
+                    <i class="bi bi-robot"></i>
+                </div>
+                <div class="coach-message">
+                    <p>Based on your recent activities, I recommend focusing on phishing detection. Your last assessment showed some uncertainty with email authenticity.</p>
+                </div>
+                <div class="coach-suggestions">
+                    <h5>Quick Tips:</h5>
+                    <ul>
+                        <li>Always verify sender domains</li>
+                        <li>Look for urgent language patterns</li>
+                        <li>Check for suspicious links</li>
+                    </ul>
+                </div>
+                <button class="btn-secondary" style="width: 100%; margin-top: var(--space-4);">
+                    <i class="bi bi-chat-dots"></i> Start Chat
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity & Progress -->
+<div class="grid grid-cols-2">
+    <div class="enterprise-card">
+        <div class="card-header">
+            <h3 class="card-title">Recent Activity</h3>
+            <p class="card-subtitle">Your training history and achievements</p>
+        </div>
+        <div class="card-body">
+            <div class="activity-timeline">
+                <div class="activity-item">
+                    <div class="activity-icon success">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                    <div class="activity-content">
+                        <h5>Phishing Detection Completed</h5>
+                        <p>Perfect score on email security assessment</p>
+                        <span class="activity-time">2 hours ago</span>
+                    </div>
+                </div>
+                
+                <div class="activity-item">
+                    <div class="activity-icon info">
+                        <i class="bi bi-trophy-fill"></i>
+                    </div>
+                    <div class="activity-content">
+                        <h5>Achievement Unlocked</h5>
+                        <p>Security Champion - 10 perfect scores</p>
+                        <span class="activity-time">1 day ago</span>
+                    </div>
+                </div>
+                
+                <div class="activity-item">
+                    <div class="activity-icon warning">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                    </div>
+                    <div class="activity-content">
+                        <h5>Improvement Needed</h5>
+                        <p>Social engineering scenario - Review recommended</p>
+                        <span class="activity-time">3 days ago</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="enterprise-card">
+        <div class="card-header">
+            <h3 class="card-title">Security Competency</h3>
+            <p class="card-subtitle">Multi-dimensional skill assessment</p>
+        </div>
+        <div class="card-body">
+            <div class="competency-chart">
+                <div class="skill-bar">
+                    <div class="skill-info">
+                        <span>Phishing Detection</span>
+                        <span>92%</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" style="width: 92%; background: var(--success);"></div>
+                    </div>
+                </div>
+                
+                <div class="skill-bar">
+                    <div class="skill-info">
+                        <span>Social Engineering</span>
+                        <span>78%</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" style="width: 78%; background: var(--warning);"></div>
+                    </div>
+                </div>
+                
+                <div class="skill-bar">
+                    <div class="skill-info">
+                        <span>Data Protection</span>
+                        <span>85%</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" style="width: 85%; background: var(--primary-blue);"></div>
+                    </div>
+                </div>
+                
+                <div class="skill-bar">
+                    <div class="skill-info">
+                        <span>Incident Response</span>
+                        <span>67%</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" style="width: 67%; background: var(--danger);"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Training Scenario Styles */
+.training-scenario {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-4);
+    border: 2px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.training-scenario:hover {
+    border-color: var(--primary-blue-light);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.training-scenario.selected {
+    border-color: var(--primary-blue);
+    background-color: var(--gray-50);
+}
+
+.scenario-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.scenario-content {
+    flex: 1;
+}
+
+.scenario-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin: 0 0 var(--space-1) 0;
+}
+
+.scenario-description {
+    font-size: 0.9rem;
+    color: var(--gray-600);
+    margin: 0 0 var(--space-2) 0;
+    line-height: 1.4;
+}
+
+.scenario-meta {
+    display: flex;
+    gap: var(--space-4);
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-size: 0.8rem;
+    color: var(--gray-500);
+    font-weight: 500;
+}
+
+.scenario-action {
+    flex-shrink: 0;
+}
+
+/* AI Coach Panel */
+.ai-coach-panel {
+    text-align: center;
+}
+
+.coach-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto var(--space-4);
+    color: white;
+    font-size: 2rem;
+}
+
+.coach-message {
+    background-color: var(--gray-50);
+    padding: var(--space-4);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-4);
+}
+
+.coach-message p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--gray-700);
+    line-height: 1.5;
+}
+
+.coach-suggestions h5 {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin: 0 0 var(--space-2) 0;
+    text-align: left;
+}
+
+.coach-suggestions ul {
+    text-align: left;
+    margin: 0;
+    padding-left: var(--space-4);
+    font-size: 0.85rem;
+    color: var(--gray-600);
+}
+
+.coach-suggestions li {
+    margin-bottom: var(--space-1);
+}
+
+/* Activity Timeline */
+.activity-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.activity-item {
+    display: flex;
+    gap: var(--space-3);
+    align-items: flex-start;
+}
+
+.activity-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.activity-icon.success {
+    background-color: var(--success);
+}
+
+.activity-icon.info {
+    background-color: var(--primary-blue);
+}
+
+.activity-icon.warning {
+    background-color: var(--warning);
+}
+
+.activity-content h5 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin: 0 0 var(--space-1) 0;
+}
+
+.activity-content p {
+    font-size: 0.85rem;
+    color: var(--gray-600);
+    margin: 0 0 var(--space-1) 0;
+    line-height: 1.4;
+}
+
+.activity-time {
+    font-size: 0.8rem;
+    color: var(--gray-400);
+    font-weight: 500;
+}
+
+/* Competency Chart */
+.competency-chart {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.skill-bar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.skill-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.skill-info span:first-child {
+    color: var(--gray-700);
+    font-weight: 500;
+}
+
+.skill-info span:last-child {
+    color: var(--gray-900);
+    font-weight: 700;
+}
+</style>
+
+@code {
+    private string selectedScenario = "";
+    private UserRole currentUserRole = UserRole.Developer;
+    private string currentUserName = "User";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUserProfile();
+    }
+
+    private async Task LoadUserProfile()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated == true)
+        {
+            var user = await UserManager.GetUserAsync(authState.User);
+            if (user?.AppUserId.HasValue == true)
+            {
+                var userProfile = await UserProfileService.GetUserProfileAsync(user.AppUserId.Value);
+                if (userProfile != null)
+                {
+                    currentUserRole = userProfile.Role;
+                    currentUserName = $"{userProfile.FirstName} {userProfile.LastName}";
+                }
+            }
+        }
+    }
+
+    private void SelectScenario(string scenarioId)
+    {
+        selectedScenario = scenarioId;
+        StateHasChanged();
+    }
+
+    private async Task StartScenario(string scenarioId)
+    {
+        switch (scenarioId)
+        {
+            case "phishing":
+                Navigation.NavigateTo("/training/phishing");
+                break;
+            case "code-security":
+                Navigation.NavigateTo("/training/code-security");
+                break;
+            case "social-engineering":
+                Navigation.NavigateTo("/training/social-engineering");
+                break;
+            case "data-protection":
+                Navigation.NavigateTo("/training/data-protection");
+                break;
+            case "financial-fraud":
+                Navigation.NavigateTo("/training/financial-fraud");
+                break;
+            case "hr-impersonation":
+                Navigation.NavigateTo("/training/hr-impersonation");
+                break;
+            case "executive-targeting":
+                Navigation.NavigateTo("/training/executive-targeting");
+                break;
+            default:
+                Navigation.NavigateTo("/training/general");
+                break;
+        }
+        await Task.CompletedTask;
+    }
+
+    private List<TrainingScenario> GetRoleSpecificScenarios()
+    {
+        return currentUserRole switch
+        {
+            UserRole.Developer => new List<TrainingScenario>
+            {
+                new("phishing", "Advanced Phishing Detection", 
+                    "AI-generated emails targeting developers with code-related lures and GitHub security threats.", 
+                    15, "Expert", "Developer", "linear-gradient(135deg, var(--danger), #dc2626)", "bi bi-envelope-exclamation-fill"),
+                new("code-security", "Secure Code Review", 
+                    "Interactive scenarios testing your ability to spot security vulnerabilities in code.", 
+                    20, "Advanced", "Developer", "linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark))", "bi bi-code-slash"),
+                new("social-engineering", "Developer-Targeted Social Engineering", 
+                    "Phone and messaging attacks targeting developers through technical support pretexts.", 
+                    12, "Intermediate", "Developer", "linear-gradient(135deg, var(--warning), #d97706)", "bi bi-telephone-fill")
+            },
+            UserRole.HR => new List<TrainingScenario>
+            {
+                new("hr-impersonation", "Employee Impersonation Detection", 
+                    "Realistic scenarios involving fake job applications and employee verification requests.", 
+                    18, "Advanced", "HR", "linear-gradient(135deg, var(--success), #16a34a)", "bi bi-person-badge-fill"),
+                new("data-protection", "Personal Data Security", 
+                    "GDPR compliance scenarios involving employee data handling and privacy requests.", 
+                    15, "Intermediate", "HR", "linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark))", "bi bi-file-earmark-lock-fill"),
+                new("phishing", "HR-Targeted Phishing", 
+                    "Phishing emails specifically designed to target HR professionals with employee-related themes.", 
+                    12, "Intermediate", "HR", "linear-gradient(135deg, var(--danger), #dc2626)", "bi bi-envelope-exclamation-fill")
+            },
+            UserRole.Finance => new List<TrainingScenario>
+            {
+                new("financial-fraud", "Business Email Compromise", 
+                    "Invoice fraud and payment redirection scams targeting finance departments.", 
+                    25, "Expert", "Finance", "linear-gradient(135deg, var(--warning), #d97706)", "bi bi-credit-card-fill"),
+                new("phishing", "Finance-Targeted Phishing", 
+                    "Sophisticated phishing attacks using financial terminology and urgent payment requests.", 
+                    15, "Advanced", "Finance", "linear-gradient(135deg, var(--danger), #dc2626)", "bi bi-envelope-exclamation-fill"),
+                new("social-engineering", "Wire Transfer Fraud", 
+                    "Phone-based social engineering attacks targeting wire transfer processes.", 
+                    20, "Expert", "Finance", "linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark))", "bi bi-telephone-fill")
+            },
+            UserRole.Executive => new List<TrainingScenario>
+            {
+                new("executive-targeting", "CEO Fraud & Spear Phishing", 
+                    "Highly targeted attacks designed specifically for executive-level personnel.", 
+                    15, "Expert", "Executive", "linear-gradient(135deg, var(--danger), #dc2626)", "bi bi-person-workspace"),
+                new("social-engineering", "Executive Social Engineering", 
+                    "Advanced social engineering tactics targeting high-value executive targets.", 
+                    18, "Expert", "Executive", "linear-gradient(135deg, var(--warning), #d97706)", "bi bi-telephone-fill"),
+                new("data-protection", "Strategic Data Security", 
+                    "Board-level scenarios involving strategic data protection and regulatory compliance.", 
+                    20, "Advanced", "Executive", "linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark))", "bi bi-shield-check-fill")
+            },
+            _ => new List<TrainingScenario>
+            {
+                new("phishing", "General Phishing Detection", 
+                    "Common phishing scenarios that target all employees across different roles.", 
+                    15, "Intermediate", "All Roles", "linear-gradient(135deg, var(--danger), #dc2626)", "bi bi-envelope-exclamation-fill"),
+                new("social-engineering", "Social Engineering Awareness", 
+                    "General social engineering tactics that affect all employees.", 
+                    12, "Intermediate", "All Roles", "linear-gradient(135deg, var(--warning), #d97706)", "bi bi-telephone-fill"),
+                new("data-protection", "Data Security Basics", 
+                    "Fundamental data protection scenarios applicable to all roles.", 
+                    18, "Beginner", "All Roles", "linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark))", "bi bi-file-earmark-lock-fill")
+            }
+        };
+    }
+
+    private record TrainingScenario(string Id, string Title, string Description, int Duration, string Difficulty, string TargetRole, string IconGradient, string IconClass);
+}

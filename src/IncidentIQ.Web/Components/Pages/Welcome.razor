@@ -1,0 +1,562 @@
+@page "/welcome"
+@page "/"
+@using Microsoft.AspNetCore.Components.Web
+@inject NavigationManager Navigation
+
+<PageTitle>Welcome to IncidentIQ - Revolutionary AI-Powered Cybersecurity Training</PageTitle>
+
+<div class="welcome-container">
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <div class="hero-text">
+                <h1 class="hero-title">
+                    Welcome to <span class="brand-highlight">IncidentIQ</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Revolutionary AI-powered cybersecurity training that adapts to your role, industry, and experience level
+                </p>
+                <p class="hero-description">
+                    Experience personalized security scenarios, real-time AI coaching, and behavioral analytics that demonstrate measurable business value and ROI.
+                </p>
+                <div class="cta-container">
+                    <div class="cta-buttons">
+                        <button class="btn btn-primary btn-lg" @onclick="StartRegistration">
+                            <i class="icon-rocket"></i>
+                            Get Started - Free
+                        </button>
+                        <button class="btn btn-secondary btn-lg" @onclick="GoToLogin">
+                            <i class="icon-signin"></i>
+                            Sign In
+                        </button>
+                    </div>
+                    <p class="cta-subtitle">Set up your personalized training in under 3 minutes</p>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="feature-preview">
+                    <div class="preview-card ai-coaching">
+                        <div class="card-icon">🤖</div>
+                        <h3>AI Security Coach</h3>
+                        <p>Real-time guidance tailored to your role</p>
+                    </div>
+                    <div class="preview-card personalized">
+                        <div class="card-icon">🎯</div>
+                        <h3>Personalized Scenarios</h3>
+                        <p>Training that matches your industry & experience</p>
+                    </div>
+                    <div class="preview-card analytics">
+                        <div class="card-icon">📊</div>
+                        <h3>Business Impact</h3>
+                        <p>Executive dashboards showing clear ROI</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Value Proposition Section -->
+    <section class="value-section">
+        <div class="container">
+            <h2 class="section-title">Why Security Leaders Choose IncidentIQ</h2>
+            <div class="value-grid">
+                <div class="value-card">
+                    <div class="value-icon">🚀</div>
+                    <h3>AI-Powered Personalization</h3>
+                    <p>Every training scenario is generated specifically for your role, company size, and industry. No generic content.</p>
+                    <div class="value-stat">94% more effective than traditional training</div>
+                </div>
+                <div class="value-card">
+                    <div class="value-icon">💡</div>
+                    <h3>Real-Time Coaching</h3>
+                    <p>Our SecuritySensei AI provides instant guidance during scenarios, teaching the 'why' behind security decisions.</p>
+                    <div class="value-stat">3x faster skill development</div>
+                </div>
+                <div class="value-card">
+                    <div class="value-icon">📈</div>
+                    <h3>Measurable Business Impact</h3>
+                    <p>Executive-ready dashboards showing security awareness improvement and incident reduction ROI.</p>
+                    <div class="value-stat">$2.4M average ROI documented</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Social Proof Section -->
+    <section class="proof-section">
+        <div class="container">
+            <h2 class="section-title">Trusted by Security Teams Worldwide</h2>
+            <div class="proof-grid">
+                <div class="proof-stat">
+                    <div class="stat-number">50,000+</div>
+                    <div class="stat-label">Security Professionals Trained</div>
+                </div>
+                <div class="proof-stat">
+                    <div class="stat-number">94%</div>
+                    <div class="stat-label">Improvement in Threat Recognition</div>
+                </div>
+                <div class="proof-stat">
+                    <div class="stat-number">78%</div>
+                    <div class="stat-label">Reduction in Security Incidents</div>
+                </div>
+                <div class="proof-stat">
+                    <div class="stat-number">$2.4M</div>
+                    <div class="stat-label">Average Annual ROI</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA Section -->
+    <section class="final-cta">
+        <div class="cta-content">
+            <h2>Ready to Transform Your Security Training?</h2>
+            <p>Join thousands of security professionals who've already experienced the IncidentIQ difference.</p>
+            <div class="final-cta-buttons">
+                <button class="btn btn-primary btn-lg" @onclick="StartRegistration">
+                    Start Your Personalized Journey
+                    <i class="icon-arrow-right"></i>
+                </button>
+                <button class="btn btn-outline btn-lg" @onclick="GoToLogin">
+                    Already Have an Account?
+                    <i class="icon-signin"></i>
+                </button>
+            </div>
+            <div class="cta-benefits">
+                <div class="benefit">✓ No credit card required</div>
+                <div class="benefit">✓ 3-minute setup</div>
+                <div class="benefit">✓ Immediate value demonstration</div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<style>
+.welcome-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--primary-50) 0%, var(--neutral-25) 50%, var(--neutral-0) 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.welcome-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(99, 102, 241, 0.05) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.hero-section {
+    padding: var(--spacing-16) var(--spacing-6);
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.hero-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-12);
+    align-items: center;
+    min-height: 80vh;
+}
+
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    line-height: 1.1;
+    margin-bottom: var(--spacing-6);
+    position: relative;
+    z-index: 2;
+}
+
+.brand-highlight {
+    background: linear-gradient(135deg, var(--primary-600), var(--primary-500));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    position: relative;
+}
+
+.hero-subtitle {
+    font-size: var(--font-size-xl);
+    color: var(--color-text-secondary);
+    margin-bottom: var(--spacing-4);
+    font-weight: var(--font-weight-medium);
+}
+
+.hero-description {
+    font-size: var(--font-size-lg);
+    color: var(--color-text-tertiary);
+    line-height: 1.6;
+    margin-bottom: var(--spacing-8);
+}
+
+.cta-container {
+    text-align: left;
+}
+
+.cta-buttons {
+    display: flex;
+    gap: var(--spacing-4);
+    margin-bottom: var(--spacing-3);
+}
+
+.final-cta-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-4);
+    margin-bottom: var(--spacing-6);
+}
+
+.btn-lg {
+    padding: var(--spacing-4) var(--spacing-8);
+    font-size: var(--font-size-lg);
+    border-radius: var(--border-radius-xl);
+    font-weight: var(--font-weight-semibold);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    transition: var(--transition-all);
+    box-shadow: var(--shadow-lg);
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-lg:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-xl);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
+    color: var(--neutral-0);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--primary-700), var(--primary-800));
+    box-shadow: var(--shadow-primary-lg);
+}
+
+.btn-secondary {
+    background: var(--neutral-0);
+    color: var(--primary-600);
+    border: 2px solid var(--neutral-200);
+}
+
+.btn-secondary:hover {
+    border-color: var(--primary-200);
+    background: var(--primary-50);
+    color: var(--primary-700);
+}
+
+.cta-subtitle {
+    margin-top: var(--spacing-3);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-tertiary);
+}
+
+.feature-preview {
+    display: grid;
+    gap: var(--spacing-4);
+}
+
+.preview-card {
+    background: var(--neutral-0);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-6);
+    text-align: center;
+    transition: var(--transition-all);
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    backdrop-filter: blur(10px);
+}
+
+.preview-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary-200);
+}
+
+.preview-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary-500), var(--primary-600));
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    opacity: 0;
+    transition: var(--transition-opacity);
+}
+
+.preview-card:hover::before {
+    opacity: 1;
+}
+
+.card-icon {
+    font-size: 2rem;
+    margin-bottom: var(--spacing-3);
+}
+
+.preview-card h3 {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-2);
+}
+
+.preview-card p {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+.value-section, .proof-section {
+    padding: var(--spacing-16) var(--spacing-6);
+    background: var(--color-surface);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.section-title {
+    font-size: 2.5rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    text-align: center;
+    margin-bottom: var(--spacing-12);
+}
+
+.value-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: var(--spacing-8);
+}
+
+.value-card {
+    background: var(--neutral-0);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-2xl);
+    padding: var(--spacing-8);
+    text-align: center;
+    transition: var(--transition-all);
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+}
+
+.value-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-xl);
+    border-color: var(--primary-200);
+}
+
+.value-card::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent 40%, rgba(99, 102, 241, 0.02) 50%, transparent 60%);
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+    transition: transform 0.6s ease;
+}
+
+.value-card:hover::after {
+    transform: translateX(0) translateY(0) rotate(45deg);
+}
+
+.value-icon {
+    font-size: 3rem;
+    margin-bottom: var(--spacing-4);
+}
+
+.value-card h3 {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-3);
+}
+
+.value-card p {
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    margin-bottom: var(--spacing-4);
+}
+
+.value-stat {
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-success-600);
+    font-size: var(--font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.proof-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-8);
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 3rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary-600);
+    margin-bottom: var(--spacing-2);
+}
+
+.stat-label {
+    color: var(--color-text-secondary);
+    font-weight: var(--font-weight-medium);
+}
+
+.final-cta {
+    padding: var(--spacing-16) var(--spacing-6);
+    background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
+    color: white;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.final-cta::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+    opacity: 0.3;
+}
+
+.cta-content h2 {
+    font-size: 2.5rem;
+    font-weight: var(--font-weight-bold);
+    margin-bottom: var(--spacing-4);
+}
+
+.cta-content p {
+    font-size: var(--font-size-lg);
+    margin-bottom: var(--spacing-8);
+    opacity: 0.9;
+}
+
+.final-cta .btn {
+    background: var(--color-surface);
+    color: var(--color-primary-600);
+    border: none;
+    margin-bottom: var(--spacing-6);
+}
+
+.final-cta .btn:hover {
+    background: var(--color-primary-50);
+    color: var(--color-primary-700);
+}
+
+.btn-outline {
+    background: transparent;
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.btn-outline:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: white;
+}
+
+.cta-benefits {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-8);
+    flex-wrap: wrap;
+}
+
+.benefit {
+    font-size: var(--font-size-sm);
+    opacity: 0.9;
+}
+
+/* Modern CSS Icons */
+.icon-rocket::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z'/%3E%3C/svg%3E") no-repeat center;
+    background-size: contain;
+}
+
+.icon-arrow-right::before {
+    content: '';
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12l-4.58 4.59z'/%3E%3C/svg%3E") no-repeat center;
+    background-size: contain;
+}
+
+.icon-signin::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z'/%3E%3C/svg%3E") no-repeat center;
+    background-size: contain;
+}
+
+@@media (max-width: 768px) {
+    .hero-content {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+    
+    .hero-title {
+        font-size: 2.5rem;
+    }
+    
+    .value-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .proof-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .cta-benefits {
+        flex-direction: column;
+        gap: var(--spacing-2);
+    }
+    
+    .cta-buttons {
+        flex-direction: column;
+    }
+}
+</style>
+
+@code {
+    private void StartRegistration()
+    {
+        Navigation.NavigateTo("/register");
+    }
+    
+    private void GoToLogin()
+    {
+        Navigation.NavigateTo("/login");
+    }
+}

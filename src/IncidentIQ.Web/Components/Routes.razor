@@ -1,0 +1,38 @@
+﻿<Router AppAssembly="typeof(Program).Assembly">
+    <Found Context="routeData">
+        @{
+            var layoutType = DetermineLayoutType(routeData.PageType);
+        }
+        <RouteView RouteData="routeData" DefaultLayout="layoutType" />
+        <FocusOnNavigate RouteData="routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <PageTitle>Not found</PageTitle>
+        <LayoutView Layout="typeof(Layout.PublicLayout)">
+            <div style="text-align: center; padding: 2rem;">
+                <h1>Page Not Found</h1>
+                <p>The page you're looking for doesn't exist.</p>
+                <a href="/" class="btn btn-primary">Go Home</a>
+            </div>
+        </LayoutView>
+    </NotFound>
+</Router>
+
+@code {
+    private Type DetermineLayoutType(Type pageType)
+    {
+        var pageName = pageType.Name;
+        
+        // Use PublicLayout for authentication and welcome pages
+        if (pageName.Contains("Login") || 
+            pageName.Contains("Register") || 
+            pageName.Contains("ForgotPassword") || 
+            pageName.Contains("Welcome"))
+        {
+            return typeof(Layout.PublicLayout);
+        }
+        
+        // Use MainLayout for all other pages (authenticated)
+        return typeof(Layout.MainLayout);
+    }
+}

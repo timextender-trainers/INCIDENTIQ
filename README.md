@@ -1,181 +1,350 @@
-# IncidentIQ: AI-Powered Interactive Security Training Platform
+# IncidentIQ - Developer Setup Guide
 
-## 🚨 The Growing Threat Landscape
+IncidentIQ is an AI-powered interactive security training platform built with .NET 8, Entity Framework Core, and Blazor Server.
 
-In today's digital age, cybercriminals are leveraging Large Language Models (LLMs) to significantly amplify their attack capabilities. These AI-powered threats are becoming more sophisticated, personalized, and successful than ever before:
+## Prerequisites
 
-- **Increased Attack Volume**: LLMs enable hackers to generate thousands of convincing phishing emails, social engineering scripts, and malicious content at unprecedented scale. CrowdStrike's 2025 Global Threat Report shows a 442% surge in vishing (voice phishing) attacks in the second half of 2024, demonstrating the rapid scaling capabilities of AI-enhanced attacks.
+- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) or later
+- [Docker Desktop](https://www.docker.com/products/docker-desktop) for running dependencies
+- [Git](https://git-scm.com/) for version control
+- A code editor ([Visual Studio](https://visualstudio.microsoft.com/), [VS Code](https://code.visualstudio.com/), or [JetBrains Rider](https://www.jetbrains.com/rider/))
 
-- **Enhanced Success Rates**: AI-crafted attacks are more persuasive, using natural language processing to create contextually relevant and psychologically manipulative content. Microsoft Threat Intelligence reports that North Korean actors like Jasper Sleet are leveraging AI to improve both the scale and sophistication of their operations since 2024.
+## Project Structure
 
-- **Adaptive Strategies**: Hackers use LLMs to analyze target organizations and craft highly personalized attack vectors that exploit specific vulnerabilities. The 2025 Verizon Data Breach Investigations Report indicates that 79% of detections were malware-free, showing attackers are increasingly using sophisticated social engineering and AI-powered techniques rather than traditional malware.
+```
+IncidentIQ/
+├── src/
+│   ├── IncidentIQ.Domain/          # Domain entities and business rules
+│   ├── IncidentIQ.Application/     # Application services and interfaces  
+│   ├── IncidentIQ.Infrastructure/  # Data access and external services
+│   └── IncidentIQ.Web/            # Blazor Server web application
+├── IncidentIQ.sln                 # Solution file
+├── docker-compose.yml             # Docker services configuration
+├── .env.example                   # Environment variables template
+└── README.md                      # This file
+```
 
-*Sources: CrowdStrike 2025 Global Threat Report, Microsoft Security Blog 2024-2025, Verizon 2025 Data Breach Investigations Report*
+### Architecture
 
-## � The Problem with Traditional Security Training
+The project follows Clean Architecture principles:
 
-Current security training approaches are fundamentally broken:
+- **Domain Layer**: Core business entities, enums, and domain logic
+- **Application Layer**: Application services, DTOs, and interfaces
+- **Infrastructure Layer**: Data persistence, external APIs, and service implementations
+- **Presentation Layer**: Blazor Server components, controllers, and UI logic
 
-- **Passive Video Content**: Most organizations rely on static video modules that employees passively consume, leading to minimal engagement and poor retention
-- **One-Size-Fits-All**: Generic training materials fail to address specific roles, industries, or individual learning styles
-- **Forgettable Experience**: Studies show that employees forget up to 80% of security training content within a week of completion
-- **No Real-World Practice**: Traditional training lacks hands-on experience with actual attack scenarios, leaving employees unprepared for real threats
-- **Checkbox Mentality**: Training becomes a compliance exercise rather than meaningful skill development
-- **Static Content**: Training materials quickly become outdated as cyber threats evolve rapidly
+## Quick Start
 
-## �💡 The Solution: Fight Fire with Fire
+### 1. Clone the Repository
 
-**IncidentIQ** is an revolutionary LLM-powered interactive security training platform that uses the same advanced AI techniques employed by cybercriminals to train and protect your employees. By leveraging cutting-edge language models, we create immersive, personalized security scenarios that prepare your workforce for real-world threats.
+```bash
+git clone <repository-url>
+cd IncidentIQ
+```
 
-### Key Features
+### 2. Set Up Environment Variables
 
-- **🎯 Personalized Training**: AI adapts scenarios based on employee role, experience level, and past performance
-- **📊 Behavioral Scoring**: Advanced analytics track decision-making patterns and identify improvement areas
-- **🎮 Interactive Scenarios**: Engaging, realistic simulations that mirror actual attack vectors
-- **📈 Continuous Learning**: Dynamic content that evolves with emerging threats and individual progress
-- **🔍 Real-time Feedback**: Instant guidance and explanations to reinforce learning
+Copy the example environment file and configure it:
 
-## 🎭 Training Scenarios
+```bash
+cp .env.example .env
+```
 
-### 1. Social Engineering Defenses
-**Scenario**: "The Angry Customer Breach Attempt"
-- **Setup**: An employee receives a call from someone claiming to be an irate customer demanding immediate access to account information
-- **AI Elements**: The LLM adapts the caller's personality, urgency tactics, and emotional manipulation based on the employee's responses
-- **Learning Objectives**: Recognition of social engineering tactics, proper verification procedures, escalation protocols
-- **Scoring Criteria**: Verification attempts, information disclosure, adherence to security protocols
+Edit `.env` with your configuration:
 
-### 2. Secure Code Review Under Pressure
-**Scenario**: "The Midnight Deployment Dilemma"
-- **Setup**: Critical production bug requires immediate code fix, but the proposed solution contains potential security vulnerabilities
-- **AI Elements**: The LLM generates realistic code snippets with subtle security flaws and simulates stakeholder pressure
-- **Learning Objectives**: Security-first mindset, risk assessment, communication with management about security concerns
-- **Scoring Criteria**: Vulnerability identification, risk communication, alternative solution proposals
+```bash
+# OpenAI Configuration (required for AI features)
+OPENAI_API_KEY=your_openai_api_key_here
 
-### 3. Incident Reporting and Executive Communication
-**Scenario**: "The Board Room Breach Brief"
-- **Setup**: Employee discovers a potential security breach and must report to executives with varying technical backgrounds
-- **AI Elements**: LLM simulates different executive personalities and reaction styles, adjusting questions based on the employee's explanations
-- **Learning Objectives**: Clear incident communication, technical translation for non-technical audiences, crisis management
-- **Scoring Criteria**: Clarity of communication, completeness of information, appropriate urgency level
+# Azure OpenAI Configuration (optional)
+AZURE_OPENAI_API_KEY=your_azure_openai_api_key_here
+AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
 
-### 4. Phishing Email Detection Challenge
-**Scenario**: "The Sophisticated Spear-Phishing Campaign"
-- **Setup**: Employees receive highly personalized emails that appear to be from trusted sources (colleagues, vendors, customers)
-- **AI Elements**: LLM generates contextually relevant phishing attempts using real company information and current events
-- **Learning Objectives**: Email analysis skills, verification procedures, reporting mechanisms
-- **Scoring Criteria**: Threat identification speed, verification actions taken, proper reporting procedures
+# Database Configuration
+DB_PASSWORD=IncidentIQ123!
 
-### 5. Physical Security Awareness
-**Scenario**: "The Helpful Stranger"
-- **Setup**: A person claiming to be from IT support requests physical access to secure areas or asks employees to install software
-- **AI Elements**: AI creates varied personas and backstories, adapting persuasion techniques based on employee responses
-- **Learning Objectives**: Physical security protocols, verification of identity, proper escalation procedures
-- **Scoring Criteria**: Identity verification attempts, access denial when appropriate, incident reporting
+# Application Settings
+ASPNETCORE_ENVIRONMENT=Development
+```
 
-### 6. Data Classification and Handling
-**Scenario**: "The Conference Call Catastrophe"
-- **Setup**: During a video conference, sensitive information is accidentally shared or requested inappropriately
-- **AI Elements**: LLM simulates meeting participants with varying security awareness levels and information requests
-- **Learning Objectives**: Data classification awareness, appropriate sharing protocols, damage control procedures
-- **Scoring Criteria**: Recognition of sensitive data, proper handling procedures, corrective actions taken
+### 3. Start Required Services
 
-### 7. Insider Threat Recognition
-**Scenario**: "The Disgruntled Colleague"
-- **Setup**: Employee notices unusual behavior from a coworker accessing unauthorized systems or expressing concerning statements
-- **AI Elements**: AI creates complex personality profiles and gradual behavioral changes to test recognition skills
-- **Learning Objectives**: Insider threat indicators, appropriate reporting channels, balancing security with workplace relationships
-- **Scoring Criteria**: Threat recognition timing, reporting accuracy, professional handling of sensitive situations
+Start the database and cache services using Docker:
 
-### 8. Mobile Device Security
-**Scenario**: "The Coffee Shop Compromise"
-- **Setup**: Employee needs to work remotely from public locations with potentially compromised Wi-Fi networks
-- **AI Elements**: LLM simulates various public network scenarios and potential attack vectors
-- **Learning Objectives**: Secure remote work practices, network security awareness, mobile device protection
-- **Scoring Criteria**: Security precautions taken, risk assessment accuracy, proper tool usage
+```bash
+docker compose up -d sqlserver redis
+```
 
-### 9. Vendor and Third-Party Security
-**Scenario**: "The Trusted Partner Problem"
-- **Setup**: A long-term vendor requests unusual access or information, creating a trust vs. security dilemma
-- **AI Elements**: AI adapts vendor personality and relationship history to create realistic trust dynamics
-- **Learning Objectives**: Third-party risk assessment, verification procedures, escalation protocols
-- **Scoring Criteria**: Verification actions, risk evaluation, proper authorization procedures
+This will start:
+- **SQL Server 2022** on port `1433`
+- **Redis** on port `6379`
 
-### 10. Password and Authentication Security
-**Scenario**: "The Account Recovery Trap"
-- **Setup**: Employee receives requests to help colleagues recover accounts or reset authentication factors
-- **AI Elements**: LLM creates convincing impersonation attempts with varying levels of personal information
-- **Learning Objectives**: Authentication security, identity verification, proper support channels
-- **Scoring Criteria**: Verification procedures followed, appropriate resource direction, security protocol adherence
+### 4. Restore Dependencies
 
-## 🎯 Scoring and Analytics
+```bash
+dotnet restore
+```
 
-Our advanced scoring system evaluates:
-- **Response Time**: How quickly threats are identified
-- **Decision Quality**: Appropriateness of actions taken
-- **Protocol Adherence**: Following established security procedures
-- **Risk Assessment**: Accuracy in evaluating threat levels
-- **Communication Skills**: Effectiveness in reporting and escalating incidents
+### 5. Apply Database Migrations
 
-## 🏆 Security Certification Integration
+```bash
+dotnet ef database update --startup-project src/IncidentIQ.Web --project src/IncidentIQ.Infrastructure
+```
 
-IncidentIQ aligns with and supports major cybersecurity certification frameworks:
+### 6. Build the Solution
 
-### Certification Preparation & Maintenance
-- **CISSP (Certified Information Systems Security Professional)**: Practical scenarios covering all 8 CISSP domains
-- **CISM (Certified Information Security Manager)**: Management-focused incident response and communication training
-- **Security+ CompTIA**: Hands-on practice with security concepts and threat identification
-- **SANS GIAC Certifications**: Role-specific training that mirrors real-world security challenges
-- **ISO 27001**: Compliance-focused scenarios that reinforce information security management principles
+```bash
+dotnet build
+```
 
-### Continuing Education Credits
-- **CPE Credit Tracking**: Automated tracking of Continuing Professional Education hours for certification maintenance
-- **Documentation & Reporting**: Detailed completion certificates and learning transcripts for audit purposes
-- **Industry Recognition**: Training modules designed in collaboration with certification bodies
+### 7. Run the Application
 
-### Career Development Benefits
-- **Skill Validation**: Behavioral scoring provides measurable proof of security competency
-- **Portfolio Building**: Comprehensive training records that demonstrate ongoing professional development
-- **Practical Experience**: Real-world scenario experience that complements theoretical certification knowledge
-- **Performance Benchmarking**: Compare skills against industry standards and certification requirements
+```bash
+cd src/IncidentIQ.Web
+dotnet run --urls="http://localhost:5001"
+```
 
-Organizations using IncidentIQ can confidently support their employees' certification journeys while ensuring that certified professionals maintain sharp, practical skills that go beyond theoretical knowledge.
+The application will be available at `http://localhost:5001`.
 
-## � Business Value & ROI
+## Development Workflow
 
-### Quantifiable Cost Savings
-- **Breach Prevention**: The average data breach costs $4.45M globally. Even preventing one incident pays for years of training
-- **Reduced Insurance Premiums**: Many cyber insurance providers offer discounts for comprehensive security training programs
-- **Faster Incident Response**: Well-trained employees reduce mean time to detection (MTTD) and mean time to response (MTTR)
-- **Compliance Cost Reduction**: Streamlined training reduces audit preparation time and potential regulatory fines
+### Running in Development Mode
 
-### Competitive Advantages
-- **Customer Trust**: Demonstrate security maturity to clients and partners through measurable employee competency
-- **Talent Retention**: Professional development opportunities increase employee satisfaction and reduce turnover
-- **Market Differentiation**: Security-trained workforce becomes a competitive selling point in B2B sales
-- **Vendor Requirements**: Meet increasingly strict security training requirements from enterprise customers
+For development with hot reload:
 
-### Implementation Benefits
-- **Scalable Deployment**: Cloud-based platform scales from 10 to 10,000+ employees without infrastructure investment
-- **Minimal IT Overhead**: No complex installations or maintenance requirements
-- **Integration Ready**: APIs integrate with existing HR systems, LMS platforms, and security tools
-- **Immediate Value**: Employees begin training within hours of deployment, not weeks
+```bash
+cd src/IncidentIQ.Web
+dotnet watch run --urls="http://localhost:5001"
+```
 
-### Executive Dashboard & Reporting
-- **Board-Ready Metrics**: Executive dashboards show organization-wide security posture improvements
-- **Compliance Documentation**: Automated reporting for audits, insurance reviews, and regulatory requirements
-- **Risk Reduction Analytics**: Quantify security risk reduction through behavioral improvement tracking
-- **Department Benchmarking**: Compare security awareness across teams and identify improvement opportunities
+### Database Management
 
-### Sales Process Support
-- **Proof of Concept**: 30-day pilot programs demonstrate immediate value with select employee groups
-- **Customer Success Stories**: Case studies showing measurable security improvement and incident prevention
-- **Flexible Pricing**: Per-employee, department-based, or enterprise-wide licensing options
-- **Implementation Support**: Dedicated customer success team ensures rapid deployment and adoption
+#### Create a New Migration
 
-## 🚀 Getting Started
+```bash
+dotnet ef migrations add <MigrationName> --startup-project src/IncidentIQ.Web --project src/IncidentIQ.Infrastructure
+```
 
-Transform your organization's security posture with IncidentIQ's AI-powered training platform. Contact us to schedule a demo and see how personalized, interactive security training can protect your most valuable assets – your people and your data.
+#### Update Database
 
----
+```bash
+dotnet ef database update --startup-project src/IncidentIQ.Web --project src/IncidentIQ.Infrastructure
+```
 
-*IncidentIQ: Where AI meets cybersecurity training, creating the next generation of security-aware employees.*
+#### Drop Database (for development reset)
+
+```bash
+dotnet ef database drop --startup-project src/IncidentIQ.Web --project src/IncidentIQ.Infrastructure
+```
+
+### Code Quality
+
+#### Build and Check for Warnings
+
+```bash
+dotnet build --verbosity normal
+```
+
+#### Run Tests (when available)
+
+```bash
+dotnet test
+```
+
+## Configuration
+
+### Application Settings
+
+The application uses multiple configuration sources:
+
+1. `appsettings.json` - Base configuration
+2. `appsettings.Development.json` - Development overrides
+3. Environment variables - Production secrets
+4. `.env` file - Local development (via Docker Compose)
+
+### Key Configuration Sections
+
+#### Database Connection
+
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=localhost,1433;Database=IncidentIQDb;User Id=sa;Password=IncidentIQ123!;TrustServerCertificate=true;",
+    "Redis": "localhost:6379"
+  }
+}
+```
+
+#### AI Services
+
+```json
+{
+  "OpenAI": {
+    "ApiKey": "your-api-key-here"
+  },
+  "AzureOpenAI": {
+    "ApiKey": "your-azure-api-key-here",
+    "Endpoint": "https://your-resource.openai.azure.com/"
+  }
+}
+```
+
+## Docker Deployment
+
+### Full Application with Docker Compose
+
+To run the entire application stack:
+
+```bash
+# Start all services
+docker compose up -d
+
+# View logs
+docker compose logs -f web
+
+# Stop all services  
+docker compose down
+```
+
+### Individual Services
+
+Start only the dependencies:
+
+```bash
+docker compose up -d sqlserver redis
+```
+
+## Troubleshooting
+
+### Common Issues
+
+#### Port Already in Use
+
+If you get a "port already in use" error:
+
+```bash
+# Check what's using the port
+netstat -ano | findstr :5001  # Windows
+lsof -i :5001                 # macOS/Linux
+
+# Kill the process or use a different port
+dotnet run --urls="http://localhost:5002"
+```
+
+#### Database Connection Issues
+
+1. Ensure Docker containers are running:
+   ```bash
+   docker compose ps
+   ```
+
+2. Check SQL Server logs:
+   ```bash
+   docker compose logs sqlserver
+   ```
+
+3. Test connection manually:
+   ```bash
+   docker exec -it incidentiq-sqlserver /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "IncidentIQ123!"
+   ```
+
+#### Entity Framework Issues
+
+1. Clear EF cache:
+   ```bash
+   dotnet ef database drop --startup-project src/IncidentIQ.Web --project src/IncidentIQ.Infrastructure --force
+   dotnet ef database update --startup-project src/IncidentIQ.Web --project src/IncidentIQ.Infrastructure
+   ```
+
+2. Check migration status:
+   ```bash
+   dotnet ef migrations list --startup-project src/IncidentIQ.Web --project src/IncidentIQ.Infrastructure
+   ```
+
+#### Build Warnings
+
+The current build has some warnings related to:
+- Entity Framework value comparers for collection properties
+- Async methods without await operators
+- Possible null reference returns
+
+These are non-breaking but should be addressed in future iterations.
+
+## API Keys and External Services
+
+### OpenAI Integration
+
+The application requires OpenAI API access for AI-powered features:
+
+1. Get an API key from [OpenAI](https://platform.openai.com/api-keys)
+2. Add it to your `.env` file or environment variables
+3. The application uses GPT models for scenario generation and coaching
+
+### Redis Caching
+
+Redis is used for:
+- Session state management
+- AI conversation memory
+- Caching training scenarios
+- Performance optimization
+
+## Contributing
+
+### Code Style
+
+- Follow standard C# coding conventions
+- Use meaningful variable and method names
+- Add XML documentation for public APIs
+- Keep methods focused and single-purpose
+
+### Git Workflow
+
+1. Create feature branches from `main`
+2. Make atomic commits with clear messages
+3. Create pull requests for code review
+4. Ensure all builds pass before merging
+
+### Database Changes
+
+- Always create migrations for schema changes
+- Test migrations on a clean database
+- Consider backward compatibility
+- Document significant schema changes
+
+## Production Deployment
+
+### Environment Variables
+
+Set these environment variables in production:
+
+```bash
+ASPNETCORE_ENVIRONMENT=Production
+OPENAI_API_KEY=<your-production-key>
+ConnectionStrings__DefaultConnection=<your-production-db-connection>
+ConnectionStrings__Redis=<your-production-redis-connection>
+```
+
+### Security Considerations
+
+- Use managed identities in cloud environments
+- Store secrets in secure key vaults
+- Enable HTTPS in production
+- Configure proper CORS policies
+- Use connection string encryption
+
+## Support
+
+For development questions or issues:
+
+1. Check this README and troubleshooting section
+2. Review existing GitHub issues
+3. Create a new issue with detailed reproduction steps
+4. Include environment details and error logs
+
+## Related Documentation
+
+- [MARKETING.md](MARKETING.md) - Business overview and feature descriptions
+- [SlideDeck.md](SlideDeck.md) - Presentation materials and pitch deck
+- [Entity Framework Core Documentation](https://docs.microsoft.com/en-us/ef/core/)
+- [Blazor Server Documentation](https://docs.microsoft.com/en-us/aspnet/core/blazor/)
+- [OpenAI API Documentation](https://platform.openai.com/docs)

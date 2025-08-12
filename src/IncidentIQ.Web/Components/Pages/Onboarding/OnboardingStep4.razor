@@ -1,0 +1,638 @@
+@page "/onboarding/step4"
+@using System.Timers
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@implements IDisposable
+
+<PageTitle>AI Processing - Creating Your Profile | IncidentIQ</PageTitle>
+
+<div class="onboarding-container">
+    <div class="onboarding-header">
+        <div class="progress-indicator">
+            <div class="step completed">1</div>
+            <div class="step-connector completed"></div>
+            <div class="step completed">2</div>
+            <div class="step-connector completed"></div>
+            <div class="step completed">3</div>
+            <div class="step-connector completed"></div>
+            <div class="step active">4</div>
+            <div class="step-connector"></div>
+            <div class="step">5</div>
+        </div>
+        <h1 class="onboarding-title">@currentTitle</h1>
+        <p class="onboarding-subtitle">@currentSubtitle</p>
+    </div>
+
+    <div class="processing-content">
+        <!-- AI Processing Animation -->
+        <div class="ai-brain-container">
+            <div class="ai-brain">
+                <div class="brain-core">
+                    <div class="neural-network">
+                        @for (int i = 0; i < 12; i++)
+                        {
+                            <div class="neuron" style="--delay: @(i * 0.1)s; --angle: @(i * 30)deg;"></div>
+                        }
+                    </div>
+                    <div class="brain-center">🧠</div>
+                </div>
+            </div>
+            <div class="processing-status">
+                <div class="status-text">@currentStatusMessage</div>
+                <div class="loading-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Processing Steps -->
+        <div class="processing-steps">
+            @foreach (var step in processingSteps)
+            {
+                <div class="processing-step @GetStepClass(step.Id)">
+                    <div class="step-icon">
+                        @if (completedSteps.Contains(step.Id))
+                        {
+                            <span class="check-icon">✓</span>
+                        }
+                        else if (currentStepId == step.Id)
+                        {
+                            <div class="loading-spinner"></div>
+                        }
+                        else
+                        {
+                            <span class="pending-icon">@step.Icon</span>
+                        }
+                    </div>
+                    <div class="step-content">
+                        <h3 class="step-title">@step.Title</h3>
+                        <p class="step-description">@step.Description</p>
+                        @if (currentStepId == step.Id && !string.IsNullOrEmpty(currentStepDetails))
+                        {
+                            <div class="step-details">@currentStepDetails</div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- AI Insights -->
+        <div class="ai-insights">
+            <div class="insights-header">
+                <div class="insights-icon">💡</div>
+                <h3>AI Insights</h3>
+            </div>
+            <div class="insights-content">
+                @if (currentInsights.Any())
+                {
+                    @foreach (var insight in currentInsights)
+                    {
+                        <div class="insight-item animate-in">
+                            <div class="insight-icon">@insight.Icon</div>
+                            <div class="insight-text">
+                                <strong>@insight.Title:</strong> @insight.Description
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="no-insights">Generating personalized insights...</div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Skip Option -->
+    <div class="skip-option">
+        <button type="button" class="btn btn-link" @onclick="SkipProcessing">
+            Skip AI processing and continue →
+        </button>
+    </div>
+</div>
+
+<style>
+.processing-content {
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.ai-brain-container {
+    margin-bottom: var(--spacing-12);
+}
+
+.ai-brain {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    margin: 0 auto;
+}
+
+.brain-core {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-100), var(--primary-200));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.neural-network {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.neuron {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: var(--primary-500);
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform-origin: 0 0;
+    transform: rotate(var(--angle)) translateX(80px) translateY(-4px);
+    animation: neuron-pulse 1.5s ease-in-out infinite;
+    animation-delay: var(--delay);
+}
+
+.brain-center {
+    font-size: 3rem;
+    z-index: 2;
+    animation: brain-think 3s ease-in-out infinite;
+}
+
+@@keyframes pulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 var(--primary-200); }
+    50% { transform: scale(1.05); box-shadow: 0 0 0 20px transparent; }
+}
+
+@@keyframes neuron-pulse {
+    0%, 100% { opacity: 0.3; transform: rotate(var(--angle)) translateX(80px) translateY(-4px) scale(1); }
+    50% { opacity: 1; transform: rotate(var(--angle)) translateX(90px) translateY(-4px) scale(1.5); }
+}
+
+@@keyframes brain-think {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    33% { transform: scale(1.1) rotate(-5deg); }
+    66% { transform: scale(1.1) rotate(5deg); }
+}
+
+.processing-steps {
+    max-width: 600px;
+    margin: 0 auto var(--spacing-12);
+    text-align: left;
+}
+
+.processing-step {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-4);
+    margin-bottom: var(--spacing-6);
+    padding: var(--spacing-4);
+    border-radius: var(--border-radius-lg);
+    transition: all 0.5s var(--easing-smooth);
+}
+
+.processing-step.completed {
+    background: var(--success-50);
+    border-left: 4px solid var(--success-500);
+}
+
+.processing-step.active {
+    background: var(--primary-50);
+    border-left: 4px solid var(--primary-500);
+    animation: step-highlight 2s ease-in-out infinite;
+}
+
+.processing-step.pending {
+    background: var(--surface);
+    opacity: 0.6;
+}
+
+@@keyframes step-highlight {
+    0%, 100% { box-shadow: 0 0 0 0 var(--primary-200); }
+    50% { box-shadow: 0 0 0 8px transparent; }
+}
+
+.step-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.2rem;
+}
+
+.processing-step.completed .step-icon {
+    background: var(--success-500);
+    color: white;
+}
+
+.processing-step.active .step-icon {
+    background: var(--primary-500);
+    color: white;
+}
+
+.processing-step.pending .step-icon {
+    background: var(--border);
+    color: var(--text-tertiary);
+}
+
+.check-icon {
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.loading-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.step-content {
+    flex: 1;
+}
+
+.step-title {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-2);
+}
+
+.step-description {
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-2);
+    font-size: var(--font-size-sm);
+}
+
+.step-details {
+    color: var(--primary-600);
+    font-size: var(--font-size-sm);
+    font-style: italic;
+    animation: fade-in 0.5s ease-in;
+}
+
+@@keyframes fade-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.ai-insights {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-6);
+    max-width: 600px;
+    margin: 0 auto var(--spacing-8);
+}
+
+.insights-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-3);
+    margin-bottom: var(--spacing-6);
+}
+
+.insights-icon {
+    font-size: 1.5rem;
+}
+
+.insights-header h3 {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.insight-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-3);
+    margin-bottom: var(--spacing-4);
+    padding: var(--spacing-3);
+    background: var(--primary-50);
+    border-radius: var(--border-radius-md);
+    border-left: 3px solid var(--primary-500);
+}
+
+.insight-item:last-child {
+    margin-bottom: 0;
+}
+
+.animate-in {
+    animation: slide-in 0.6s ease-out;
+}
+
+@@keyframes slide-in {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.insight-icon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.insight-text {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.insight-text strong {
+    color: var(--text-primary);
+}
+
+.no-insights {
+    text-align: center;
+    color: var(--text-tertiary);
+    font-style: italic;
+    padding: var(--spacing-4);
+}
+
+.skip-option {
+    text-align: center;
+}
+
+.btn-link {
+    background: none;
+    border: none;
+    color: var(--text-tertiary);
+    font-size: var(--font-size-sm);
+    text-decoration: underline;
+    cursor: pointer;
+    padding: var(--spacing-2);
+}
+
+.btn-link:hover {
+    color: var(--primary-600);
+}
+
+.processing-status {
+    text-align: center;
+    margin-top: var(--spacing-6);
+    animation: fade-in-up 0.5s ease-out;
+}
+
+.status-text {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-medium);
+    color: var(--primary-600);
+    margin-bottom: var(--spacing-3);
+}
+</style>
+
+@code {
+    private Timer? processingTimer;
+    private int currentStepIndex = 0;
+    private string currentStepId = "";
+    private HashSet<string> completedSteps = new();
+    private string currentTitle = "Analyzing Your Profile";
+    private string currentSubtitle = "Our AI is creating a personalized security training experience just for you";
+    private string currentStepDetails = "";
+    private string currentStatusMessage = "Initializing AI processing...";
+    private List<Insight> currentInsights = new();
+
+    private List<ProcessingStep> processingSteps = new()
+    {
+        new ProcessingStep
+        {
+            Id = "profile",
+            Icon = "👤",
+            Title = "Analyzing Profile Information",
+            Description = "Processing your role, industry, and experience level"
+        },
+        new ProcessingStep
+        {
+            Id = "threats",
+            Icon = "🎯",
+            Title = "Identifying Relevant Threats",
+            Description = "Finding security risks specific to your work environment"
+        },
+        new ProcessingStep
+        {
+            Id = "scenarios",
+            Icon = "📧",
+            Title = "Generating Training Scenarios",
+            Description = "Creating realistic security challenges for your role"
+        },
+        new ProcessingStep
+        {
+            Id = "coaching",
+            Icon = "🤖",
+            Title = "Calibrating AI Coach",
+            Description = "Personalizing coaching style and difficulty level"
+        },
+        new ProcessingStep
+        {
+            Id = "dashboard",
+            Icon = "📊",
+            Title = "Building Your Dashboard",
+            Description = "Setting up personalized analytics and progress tracking"
+        }
+    };
+
+    private Dictionary<string, string[]> stepDetails = new()
+    {
+        ["profile"] = new[] {
+            "Analyzing role-specific security responsibilities...",
+            "Mapping industry-specific compliance requirements...",
+            "Calibrating content difficulty to experience level..."
+        },
+        ["threats"] = new[] {
+            "Scanning threat intelligence databases...",
+            "Identifying role-based attack vectors...",
+            "Analyzing industry-specific security incidents..."
+        },
+        ["scenarios"] = new[] {
+            "Generating personalized phishing emails...",
+            "Creating social engineering scenarios...",
+            "Building interactive security challenges..."
+        },
+        ["coaching"] = new[] {
+            "Training AI personality model...",
+            "Setting coaching intervention triggers...",
+            "Optimizing feedback delivery system..."
+        },
+        ["dashboard"] = new[] {
+            "Configuring performance metrics...",
+            "Setting up progress visualizations...",
+            "Creating executive summary reports..."
+        }
+    };
+
+    private Dictionary<string, Insight[]> stepInsights = new()
+    {
+        ["profile"] = new[]
+        {
+            new Insight { Icon = "🎯", Title = "Role-Specific Focus", Description = "Your training will emphasize threats commonly targeting your job function" },
+            new Insight { Icon = "🏢", Title = "Industry Context", Description = "Scenarios will reference tools and processes specific to your industry" }
+        },
+        ["threats"] = new[]
+        {
+            new Insight { Icon = "📈", Title = "Threat Landscape", Description = "We've identified 15 high-priority threats relevant to your role" },
+            new Insight { Icon = "⚠️", Title = "Risk Assessment", Description = "Your role has elevated exposure to social engineering attacks" }
+        },
+        ["scenarios"] = new[]
+        {
+            new Insight { Icon = "📧", Title = "Email Training", Description = "Generated 50+ realistic phishing emails for your industry" },
+            new Insight { Icon = "📞", Title = "Social Engineering", Description = "Created voice-based scenarios matching your organization type" }
+        },
+        ["coaching"] = new[]
+        {
+            new Insight { Icon = "🎓", Title = "Learning Style", Description = "AI coach calibrated for your experience level and preferences" },
+            new Insight { Icon = "💪", Title = "Challenge Level", Description = "Difficulty will adapt as you improve your security awareness" }
+        },
+        ["dashboard"] = new[]
+        {
+            new Insight { Icon = "📊", Title = "Personalized Metrics", Description = "Dashboard configured with KPIs relevant to your role and company" },
+            new Insight { Icon = "🏆", Title = "Progress Tracking", Description = "Your improvement will be benchmarked against industry standards" }
+        }
+    };
+
+    protected override void OnInitialized()
+    {
+        StartProcessing();
+    }
+
+    private void StartProcessing()
+    {
+        processingTimer = new Timer(3000); // 3 seconds per step
+        processingTimer.Elapsed += OnProcessingTick;
+        processingTimer.AutoReset = true;
+        processingTimer.Start();
+        
+        // Start with first step
+        StartCurrentStep();
+    }
+
+    private async void OnProcessingTick(object? sender, ElapsedEventArgs e)
+    {
+        // Complete current step
+        if (currentStepIndex < processingSteps.Count)
+        {
+            completedSteps.Add(currentStepId);
+            currentStepIndex++;
+        }
+
+        if (currentStepIndex >= processingSteps.Count)
+        {
+            // All steps completed
+            processingTimer?.Stop();
+            currentTitle = "Profile Complete!";
+            currentSubtitle = "Your personalized security training experience is ready";
+            
+            await InvokeAsync(StateHasChanged);
+            
+            // Navigate to final step after a brief delay
+            await Task.Delay(2000);
+            Navigation.NavigateTo("/onboarding/step5");
+            return;
+        }
+
+        // Start next step
+        StartCurrentStep();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void StartCurrentStep()
+    {
+        if (currentStepIndex < processingSteps.Count)
+        {
+            var currentStep = processingSteps[currentStepIndex];
+            currentStepId = currentStep.Id;
+            currentStepDetails = "";
+            currentInsights.Clear();
+            
+            // Update status message
+            currentStatusMessage = GetStatusMessage(currentStep.Id);
+            
+            // Add insights for current step
+            if (stepInsights.ContainsKey(currentStepId))
+            {
+                currentInsights.AddRange(stepInsights[currentStepId]);
+            }
+            
+            // Start detail animation for this step
+            StartStepDetailsAnimation();
+        }
+    }
+
+    private string GetStatusMessage(string stepId)
+    {
+        return stepId switch
+        {
+            "profile" => "Analyzing your profile and role...",
+            "threats" => "Scanning threat intelligence databases...",
+            "scenarios" => "Generating personalized scenarios...",
+            "coaching" => "Calibrating AI coaching system...",
+            "dashboard" => "Building your personalized dashboard...",
+            _ => "Processing your information..."
+        };
+    }
+
+    private async void StartStepDetailsAnimation()
+    {
+        if (!stepDetails.ContainsKey(currentStepId)) return;
+        
+        var details = stepDetails[currentStepId];
+        foreach (var detail in details)
+        {
+            currentStepDetails = detail;
+            await InvokeAsync(StateHasChanged);
+            await Task.Delay(1000);
+        }
+    }
+
+    private string GetStepClass(string stepId)
+    {
+        if (completedSteps.Contains(stepId)) return "completed";
+        if (currentStepId == stepId) return "active";
+        return "pending";
+    }
+
+    private void SkipProcessing()
+    {
+        processingTimer?.Stop();
+        Navigation.NavigateTo("/onboarding/step5");
+    }
+
+    public void Dispose()
+    {
+        processingTimer?.Dispose();
+    }
+
+    public class ProcessingStep
+    {
+        public required string Id { get; set; }
+        public required string Icon { get; set; }
+        public required string Title { get; set; }
+        public required string Description { get; set; }
+    }
+
+    public class Insight
+    {
+        public required string Icon { get; set; }
+        public required string Title { get; set; }
+        public required string Description { get; set; }
+    }
+}

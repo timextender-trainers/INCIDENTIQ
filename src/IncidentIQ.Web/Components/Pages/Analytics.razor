@@ -1,0 +1,1020 @@
+@page "/analytics"
+@rendermode InteractiveServer
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Security Analytics - IncidentIQ</PageTitle>
+
+<div class="analytics-dashboard">
+    <!-- Executive Summary Header -->
+    <div class="executive-header">
+        <div class="header-content">
+            <div class="header-info">
+                <h1>Security Analytics Dashboard</h1>
+                <p>Executive-level insights into organizational security posture and training effectiveness</p>
+                <div class="last-updated">
+                    <i class="bi bi-clock-history"></i>
+                    <span>Last updated: @DateTime.Now.ToString("MMM dd, yyyy 'at' h:mm tt")</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn-export" @onclick="ExportReport">
+                    <i class="bi bi-download"></i>
+                    Export Report
+                </button>
+                <button class="btn-schedule" @onclick="ScheduleReport">
+                    <i class="bi bi-calendar-event"></i>
+                    Schedule Reports
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Performance Indicators -->
+    <div class="kpi-grid">
+        <div class="kpi-card highlight">
+            <div class="kpi-icon">
+                <i class="bi bi-shield-check-fill"></i>
+            </div>
+            <div class="kpi-content">
+                <div class="kpi-value">
+                    <span class="value">94%</span>
+                    <span class="trend positive">
+                        <i class="bi bi-arrow-up"></i>
+                        +12%
+                    </span>
+                </div>
+                <div class="kpi-label">Security Awareness Score</div>
+                <div class="kpi-sublabel">Organization Average</div>
+                <div class="kpi-progress">
+                    <div class="progress-bar" style="width: 94%; background: linear-gradient(90deg, #10b981, #059669);"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-icon">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+            <div class="kpi-content">
+                <div class="kpi-value">
+                    <span class="value">73%</span>
+                    <span class="trend negative">
+                        <i class="bi bi-arrow-down"></i>
+                        -18%
+                    </span>
+                </div>
+                <div class="kpi-label">Phishing Susceptibility</div>
+                <div class="kpi-sublabel">Reduction achieved</div>
+                <div class="kpi-progress">
+                    <div class="progress-bar" style="width: 27%; background: linear-gradient(90deg, #ef4444, #dc2626);"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-icon">
+                <i class="bi bi-people-fill"></i>
+            </div>
+            <div class="kpi-content">
+                <div class="kpi-value">
+                    <span class="value">1,847</span>
+                    <span class="trend positive">
+                        <i class="bi bi-arrow-up"></i>
+                        +234
+                    </span>
+                </div>
+                <div class="kpi-label">Employees Trained</div>
+                <div class="kpi-sublabel">This month</div>
+                <div class="kpi-progress">
+                    <div class="progress-bar" style="width: 89%; background: linear-gradient(90deg, #3b82f6, #1d4ed8);"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-icon">
+                <i class="bi bi-currency-dollar"></i>
+            </div>
+            <div class="kpi-content">
+                <div class="kpi-value">
+                    <span class="value">$2.4M</span>
+                    <span class="trend positive">
+                        <i class="bi bi-arrow-up"></i>
+                        ROI
+                    </span>
+                </div>
+                <div class="kpi-label">Risk Reduction Value</div>
+                <div class="kpi-sublabel">Annual savings estimate</div>
+                <div class="kpi-progress">
+                    <div class="progress-bar" style="width: 100%; background: linear-gradient(90deg, #f59e0b, #d97706);"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Analytics Content -->
+    <div class="analytics-content">
+        <!-- Security Posture Trends -->
+        <div class="analytics-section">
+            <div class="section-header">
+                <h2>Security Posture Trends</h2>
+                <p>6-month performance analysis with predictive insights</p>
+                <div class="chart-controls">
+                    <select class="chart-filter" @onchange="UpdateTimeframe">
+                        <option value="6m">Last 6 Months</option>
+                        <option value="1y">Last 12 Months</option>
+                        <option value="2y">Last 24 Months</option>
+                    </select>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="securityTrendsChart" width="400" height="200"></canvas>
+            </div>
+            <div class="chart-insights">
+                <div class="insight">
+                    <i class="bi bi-lightbulb-fill"></i>
+                    <span><strong>Key Insight:</strong> Security awareness has improved 34% since implementing AI-powered training</span>
+                </div>
+                <div class="insight">
+                    <i class="bi bi-trending-up"></i>
+                    <span><strong>Projection:</strong> Current trajectory suggests 98% awareness score by Q4</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Comparison -->
+        <div class="analytics-grid">
+            <div class="analytics-card">
+                <div class="card-header">
+                    <h3>Department Performance</h3>
+                    <p>Security awareness by department</p>
+                </div>
+                <div class="chart-container">
+                    <canvas id="departmentChart" width="400" height="300"></canvas>
+                </div>
+                <div class="performance-summary">
+                    <div class="summary-item top-performer">
+                        <span class="department">IT Department</span>
+                        <span class="score">97%</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="department">Finance</span>
+                        <span class="score">94%</span>
+                    </div>
+                    <div class="summary-item needs-attention">
+                        <span class="department">Sales</span>
+                        <span class="score">78%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="analytics-card">
+                <div class="card-header">
+                    <h3>Industry Benchmark</h3>
+                    <p>How you compare to industry peers</p>
+                </div>
+                <div class="benchmark-container">
+                    <div class="benchmark-chart">
+                        <canvas id="benchmarkChart" width="400" height="300"></canvas>
+                    </div>
+                    <div class="benchmark-legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #10b981;"></div>
+                            <span>Your Organization</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #6b7280;"></div>
+                            <span>Industry Average</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #f59e0b;"></div>
+                            <span>Top Performers</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Risk Analytics -->
+        <div class="analytics-section">
+            <div class="section-header">
+                <h2>Risk Analytics & Business Impact</h2>
+                <p>Quantifying security improvements and business value</p>
+            </div>
+            <div class="risk-analytics-grid">
+                <div class="risk-card">
+                    <div class="risk-header">
+                        <h4>Incident Prevention</h4>
+                        <div class="risk-trend positive">
+                            <i class="bi bi-shield-check"></i>
+                            <span>87% Reduction</span>
+                        </div>
+                    </div>
+                    <div class="risk-chart">
+                        <canvas id="incidentChart" width="300" height="150"></canvas>
+                    </div>
+                    <div class="risk-metrics">
+                        <div class="metric">
+                            <span class="label">Prevented Incidents</span>
+                            <span class="value">234</span>
+                        </div>
+                        <div class="metric">
+                            <span class="label">Avg. Cost per Incident</span>
+                            <span class="value">$28,500</span>
+                        </div>
+                        <div class="metric highlight">
+                            <span class="label">Total Savings</span>
+                            <span class="value">$6.67M</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="risk-card">
+                    <div class="risk-header">
+                        <h4>Response Time Improvement</h4>
+                        <div class="risk-trend positive">
+                            <i class="bi bi-stopwatch"></i>
+                            <span>64% Faster</span>
+                        </div>
+                    </div>
+                    <div class="risk-chart">
+                        <canvas id="responseChart" width="300" height="150"></canvas>
+                    </div>
+                    <div class="risk-metrics">
+                        <div class="metric">
+                            <span class="label">Avg. Response Time</span>
+                            <span class="value">12 minutes</span>
+                        </div>
+                        <div class="metric">
+                            <span class="label">Previous Average</span>
+                            <span class="value">34 minutes</span>
+                        </div>
+                        <div class="metric highlight">
+                            <span class="label">Time Saved</span>
+                            <span class="value">22 minutes</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="risk-card">
+                    <div class="risk-header">
+                        <h4>Compliance Score</h4>
+                        <div class="risk-trend positive">
+                            <i class="bi bi-award"></i>
+                            <span>98% Compliant</span>
+                        </div>
+                    </div>
+                    <div class="compliance-gauge">
+                        <canvas id="complianceGauge" width="200" height="100"></canvas>
+                    </div>
+                    <div class="risk-metrics">
+                        <div class="metric">
+                            <span class="label">SOC 2 Compliance</span>
+                            <span class="value">100%</span>
+                        </div>
+                        <div class="metric">
+                            <span class="label">GDPR Compliance</span>
+                            <span class="value">97%</span>
+                        </div>
+                        <div class="metric">
+                            <span class="label">ISO 27001</span>
+                            <span class="value">95%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Training Effectiveness -->
+        <div class="analytics-grid">
+            <div class="analytics-card wide">
+                <div class="card-header">
+                    <h3>Training Effectiveness Over Time</h3>
+                    <p>Individual and cohort progress tracking</p>
+                </div>
+                <div class="effectiveness-container">
+                    <div class="chart-container">
+                        <canvas id="trainingEffectivenessChart" width="600" height="300"></canvas>
+                    </div>
+                    <div class="effectiveness-stats">
+                        <div class="stat-card">
+                            <div class="stat-value">94%</div>
+                            <div class="stat-label">Completion Rate</div>
+                            <div class="stat-change positive">+8% vs last quarter</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">4.8/5</div>
+                            <div class="stat-label">Satisfaction Score</div>
+                            <div class="stat-change positive">+0.3 vs last quarter</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">87%</div>
+                            <div class="stat-label">Knowledge Retention</div>
+                            <div class="stat-change positive">+12% vs last quarter</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Executive Summary -->
+        <div class="executive-summary">
+            <div class="summary-header">
+                <h2>Executive Summary</h2>
+                <p>Key findings and strategic recommendations</p>
+            </div>
+            <div class="summary-content">
+                <div class="summary-grid">
+                    <div class="summary-card success">
+                        <div class="summary-icon">
+                            <i class="bi bi-trophy-fill"></i>
+                        </div>
+                        <div class="summary-info">
+                            <h4>Outstanding ROI Achievement</h4>
+                            <p>The AI-powered security training program has delivered a <strong>$2.4M annual ROI</strong> through incident prevention, faster response times, and improved compliance posture.</p>
+                            <div class="summary-action">
+                                <button class="btn-summary">View Detailed ROI Analysis</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="summary-card warning">
+                        <div class="summary-icon">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                        </div>
+                        <div class="summary-info">
+                            <h4>Sales Department Needs Attention</h4>
+                            <p>Sales team shows <strong>16% lower security awareness</strong> than organization average. Recommend targeted phishing simulations and role-specific training modules.</p>
+                            <div class="summary-action">
+                                <button class="btn-summary">Create Action Plan</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="summary-card info">
+                        <div class="summary-icon">
+                            <i class="bi bi-graph-up-arrow"></i>
+                        </div>
+                        <div class="summary-info">
+                            <h4>Predictive Excellence</h4>
+                            <p>Based on current trends, organization is on track to achieve <strong>98% security awareness</strong> by Q4, placing us in the top 5% of industry performers.</p>
+                            <div class="summary-action">
+                                <button class="btn-summary">View Projections</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Analytics Dashboard Styles */
+.analytics-dashboard {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    font-family: var(--font-inter);
+}
+
+/* Executive Header */
+.executive-header {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    color: white;
+    padding: var(--space-10) var(--space-8) var(--space-8);
+}
+
+.header-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.header-info h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0 0 var(--space-3) 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.header-info p {
+    font-size: 1.1rem;
+    margin: 0 0 var(--space-4) 0;
+    opacity: 0.9;
+}
+
+.last-updated {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: 0.9rem;
+    opacity: 0.7;
+}
+
+.header-actions {
+    display: flex;
+    gap: var(--space-3);
+}
+
+.btn-export, .btn-schedule {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-5);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-lg);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.btn-export:hover, .btn-schedule:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* KPI Grid */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--space-6);
+    max-width: 1400px;
+    margin: -40px auto var(--space-8);
+    padding: 0 var(--space-8);
+}
+
+.kpi-card {
+    background: white;
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.kpi-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.06);
+}
+
+.kpi-card.highlight {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(5, 150, 105, 0.05) 100%);
+    border-color: #10b981;
+}
+
+.kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+}
+
+.kpi-card.highlight::before {
+    background: linear-gradient(90deg, #10b981, #059669);
+}
+
+.kpi-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: var(--radius-xl);
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.75rem;
+    margin-bottom: var(--space-4);
+}
+
+.kpi-card.highlight .kpi-icon {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.kpi-content .kpi-value {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-2);
+}
+
+.kpi-value .value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--gray-900);
+}
+
+.trend {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius);
+}
+
+.trend.positive {
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
+}
+
+.trend.negative {
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+}
+
+.kpi-label {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: var(--space-1);
+}
+
+.kpi-sublabel {
+    font-size: 0.85rem;
+    color: var(--gray-500);
+    margin-bottom: var(--space-4);
+}
+
+.kpi-progress {
+    height: 8px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 2s ease-in-out;
+}
+
+/* Analytics Content */
+.analytics-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 var(--space-8) var(--space-10);
+}
+
+.analytics-section {
+    margin-bottom: var(--space-10);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-6);
+}
+
+.section-header h2 {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin: 0 0 var(--space-2) 0;
+}
+
+.section-header p {
+    font-size: 1rem;
+    color: var(--gray-600);
+    margin: 0;
+}
+
+.chart-controls {
+    display: flex;
+    gap: var(--space-3);
+}
+
+.chart-filter {
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius);
+    background: white;
+    font-size: 0.9rem;
+    color: var(--gray-700);
+}
+
+.chart-container {
+    background: white;
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-bottom: var(--space-4);
+}
+
+.chart-insights {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+.insight {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    background: white;
+    border-radius: var(--radius-lg);
+    border-left: 4px solid #3b82f6;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.insight i {
+    color: #3b82f6;
+    font-size: 1.2rem;
+}
+
+.insight span {
+    color: var(--gray-700);
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+/* Analytics Grid */
+.analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    gap: var(--space-6);
+    margin-bottom: var(--space-10);
+}
+
+.analytics-card {
+    background: white;
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.analytics-card.wide {
+    grid-column: 1 / -1;
+}
+
+.card-header {
+    margin-bottom: var(--space-6);
+}
+
+.card-header h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin: 0 0 var(--space-2) 0;
+}
+
+.card-header p {
+    font-size: 0.95rem;
+    color: var(--gray-600);
+    margin: 0;
+}
+
+/* Performance Summary */
+.performance-summary {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius);
+    background: var(--gray-50);
+}
+
+.summary-item.top-performer {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.summary-item.needs-attention {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.department {
+    font-weight: 600;
+    color: var(--gray-900);
+}
+
+.score {
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.summary-item.top-performer .score {
+    color: #059669;
+}
+
+.summary-item.needs-attention .score {
+    color: #dc2626;
+}
+
+/* Benchmark */
+.benchmark-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.benchmark-legend {
+    display: flex;
+    gap: var(--space-6);
+    justify-content: center;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 2px;
+}
+
+/* Risk Analytics */
+.risk-analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: var(--space-6);
+}
+
+.risk-card {
+    background: white;
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.risk-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-4);
+}
+
+.risk-header h4 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin: 0;
+}
+
+.risk-trend {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius);
+}
+
+.risk-trend.positive {
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
+}
+
+.risk-metrics {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+}
+
+.metric {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-2);
+}
+
+.metric.highlight {
+    background: rgba(16, 185, 129, 0.05);
+    border-radius: var(--radius);
+    font-weight: 600;
+}
+
+.metric .label {
+    color: var(--gray-600);
+    font-size: 0.9rem;
+}
+
+.metric .value {
+    color: var(--gray-900);
+    font-weight: 600;
+}
+
+.metric.highlight .value {
+    color: #059669;
+    font-size: 1.1rem;
+}
+
+/* Training Effectiveness */
+.effectiveness-container {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--space-8);
+    align-items: center;
+}
+
+.effectiveness-stats {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.stat-card {
+    padding: var(--space-4);
+    background: var(--gray-50);
+    border-radius: var(--radius-lg);
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: var(--space-1);
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: var(--gray-600);
+    font-weight: 600;
+    margin-bottom: var(--space-1);
+}
+
+.stat-change {
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.stat-change.positive {
+    color: #059669;
+}
+
+/* Executive Summary */
+.executive-summary {
+    background: white;
+    border-radius: var(--radius-xl);
+    padding: var(--space-8);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    margin-top: var(--space-10);
+}
+
+.summary-header {
+    text-align: center;
+    margin-bottom: var(--space-8);
+}
+
+.summary-header h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin: 0 0 var(--space-3) 0;
+}
+
+.summary-header p {
+    font-size: 1.1rem;
+    color: var(--gray-600);
+    margin: 0;
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: var(--space-6);
+}
+
+.summary-card {
+    display: flex;
+    gap: var(--space-4);
+    padding: var(--space-6);
+    border-radius: var(--radius-xl);
+    border: 2px solid;
+}
+
+.summary-card.success {
+    background: rgba(16, 185, 129, 0.02);
+    border-color: rgba(16, 185, 129, 0.2);
+}
+
+.summary-card.warning {
+    background: rgba(245, 158, 11, 0.02);
+    border-color: rgba(245, 158, 11, 0.2);
+}
+
+.summary-card.info {
+    background: rgba(59, 130, 246, 0.02);
+    border-color: rgba(59, 130, 246, 0.2);
+}
+
+.summary-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: var(--radius-xl);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+    flex-shrink: 0;
+}
+
+.summary-card.success .summary-icon {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.summary-card.warning .summary-icon {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.summary-card.info .summary-icon {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+}
+
+.summary-info h4 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin: 0 0 var(--space-3) 0;
+}
+
+.summary-info p {
+    font-size: 0.95rem;
+    color: var(--gray-600);
+    line-height: 1.6;
+    margin: 0 0 var(--space-4) 0;
+}
+
+.btn-summary {
+    background: var(--primary-blue);
+    color: white;
+    border: none;
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-summary:hover {
+    background: var(--primary-blue-dark);
+    transform: translateY(-1px);
+}
+
+/* Responsive styles are in main CSS file */
+</style>
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InitializeCharts();
+        }
+    }
+
+    private async Task InitializeCharts()
+    {
+        // Initialize all charts with Chart.js
+        await JSRuntime.InvokeVoidAsync("initializeAnalyticsCharts");
+    }
+
+    private async Task ExportReport()
+    {
+        await JSRuntime.InvokeVoidAsync("downloadAnalyticsReport");
+    }
+
+    private async Task ScheduleReport()
+    {
+        // Schedule report functionality
+        await Task.Delay(100);
+    }
+
+    private async Task UpdateTimeframe(ChangeEventArgs e)
+    {
+        var timeframe = e.Value?.ToString();
+        await JSRuntime.InvokeVoidAsync("updateSecurityTrends", timeframe);
+    }
+}

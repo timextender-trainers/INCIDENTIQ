@@ -1,0 +1,1107 @@
+@rendermode InteractiveServer
+@inject IJSRuntime JSRuntime
+
+<div class="ai-coach-panel @(isVisible ? "visible" : "") @(isMinimized ? "minimized" : "")" 
+     @onmouseenter="OnMouseEnter" 
+     @onmouseleave="OnMouseLeave">
+    
+    <!-- Coach Header -->
+    <div class="coach-header" @onclick="ToggleMinimized">
+        <div class="coach-identity">
+            <div class="coach-avatar @(isThinking ? "thinking" : "")">
+                <div class="avatar-glow"></div>
+                <i class="bi bi-robot coach-icon"></i>
+                @if (isThinking)
+                {
+                    <div class="thinking-dots">
+                        <span></span><span></span><span></span>
+                    </div>
+                }
+            </div>
+            <div class="coach-info">
+                <h4 class="coach-name">SecuritySensei</h4>
+                <p class="coach-status">@currentStatus</p>
+            </div>
+        </div>
+        <div class="coach-controls">
+            <div class="awareness-indicator @GetAwarenessLevel()">
+                <span class="indicator-dot"></span>
+                <span class="indicator-text">@awarenessScore%</span>
+            </div>
+            <button class="btn-minimize" title="@(isMinimized ? "Expand" : "Minimize")">
+                <i class="bi bi-@(isMinimized ? "chevron-up" : "chevron-down")"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Coach Content -->
+    <div class="coach-content @(isMinimized ? "hidden" : "")">
+        
+        <!-- Real-time Tip -->
+        @if (currentTip != null)
+        {
+            <div class="current-tip @currentTip.RiskLevel.ToString().ToLower() slide-in">
+                <div class="tip-header">
+                    <div class="risk-indicator @currentTip.RiskLevel.ToString().ToLower()">
+                        <i class="bi bi-@GetRiskIcon(currentTip.RiskLevel)"></i>
+                    </div>
+                    <span class="tip-title">@currentTip.Title</span>
+                    <button class="btn-close-tip" @onclick="DismissTip">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+                <div class="tip-content">
+                    <p>@((MarkupString)currentTip.Message)</p>
+                    @if (currentTip.ActionSuggestion != null)
+                    {
+                        <div class="tip-action">
+                            <button class="btn-action @currentTip.RiskLevel.ToString().ToLower()" 
+                                    @onclick="() => ExecuteAction(currentTip.ActionSuggestion)">
+                                <i class="bi bi-@currentTip.ActionIcon"></i>
+                                @currentTip.ActionSuggestion
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- Progress Tracking -->
+        <div class="progress-section">
+            <div class="section-header">
+                <h5>Security Awareness Progress</h5>
+                <span class="progress-score">Level @GetSecurityLevel()</span>
+            </div>
+            
+            <div class="skill-progress">
+                @foreach (var skill in skillMetrics)
+                {
+                    <div class="skill-item">
+                        <div class="skill-header">
+                            <span class="skill-name">@skill.Name</span>
+                            <span class="skill-score">@skill.Score%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-fill @GetSkillLevel(skill.Score)" 
+                                 style="width: @skill.Score%; animation-delay: @(skill.Name.GetHashCode() % 500)ms;">
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Threat Assessment -->
+        <div class="threat-section">
+            <div class="section-header">
+                <h5>Current Threat Analysis</h5>
+                <div class="threat-level @currentThreatLevel.ToString().ToLower()">
+                    <i class="bi bi-@GetThreatIcon()"></i>
+                    @currentThreatLevel Risk
+                </div>
+            </div>
+            
+            <div class="threat-indicators">
+                @foreach (var indicator in threatIndicators)
+                {
+                    <div class="threat-indicator @indicator.Level.ToString().ToLower()">
+                        <div class="indicator-icon">
+                            <i class="bi bi-@indicator.Icon"></i>
+                        </div>
+                        <div class="indicator-content">
+                            <span class="indicator-name">@indicator.Name</span>
+                            <span class="indicator-status">@indicator.Status</span>
+                        </div>
+                        <div class="indicator-badge @indicator.Level.ToString().ToLower()">
+                            @indicator.Level.ToString().Substring(0, 1)
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Recent Insights -->
+        <div class="insights-section">
+            <div class="section-header">
+                <h5>Recent Insights</h5>
+                <button class="btn-clear" @onclick="ClearInsights">Clear</button>
+            </div>
+            
+            <div class="insights-list">
+                @foreach (var insight in recentInsights.Take(3))
+                {
+                    <div class="insight-item fade-in" style="animation-delay: @(recentInsights.IndexOf(insight) * 100)ms;">
+                        <div class="insight-time">@insight.Timestamp.ToString("HH:mm")</div>
+                        <div class="insight-content">
+                            <div class="insight-icon @insight.Type.ToString().ToLower()">
+                                <i class="bi bi-@GetInsightIcon(insight.Type)"></i>
+                            </div>
+                            <span class="insight-text">@insight.Message</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="actions-section">
+            <div class="section-header">
+                <h5>Recommended Actions</h5>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="btn-quick-action safe" @onclick="ReportSuspicious">
+                    <i class="bi bi-shield-check"></i>
+                    <span>Report Suspicious</span>
+                </button>
+                <button class="btn-quick-action warning" @onclick="RequestGuidance">
+                    <i class="bi bi-question-circle"></i>
+                    <span>Request Guidance</span>
+                </button>
+                <button class="btn-quick-action info" @onclick="ShowBestPractices">
+                    <i class="bi bi-lightbulb"></i>
+                    <span>Best Practices</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Toggle Button (when minimized) -->
+    @if (isMinimized)
+    {
+        <div class="floating-toggle" @onclick="ToggleMinimized">
+            <div class="toggle-avatar @(hasNewTip ? "alert" : "")">
+                <i class="bi bi-robot"></i>
+                @if (hasNewTip)
+                {
+                    <div class="notification-pulse"></div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+/* AI Coach Panel Styles */
+.ai-coach-panel {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 380px;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(20px);
+    border-radius: 24px;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.15), 0 8px 24px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    z-index: 9999;
+    transform: translateX(420px);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: var(--font-inter);
+}
+
+.ai-coach-panel.visible {
+    transform: translateX(0);
+}
+
+.ai-coach-panel.minimized {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+.ai-coach-panel:hover {
+    box-shadow: 0 32px 64px rgba(0, 0, 0, 0.2), 0 12px 32px rgba(0, 0, 0, 0.15);
+}
+
+/* Coach Header */
+.coach-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.coach-header:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+.coach-identity {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.coach-avatar {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.coach-avatar.thinking {
+    animation: pulse 2s infinite;
+}
+
+.avatar-glow {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    opacity: 0.3;
+    transform: scale(1.2);
+    animation: glow 3s ease-in-out infinite;
+}
+
+.coach-icon {
+    font-size: 24px;
+    color: white;
+    z-index: 1;
+}
+
+.thinking-dots {
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 2px;
+}
+
+.thinking-dots span {
+    width: 4px;
+    height: 4px;
+    background: #667eea;
+    border-radius: 50%;
+    animation: thinking 1.4s infinite ease-in-out;
+}
+
+.thinking-dots span:nth-child(1) { animation-delay: -0.32s; }
+.thinking-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+.coach-info h4 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+.coach-info p {
+    margin: 0;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.coach-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.awareness-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.awareness-indicator.high {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.awareness-indicator.medium {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.awareness-indicator.low {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.indicator-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: pulse-dot 2s infinite;
+}
+
+.btn-minimize {
+    background: none;
+    border: none;
+    padding: var(--space-2);
+    border-radius: var(--radius);
+    color: var(--gray-500);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-minimize:hover {
+    background-color: var(--gray-100);
+    color: var(--gray-700);
+}
+
+/* Coach Content */
+.coach-content {
+    max-height: calc(100vh - 160px);
+    overflow-y: auto;
+    transition: all 0.3s ease;
+}
+
+.coach-content.hidden {
+    max-height: 0;
+    overflow: hidden;
+}
+
+.coach-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.coach-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.coach-content::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
+}
+
+/* Current Tip */
+.current-tip {
+    margin: var(--space-5) var(--space-6);
+    padding: var(--space-4);
+    border-radius: var(--radius-xl);
+    border-left: 4px solid;
+    animation: slideIn 0.4s ease-out;
+    font-family: var(--font-inter);
+}
+
+.current-tip.high {
+    background: rgba(239, 68, 68, 0.05);
+    border-color: var(--danger);
+}
+
+.current-tip.medium {
+    background: rgba(245, 158, 11, 0.05);
+    border-color: var(--warning);
+}
+
+.current-tip.low {
+    background: rgba(16, 185, 129, 0.05);
+    border-color: var(--success);
+}
+
+.tip-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+}
+
+.risk-indicator {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: white;
+}
+
+.risk-indicator.high { background: var(--danger); }
+.risk-indicator.medium { background: var(--warning); }
+.risk-indicator.low { background: var(--success); }
+
+.tip-title {
+    font-weight: 600;
+    color: var(--gray-900);
+    flex: 1;
+    font-family: var(--font-inter);
+}
+
+.btn-close-tip {
+    background: none;
+    border: none;
+    padding: var(--space-1);
+    border-radius: var(--radius);
+    color: var(--gray-500);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-close-tip:hover {
+    color: var(--gray-700);
+    background-color: var(--gray-100);
+}
+
+.tip-content p {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #4b5563;
+}
+
+.tip-action {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-action {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-action.high {
+    background: #ef4444;
+    color: white;
+}
+
+.btn-action.medium {
+    background: #f59e0b;
+    color: white;
+}
+
+.btn-action.low {
+    background: #10b981;
+    color: white;
+}
+
+.btn-action:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Section Styles */
+.progress-section, .threat-section, .insights-section, .actions-section {
+    padding: 20px 24px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.section-header h5 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+.progress-score {
+    font-size: 12px;
+    font-weight: 600;
+    color: #667eea;
+}
+
+/* Skill Progress */
+.skill-progress {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.skill-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.skill-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.skill-name {
+    font-size: 12px;
+    color: #4b5563;
+}
+
+.skill-score {
+    font-size: 12px;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+.skill-bar {
+    height: 4px;
+    background: rgba(0, 0, 0, 0.08);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.skill-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.8s ease;
+    animation: fillBar 1s ease-out;
+}
+
+.skill-fill.high { background: #10b981; }
+.skill-fill.medium { background: #f59e0b; }
+.skill-fill.low { background: #ef4444; }
+
+/* Threat Assessment */
+.threat-level {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.threat-level.high {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.threat-level.medium {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.threat-level.low {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.threat-indicators {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.threat-indicator {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+}
+
+.threat-indicator:hover {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+.indicator-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: white;
+}
+
+.threat-indicator.high .indicator-icon { background: #ef4444; }
+.threat-indicator.medium .indicator-icon { background: #f59e0b; }
+.threat-indicator.low .indicator-icon { background: #10b981; }
+
+.indicator-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.indicator-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+.indicator-status {
+    font-size: 11px;
+    color: #6b7280;
+}
+
+.indicator-badge {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    color: white;
+}
+
+.indicator-badge.high { background: #ef4444; }
+.indicator-badge.medium { background: #f59e0b; }
+.indicator-badge.low { background: #10b981; }
+
+/* Insights */
+.insights-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.insight-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    opacity: 0;
+    animation: fadeIn 0.4s ease-out forwards;
+}
+
+.insight-time {
+    font-size: 10px;
+    color: #6b7280;
+    font-weight: 500;
+    min-width: 32px;
+}
+
+.insight-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    flex: 1;
+}
+
+.insight-icon {
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    color: white;
+    flex-shrink: 0;
+}
+
+.insight-icon.discovery { background: #667eea; }
+.insight-icon.warning { background: #f59e0b; }
+.insight-icon.success { background: #10b981; }
+
+.insight-text {
+    font-size: 12px;
+    color: #4b5563;
+    line-height: 1.4;
+}
+
+/* Quick Actions */
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.btn-quick-action {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border: 1px solid;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.btn-quick-action.safe {
+    border-color: #10b981;
+    color: #10b981;
+}
+
+.btn-quick-action.warning {
+    border-color: #f59e0b;
+    color: #f59e0b;
+}
+
+.btn-quick-action.info {
+    border-color: #667eea;
+    color: #667eea;
+}
+
+.btn-quick-action:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-quick-action.safe:hover { background: rgba(16, 185, 129, 0.05); }
+.btn-quick-action.warning:hover { background: rgba(245, 158, 11, 0.05); }
+.btn-quick-action.info:hover { background: rgba(102, 126, 234, 0.05); }
+
+/* Floating Toggle */
+.floating-toggle {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    cursor: pointer;
+}
+
+.toggle-avatar {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+    transition: all 0.3s ease;
+}
+
+.toggle-avatar:hover {
+    transform: scale(1.1);
+}
+
+.toggle-avatar.alert {
+    animation: alertBounce 2s infinite;
+}
+
+.notification-pulse {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 12px;
+    height: 12px;
+    background: #ef4444;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+/* Animation classes - animations defined in main CSS file */
+.pulse-animation {
+    animation: pulse 2s infinite;
+}
+
+.glow-animation {
+    animation: glow 3s ease-in-out infinite;
+}
+
+.thinking-animation {
+    animation: thinking 1.4s infinite ease-in-out;
+}
+
+.slide-in {
+    animation: slideIn 0.4s ease-out;
+}
+
+.fade-in {
+    animation: fadeIn 0.4s ease-out;
+}
+
+.fill-bar {
+    animation: fillBar 1s ease-out;
+}
+
+.alert-bounce {
+    animation: alertBounce 2s infinite;
+}
+
+/* Responsive styles are in main CSS file */
+</style>
+
+@code {
+    private bool isVisible = false;
+    private bool isMinimized = false;
+    private bool isThinking = false;
+    private bool hasNewTip = false;
+    private string currentStatus = "Monitoring your activity";
+    private int awarenessScore = 87;
+    private CoachingTip? currentTip = null;
+    private RiskLevel currentThreatLevel = RiskLevel.Medium;
+
+    private List<SkillMetric> skillMetrics = new()
+    {
+        new("Phishing Detection", 92),
+        new("Social Engineering", 78),
+        new("Data Protection", 85),
+        new("Incident Response", 67)
+    };
+
+    private List<ThreatIndicator> threatIndicators = new()
+    {
+        new("Email Authenticity", "Suspicious domain detected", RiskLevel.High, "exclamation-triangle"),
+        new("Sender Verification", "External sender warning", RiskLevel.Medium, "shield-exclamation"),
+        new("Link Analysis", "Monitoring click behavior", RiskLevel.Low, "link-45deg")
+    };
+
+    private List<CoachingInsight> recentInsights = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.Delay(2000);
+        isVisible = true;
+        StateHasChanged();
+
+        // Simulate initial insights
+        AddInsight(InsightType.Discovery, "Email analysis started");
+        AddInsight(InsightType.Warning, "Suspicious sender domain identified");
+        
+        // Simulate thinking
+        await SimulateThinking();
+    }
+
+    private async Task SimulateThinking()
+    {
+        isThinking = true;
+        currentStatus = "Analyzing threat patterns...";
+        StateHasChanged();
+
+        await Task.Delay(3000);
+
+        isThinking = false;
+        currentStatus = "Ready to assist";
+        
+        // Show coaching tip
+        ShowTip(new CoachingTip
+        {
+            Title = "Suspicious Domain Detected",
+            Message = "The sender's email domain <strong>\"company-portal.com\"</strong> doesn't match your organization's official domain. This is a common phishing tactic.",
+            RiskLevel = RiskLevel.High,
+            ActionSuggestion = "Report as Phishing",
+            ActionIcon = "shield-exclamation"
+        });
+
+        StateHasChanged();
+    }
+
+    public void ShowTip(CoachingTip tip)
+    {
+        currentTip = tip;
+        hasNewTip = true;
+        StateHasChanged();
+    }
+
+    private void DismissTip()
+    {
+        currentTip = null;
+        hasNewTip = false;
+        StateHasChanged();
+    }
+
+    private void ToggleMinimized()
+    {
+        isMinimized = !isMinimized;
+        StateHasChanged();
+    }
+
+    private void OnMouseEnter()
+    {
+        // Expand on hover when minimized
+    }
+
+    private void OnMouseLeave()
+    {
+        // Contract after delay when minimized
+    }
+
+    private string GetAwarenessLevel()
+    {
+        return awarenessScore switch
+        {
+            >= 80 => "high",
+            >= 60 => "medium",
+            _ => "low"
+        };
+    }
+
+    private int GetSecurityLevel()
+    {
+        return (awarenessScore / 20) + 1;
+    }
+
+    private string GetSkillLevel(int score)
+    {
+        return score switch
+        {
+            >= 80 => "high",
+            >= 60 => "medium",
+            _ => "low"
+        };
+    }
+
+    private string GetRiskIcon(RiskLevel level)
+    {
+        return level switch
+        {
+            RiskLevel.High => "exclamation-triangle",
+            RiskLevel.Medium => "exclamation-circle",
+            RiskLevel.Low => "info-circle",
+            _ => "info-circle"
+        };
+    }
+
+    private string GetThreatIcon()
+    {
+        return currentThreatLevel switch
+        {
+            RiskLevel.High => "shield-exclamation",
+            RiskLevel.Medium => "shield-check",
+            RiskLevel.Low => "shield",
+            _ => "shield"
+        };
+    }
+
+    private string GetInsightIcon(InsightType type)
+    {
+        return type switch
+        {
+            InsightType.Discovery => "lightbulb",
+            InsightType.Warning => "exclamation-triangle",
+            InsightType.Success => "check-circle",
+            _ => "info-circle"
+        };
+    }
+
+    private void AddInsight(InsightType type, string message)
+    {
+        recentInsights.Insert(0, new CoachingInsight
+        {
+            Type = type,
+            Message = message,
+            Timestamp = DateTime.Now
+        });
+
+        if (recentInsights.Count > 10)
+        {
+            recentInsights.RemoveAt(recentInsights.Count - 1);
+        }
+    }
+
+    private void ClearInsights()
+    {
+        recentInsights.Clear();
+        StateHasChanged();
+    }
+
+    private async Task ExecuteAction(string action)
+    {
+        AddInsight(InsightType.Success, $"Action executed: {action}");
+        DismissTip();
+        awarenessScore = Math.Min(100, awarenessScore + 2);
+        await Task.CompletedTask;
+    }
+
+    private async Task ReportSuspicious()
+    {
+        AddInsight(InsightType.Success, "Suspicious email reported to IT security");
+        awarenessScore = Math.Min(100, awarenessScore + 5);
+        await Task.CompletedTask;
+    }
+
+    private async Task RequestGuidance()
+    {
+        ShowTip(new CoachingTip
+        {
+            Title = "Security Best Practice",
+            Message = "When in doubt, always verify directly with your IT security team using a trusted communication channel.",
+            RiskLevel = RiskLevel.Low,
+            ActionSuggestion = "Contact IT",
+            ActionIcon = "telephone"
+        });
+        await Task.CompletedTask;
+    }
+
+    private async Task ShowBestPractices()
+    {
+        ShowTip(new CoachingTip
+        {
+            Title = "Email Security Tips",
+            Message = "• Always verify sender authenticity<br>• Be suspicious of urgent requests<br>• Never click suspicious links<br>• Report phishing attempts immediately",
+            RiskLevel = RiskLevel.Low,
+            ActionSuggestion = null,
+            ActionIcon = ""
+        });
+        await Task.CompletedTask;
+    }
+
+    // Models
+    public class CoachingTip
+    {
+        public string Title { get; set; } = "";
+        public string Message { get; set; } = "";
+        public RiskLevel RiskLevel { get; set; }
+        public string? ActionSuggestion { get; set; }
+        public string ActionIcon { get; set; } = "";
+    }
+
+    public class SkillMetric
+    {
+        public string Name { get; set; } = "";
+        public int Score { get; set; }
+
+        public SkillMetric(string name, int score)
+        {
+            Name = name;
+            Score = score;
+        }
+    }
+
+    public class ThreatIndicator
+    {
+        public string Name { get; set; } = "";
+        public string Status { get; set; } = "";
+        public RiskLevel Level { get; set; }
+        public string Icon { get; set; } = "";
+
+        public ThreatIndicator(string name, string status, RiskLevel level, string icon)
+        {
+            Name = name;
+            Status = status;
+            Level = level;
+            Icon = icon;
+        }
+    }
+
+    public class CoachingInsight
+    {
+        public InsightType Type { get; set; }
+        public string Message { get; set; } = "";
+        public DateTime Timestamp { get; set; }
+    }
+
+    public enum RiskLevel
+    {
+        Low,
+        Medium,
+        High
+    }
+
+    public enum InsightType
+    {
+        Discovery,
+        Warning,
+        Success
+    }
+}

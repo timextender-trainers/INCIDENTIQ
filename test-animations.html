@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Animation Test - IncidentIQ Onboarding</title>
+    <link rel="stylesheet" href="src/IncidentIQ.Web/wwwroot/css/saas-design-system.css" />
+    <link rel="stylesheet" href="src/IncidentIQ.Web/wwwroot/css/onboarding-animations.css" />
+</head>
+<body>
+    <div class="onboarding-container">
+        <div class="onboarding-header">
+            <!-- Progress Indicator Test -->
+            <div class="progress-indicator">
+                <div class="step completed">1</div>
+                <div class="step-connector completed"></div>
+                <div class="step completed">2</div>
+                <div class="step-connector completed"></div>
+                <div class="step completed">3</div>
+                <div class="step-connector completed"></div>
+                <div class="step active">4</div>
+                <div class="step-connector"></div>
+                <div class="step">5</div>
+            </div>
+            
+            <h1 class="onboarding-title">🚀 Animation Test Page</h1>
+            <p class="onboarding-subtitle">Testing micro-interactions and smooth transitions</p>
+        </div>
+
+        <div class="form-section">
+            <h2>Form Interactions Test</h2>
+            <div class="form-group">
+                <label class="form-label">Test Input (focus to see animation)</label>
+                <input type="text" class="form-input" placeholder="Type something..." />
+                <div class="form-hint">Hint text that animates on focus</div>
+            </div>
+            
+            <div class="form-group">
+                <button class="btn btn-primary">
+                    <span>Test Button (hover and click)</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="role-grid">
+            <div class="role-card" data-tooltip="Click to see selection animation">
+                <div class="role-icon">👨‍💻</div>
+                <div class="role-title">Software Engineer</div>
+                <div class="role-scenarios">
+                    <p>• GitHub Repository Phishing Attack</p>
+                    <p>• Code Review Security Challenge</p>
+                    <p>• Production Database Social Engineering</p>
+                </div>
+            </div>
+            
+            <div class="role-card" data-tooltip="Hover to see micro-interactions">
+                <div class="role-icon">📊</div>
+                <div class="role-title">Marketing Manager</div>
+                <div class="role-scenarios">
+                    <p>• Vendor Invoice Fraud</p>
+                    <p>• Social Media Account Takeover</p>
+                    <p>• Customer Data Phishing</p>
+                </div>
+            </div>
+            
+            <div class="role-card" data-tooltip="Test celebration animation">
+                <div class="role-icon">👥</div>
+                <div class="role-title">HR Director</div>
+                <div class="role-scenarios">
+                    <p>• Employee Verification Social Engineering</p>
+                    <p>• Resume Malware Attack</p>
+                    <p>• Payroll System Phishing</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="ai-brain-container">
+            <div class="ai-brain">
+                <div class="brain-core">
+                    <div class="neural-network">
+                        <div class="neuron" style="--delay: 0s; --angle: 0deg;"></div>
+                        <div class="neuron" style="--delay: 0.1s; --angle: 30deg;"></div>
+                        <div class="neuron" style="--delay: 0.2s; --angle: 60deg;"></div>
+                        <div class="neuron" style="--delay: 0.3s; --angle: 90deg;"></div>
+                        <div class="neuron" style="--delay: 0.4s; --angle: 120deg;"></div>
+                        <div class="neuron" style="--delay: 0.5s; --angle: 150deg;"></div>
+                    </div>
+                    <div class="brain-center">🧠</div>
+                </div>
+            </div>
+            <div class="processing-status">
+                <div class="status-text">AI processing your personalized experience...</div>
+                <div class="loading-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-buttons" style="margin: 2rem; text-align: center;">
+            <button onclick="testCelebration()" class="btn btn-primary" style="margin: 0.5rem;">
+                🎉 Test Celebration
+            </button>
+            <button onclick="testPageTransition()" class="btn btn-secondary" style="margin: 0.5rem;">
+                🔄 Test Page Transition
+            </button>
+            <button onclick="testFireworks()" class="btn btn-outline" style="margin: 0.5rem;">
+                🎆 Test Fireworks
+            </button>
+        </div>
+    </div>
+
+    <script src="src/IncidentIQ.Web/wwwroot/js/onboarding-interactions.js"></script>
+    <script>
+        // Add some test functionality
+        function testCelebration() {
+            if (window.onboardingInteractions) {
+                window.onboardingInteractions.celebrateCompletion();
+            }
+        }
+
+        function testPageTransition() {
+            if (window.onboardingHelpers) {
+                window.onboardingHelpers.triggerCelebration();
+            }
+        }
+
+        function testFireworks() {
+            if (window.onboardingInteractions) {
+                // Create multiple fireworks
+                for (let i = 0; i < 20; i++) {
+                    setTimeout(() => {
+                        window.onboardingInteractions.createFirework();
+                    }, i * 200);
+                }
+            }
+        }
+
+        // Add some test event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Animation test page loaded!');
+            console.log('Available interactions:', window.onboardingInteractions ? '✅' : '❌');
+            console.log('Available helpers:', window.onboardingHelpers ? '✅' : '❌');
+        });
+    </script>
+</body>
+</html>

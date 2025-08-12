@@ -1,0 +1,269 @@
+@inherits LayoutComponentBase
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Identity
+@using IncidentIQ.Infrastructure.Data
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject SignInManager<ApplicationUser> SignInManager
+@inject NavigationManager Navigation
+
+<div class="enterprise-layout">
+    <!-- Sidebar Navigation -->
+    <nav class="enterprise-sidebar">
+        <div class="sidebar-header">
+            <div class="logo-container">
+                <i class="bi bi-shield-check-fill logo-icon"></i>
+                <span class="logo-text">IncidentIQ</span>
+            </div>
+        </div>
+        
+        <div class="sidebar-content">
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="/" class="nav-link active">
+                        <i class="bi bi-house-fill nav-icon"></i>
+                        <span class="nav-text">Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/training" class="nav-link">
+                        <i class="bi bi-play-circle-fill nav-icon"></i>
+                        <span class="nav-text">Training</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/scenarios" class="nav-link">
+                        <i class="bi bi-collection-fill nav-icon"></i>
+                        <span class="nav-text">Scenarios</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/analytics" class="nav-link">
+                        <i class="bi bi-graph-up nav-icon"></i>
+                        <span class="nav-text">Analytics</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/reports" class="nav-link">
+                        <i class="bi bi-file-text-fill nav-icon"></i>
+                        <span class="nav-text">Reports</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/team" class="nav-link">
+                        <i class="bi bi-people-fill nav-icon"></i>
+                        <span class="nav-text">Team</span>
+                    </a>
+                </li>
+            </ul>
+            
+            <div class="sidebar-footer">
+                <div class="user-progress">
+                    <div class="progress-header">
+                        <span class="progress-label">Security Score</span>
+                        <span class="progress-value">87%</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" style="width: 87%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <div class="enterprise-main">
+        <!-- Top Header -->
+        <header class="enterprise-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <h1 class="page-title">Dashboard</h1>
+                    <p class="page-subtitle">Welcome back to your security training center</p>
+                </div>
+                
+                <div class="header-right">
+                    <div class="header-actions">
+                        <button class="btn-header-action" title="Notifications">
+                            <i class="bi bi-bell"></i>
+                            <span class="notification-badge">3</span>
+                        </button>
+                        
+                        <button class="btn-header-action" title="Settings">
+                            <i class="bi bi-gear"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="user-profile">
+                        <div class="user-info">
+                            <span class="user-name">@GetUserDisplayName()</span>
+                            <span class="user-role">@GetUserRole()</span>
+                        </div>
+                        <div class="user-avatar" @onclick="ToggleUserMenu">
+                            <i class="bi bi-person-circle"></i>
+                        </div>
+                        @if (showUserMenu)
+                        {
+                            <div class="user-menu">
+                                <button class="user-menu-item" @onclick="ViewProfile">
+                                    <i class="bi bi-person"></i>
+                                    Profile
+                                </button>
+                                <button class="user-menu-item" @onclick="ViewSettings">
+                                    <i class="bi bi-gear"></i>
+                                    Settings
+                                </button>
+                                <button class="user-menu-item logout" @onclick="Logout">
+                                    <i class="bi bi-box-arrow-right"></i>
+                                    Logout
+                                </button>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content Area -->
+        <main class="enterprise-content">
+            <div class="content-wrapper">
+                @Body
+            </div>
+        </main>
+    </div>
+</div>
+
+<div id="blazor-error-ui">
+    <div class="error-content">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <span>An unexpected error occurred</span>
+        <div class="error-actions">
+            <a href="" class="btn-error reload">Reload</a>
+            <button class="btn-error dismiss">Dismiss</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.user-profile {
+    position: relative;
+}
+
+.user-avatar {
+    cursor: pointer;
+    font-size: 2rem;
+    color: var(--color-text-secondary);
+    transition: color 0.2s ease;
+}
+
+.user-avatar:hover {
+    color: var(--color-primary-600);
+}
+
+.user-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 0.5rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-lg);
+    min-width: 150px;
+    z-index: 1000;
+}
+
+.user-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: none;
+    background: none;
+    text-align: left;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    font-size: 0.875rem;
+}
+
+.user-menu-item:hover {
+    background-color: var(--color-primary-50);
+}
+
+.user-menu-item.logout {
+    color: var(--color-danger-600);
+    border-top: 1px solid var(--color-border);
+}
+
+.user-menu-item.logout:hover {
+    background-color: var(--color-danger-50);
+}
+</style>
+
+@code {
+    private bool showUserMenu = false;
+    private string currentUserName = "Loading...";
+    private string currentUserRole = "User";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated == true)
+        {
+            currentUserName = GetUserDisplayName(authState.User);
+            currentUserRole = GetUserRole(authState.User);
+        }
+    }
+
+    private void ToggleUserMenu()
+    {
+        showUserMenu = !showUserMenu;
+    }
+
+    private string GetUserDisplayName()
+    {
+        return currentUserName;
+    }
+
+    private string GetUserRole()
+    {
+        return currentUserRole;
+    }
+
+    private string GetUserDisplayName(System.Security.Claims.ClaimsPrincipal user)
+    {
+        var firstName = user.FindFirst("FirstName")?.Value;
+        var lastName = user.FindFirst("LastName")?.Value;
+        
+        if (!string.IsNullOrEmpty(firstName) && !string.IsNullOrEmpty(lastName))
+        {
+            return $"{firstName} {lastName}";
+        }
+        
+        return user.Identity?.Name ?? "Unknown User";
+    }
+
+    private string GetUserRole(System.Security.Claims.ClaimsPrincipal user)
+    {
+        var role = user.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+        return role ?? "User";
+    }
+
+    private async Task Logout()
+    {
+        await SignInManager.SignOutAsync();
+        Navigation.NavigateTo("/", forceLoad: true);
+    }
+
+    private void ViewProfile()
+    {
+        showUserMenu = false;
+        Navigation.NavigateTo("/profile");
+    }
+
+    private void ViewSettings()
+    {
+        showUserMenu = false;
+        Navigation.NavigateTo("/settings");
+    }
+}

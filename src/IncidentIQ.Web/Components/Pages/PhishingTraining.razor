@@ -1,0 +1,594 @@
+@page "/training/phishing"
+@rendermode InteractiveServer
+@using IncidentIQ.Web.Components.Training
+
+<PageTitle>Phishing Detection Training - IncidentIQ</PageTitle>
+
+<div class="training-page">
+    <!-- Training Header -->
+    <div class="training-header">
+        <div class="header-content">
+            <div class="header-info">
+                <h1>Advanced Phishing Detection</h1>
+                <p>Identify and respond to sophisticated phishing attempts that target your role and organization</p>
+                <div class="training-meta">
+                    <span class="meta-item">
+                        <i class="bi bi-clock"></i> 15 minutes
+                    </span>
+                    <span class="meta-item">
+                        <i class="bi bi-star-fill"></i> Expert Level
+                    </span>
+                    <span class="meta-item">
+                        <i class="bi bi-people"></i> Developer Role
+                    </span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn-secondary" @onclick="ShowInstructions">
+                    <i class="bi bi-info-circle"></i> Instructions
+                </button>
+                <button class="btn-danger" @onclick="EndTraining">
+                    <i class="bi bi-x-circle"></i> End Training
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Training Content -->
+    <div class="training-content">
+        @if (showInstructions)
+        {
+            <!-- Instructions Modal -->
+            <div class="instructions-modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Training Instructions</h3>
+                        <button class="btn-close" @onclick="HideInstructions">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <h4>🎯 Your Mission</h4>
+                        <p>You've received an email that claims to be from your company's IT security team. Your task is to identify if this is a legitimate email or a phishing attempt.</p>
+                        
+                        <h4>🔍 What to Look For</h4>
+                        <ul>
+                            <li><strong>Sender verification:</strong> Check if the email address matches your company's domain</li>
+                            <li><strong>Urgency tactics:</strong> Phishers often create false urgency to pressure quick action</li>
+                            <li><strong>Suspicious links:</strong> Hover over buttons and links to see where they lead</li>
+                            <li><strong>Generic content:</strong> Look for personalization and specific company details</li>
+                        </ul>
+                        
+                        <h4>🤖 AI Coaching</h4>
+                        <p>Hover over suspicious elements in the email to get real-time coaching from our AI security assistant. The AI will help you identify red flags and explain why certain elements are concerning.</p>
+                        
+                        <h4>✅ How to Respond</h4>
+                        <p>Once you've analyzed the email, choose the appropriate action using the toolbar buttons. The correct response will help protect your organization from cyber threats.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn-primary" @onclick="HideInstructions">
+                            Start Training
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Email Interface -->
+        <div class="email-interface">
+            <EmailClient CoachingPanel="@coachingPanel" />
+        </div>
+
+        <!-- AI Coaching Panel -->
+        <AICoachPanel @ref="coachingPanel" />
+
+        <!-- Training Progress -->
+        <div class="training-sidebar">
+            <div class="progress-card">
+                <div class="card-header">
+                    <h3>Training Progress</h3>
+                </div>
+                <div class="card-body">
+                    <div class="progress-item">
+                        <div class="progress-icon completed">
+                            <i class="bi bi-check-circle-fill"></i>
+                        </div>
+                        <div class="progress-text">
+                            <h5>Email Received</h5>
+                            <p>Suspicious email loaded for analysis</p>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-item @(analysisStarted ? "active" : "")">
+                        <div class="progress-icon @(analysisStarted ? "active" : "")">
+                            <i class="bi bi-search"></i>
+                        </div>
+                        <div class="progress-text">
+                            <h5>Analysis Phase</h5>
+                            <p>Examine email for suspicious elements</p>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-item">
+                        <div class="progress-icon">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
+                        <div class="progress-text">
+                            <h5>Response Selection</h5>
+                            <p>Choose appropriate security action</p>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-item">
+                        <div class="progress-icon">
+                            <i class="bi bi-trophy"></i>
+                        </div>
+                        <div class="progress-text">
+                            <h5>Assessment Complete</h5>
+                            <p>Review results and learn</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Coach Panel -->
+            <div class="coach-card">
+                <div class="card-header">
+                    <div class="coach-avatar">
+                        <i class="bi bi-robot"></i>
+                    </div>
+                    <h3>AI Security Coach</h3>
+                </div>
+                <div class="card-body">
+                    <div class="coach-message">
+                        <p>I'm here to help you identify phishing attempts. Hover over different elements in the email to get my analysis and tips.</p>
+                    </div>
+                    <div class="coach-stats">
+                        <div class="stat">
+                            <div class="stat-number">@elementsAnalyzed</div>
+                            <div class="stat-label">Elements Analyzed</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-number">@suspiciousElementsFound</div>
+                            <div class="stat-label">Red Flags Found</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="actions-card">
+                <div class="card-header">
+                    <h3>Quick Actions</h3>
+                </div>
+                <div class="card-body">
+                    <button class="action-btn safe" @onclick="ReportPhishing">
+                        <i class="bi bi-shield-exclamation"></i>
+                        <span>Report Phishing</span>
+                    </button>
+                    <button class="action-btn warning" @onclick="DeleteEmail">
+                        <i class="bi bi-trash"></i>
+                        <span>Delete Email</span>
+                    </button>
+                    <button class="action-btn danger" @onclick="ClickSuspiciousLink">
+                        <i class="bi bi-link-45deg"></i>
+                        <span>Click Verification Link</span>
+                    </button>
+                    <button class="action-btn neutral" @onclick="ForwardToColleague">
+                        <i class="bi bi-arrow-right-circle"></i>
+                        <span>Forward to Colleague</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.training-page {
+    min-height: 100vh;
+    background-color: var(--gray-50);
+}
+
+.training-header {
+    background: linear-gradient(135deg, var(--danger), #dc2626);
+    color: white;
+    padding: var(--space-8) var(--space-8) var(--space-6);
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.header-info h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0 0 var(--space-2) 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.header-info p {
+    font-size: 1.1rem;
+    margin: 0 0 var(--space-4) 0;
+    opacity: 0.9;
+}
+
+.training-meta {
+    display: flex;
+    gap: var(--space-6);
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+.header-actions {
+    display: flex;
+    gap: var(--space-3);
+}
+
+.btn-danger {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: var(--space-3) var(--space-5);
+    border-radius: var(--radius-lg);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-danger:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.training-content {
+    display: flex;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: var(--space-8);
+    gap: var(--space-8);
+    position: relative;
+}
+
+.email-interface {
+    flex: 1;
+    max-width: calc(100% - 320px);
+}
+
+.training-sidebar {
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+}
+
+/* Instructions Modal */
+.instructions-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
+
+.modal-content {
+    background: white;
+    border-radius: var(--radius-xl);
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-xl);
+}
+
+.modal-header {
+    padding: var(--space-6);
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--gray-900);
+}
+
+.btn-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--gray-500);
+    cursor: pointer;
+    padding: var(--space-1);
+}
+
+.modal-body {
+    padding: var(--space-6);
+}
+
+.modal-body h4 {
+    color: var(--gray-900);
+    font-weight: 600;
+    margin: var(--space-4) 0 var(--space-2) 0;
+}
+
+.modal-body h4:first-child {
+    margin-top: 0;
+}
+
+.modal-body p {
+    color: var(--gray-600);
+    line-height: 1.5;
+    margin: var(--space-2) 0;
+}
+
+.modal-body ul {
+    color: var(--gray-600);
+    line-height: 1.5;
+    margin: var(--space-2) 0;
+    padding-left: var(--space-5);
+}
+
+.modal-body li {
+    margin: var(--space-1) 0;
+}
+
+.modal-footer {
+    padding: var(--space-6);
+    border-top: 1px solid var(--gray-200);
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* Progress Card */
+.progress-card, .coach-card, .actions-card {
+    background: white;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--gray-200);
+}
+
+.card-header {
+    padding: var(--space-5);
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.card-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--gray-900);
+}
+
+.card-body {
+    padding: var(--space-5);
+}
+
+.progress-item {
+    display: flex;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+    align-items: flex-start;
+}
+
+.progress-item:last-child {
+    margin-bottom: 0;
+}
+
+.progress-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    background: var(--gray-200);
+    color: var(--gray-500);
+    transition: all 0.3s ease;
+}
+
+.progress-icon.completed {
+    background: var(--success);
+    color: white;
+}
+
+.progress-icon.active {
+    background: var(--primary-blue);
+    color: white;
+    animation: pulse 2s infinite;
+}
+
+/* Keyframe animation for pulse effect */
+
+.progress-text h5 {
+    margin: 0 0 var(--space-1) 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--gray-900);
+}
+
+.progress-text p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--gray-500);
+    line-height: 1.3;
+}
+
+.progress-item.active .progress-text h5 {
+    color: var(--primary-blue);
+}
+
+/* Coach Card */
+.coach-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 16px;
+}
+
+.coach-message {
+    background: var(--gray-50);
+    padding: var(--space-4);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-4);
+}
+
+.coach-message p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--gray-700);
+    line-height: 1.4;
+}
+
+.coach-stats {
+    display: flex;
+    gap: var(--space-4);
+}
+
+.stat {
+    flex: 1;
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-blue);
+    margin-bottom: var(--space-1);
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+/* Actions Card */
+.action-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border: 2px solid transparent;
+    border-radius: var(--radius-lg);
+    background: var(--gray-50);
+    color: var(--gray-700);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: var(--space-3);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.action-btn:last-child {
+    margin-bottom: 0;
+}
+
+.action-btn i {
+    font-size: 1.1rem;
+    width: 20px;
+    text-align: center;
+}
+
+.action-btn.safe:hover {
+    border-color: var(--success);
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+}
+
+.action-btn.warning:hover {
+    border-color: var(--warning);
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning);
+}
+
+.action-btn.danger:hover {
+    border-color: var(--danger);
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+}
+
+.action-btn.neutral:hover {
+    border-color: var(--gray-400);
+    background: rgba(156, 163, 175, 0.1);
+    color: var(--gray-600);
+}
+</style>
+
+@code {
+    private bool showInstructions = true;
+    private bool analysisStarted = false;
+    private int elementsAnalyzed = 0;
+    private int suspiciousElementsFound = 0;
+    private AICoachPanel? coachingPanel;
+
+    private void ShowInstructions()
+    {
+        showInstructions = true;
+    }
+
+    private void HideInstructions()
+    {
+        showInstructions = false;
+        analysisStarted = true;
+    }
+
+    private async Task EndTraining()
+    {
+        // Navigate back to dashboard
+        await Task.Delay(100);
+    }
+
+    // Action handlers
+    private async Task ReportPhishing()
+    {
+        // Correct action!
+        await Task.Delay(100);
+    }
+
+    private async Task DeleteEmail()
+    {
+        // Also acceptable action
+        await Task.Delay(100);
+    }
+
+    private async Task ClickSuspiciousLink()
+    {
+        // Wrong action!
+        await Task.Delay(100);
+    }
+
+    private async Task ForwardToColleague()
+    {
+        // Wrong action!
+        await Task.Delay(100);
+    }
+}

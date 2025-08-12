@@ -1,0 +1,767 @@
+@rendermode InteractiveServer
+@inject IJSRuntime JSRuntime
+
+<div class="email-client">
+    <!-- Gmail-style Toolbar -->
+    <div class="email-toolbar">
+        <div class="toolbar-left">
+            <button class="btn-icon" title="Archive" @onclick="ArchiveEmail">
+                <i class="bi bi-archive"></i>
+            </button>
+            <button class="btn-icon" title="Report spam" @onclick="ReportSpam">
+                <i class="bi bi-exclamation-octagon"></i>
+            </button>
+            <button class="btn-icon" title="Delete" @onclick="DeleteEmail">
+                <i class="bi bi-trash"></i>
+            </button>
+            <div class="toolbar-divider"></div>
+            <button class="btn-icon" title="Mark as unread" @onclick="ToggleReadStatus">
+                <i class="bi bi-envelope"></i>
+            </button>
+            <button class="btn-icon" title="Add to Tasks" @onclick="AddToTasks">
+                <i class="bi bi-plus-square"></i>
+            </button>
+            <button class="btn-icon" title="Move to" @onclick="ShowMoveOptions">
+                <i class="bi bi-folder-plus"></i>
+            </button>
+        </div>
+        <div class="toolbar-right">
+            <button class="btn-icon" title="Print" @onclick="PrintEmail">
+                <i class="bi bi-printer"></i>
+            </button>
+            <button class="btn-icon" title="Pop-out" @onclick="PopOutEmail">
+                <i class="bi bi-box-arrow-up-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Email Content -->
+    <div class="email-content">
+        <!-- Email Header -->
+        <div class="email-header">
+            <div class="email-subject">
+                <h1>Urgent: Verify Your Account - Action Required Within 24 Hours</h1>
+                <div class="email-labels">
+                    <span class="label inbox">Inbox</span>
+                    <span class="label important">Important</span>
+                </div>
+            </div>
+            
+            <div class="email-meta">
+                <div class="sender-info">
+                    <div class="sender-avatar">
+                        <i class="bi bi-shield-check-fill"></i>
+                    </div>
+                    <div class="sender-details">
+                        <div class="sender-line">
+                            <strong class="sender-name hover-suspicious" 
+                                    @onmouseover="ShowTooltip" 
+                                    @onmouseout="HideTooltip" 
+                                    title="security@company-portal.com">
+                                Security Team
+                            </strong>
+                            <span class="sender-email hover-suspicious">&lt;security@company-portal.com&gt;</span>
+                        </div>
+                        <div class="recipient-line">
+                            <span>to </span>
+                            <span class="recipient">john.doe@company.com</span>
+                        </div>
+                        <div class="timestamp-line">
+                            <span class="timestamp">Today, 2:47 PM</span>
+                            <div class="email-actions-inline">
+                                <button class="btn-inline" title="Reply" @onclick="ReplyEmail">
+                                    <i class="bi bi-reply"></i>
+                                </button>
+                                <button class="btn-inline" title="Forward" @onclick="ForwardEmail">
+                                    <i class="bi bi-arrow-right"></i>
+                                </button>
+                                <button class="btn-inline" title="More options" @onclick="ShowMoreOptions">
+                                    <i class="bi bi-three-dots"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Security Info Bar (subtle warning) -->
+                <div class="security-info hover-warning" 
+                     @onmouseover="ShowSecurityTooltip" 
+                     @onmouseout="HideSecurityTooltip">
+                    <i class="bi bi-shield-exclamation"></i>
+                    <span>This email was received from an external sender</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Email Body -->
+        <div class="email-body">
+            <div class="email-text">
+                <p>Dear John Doe,</p>
+                
+                <p>We've detected unusual activity on your company account. For your security, your account has been temporarily restricted.</p>
+                
+                <p><strong style="color: #d93025;">IMMEDIATE ACTION REQUIRED:</strong> You must verify your account within 24 hours to prevent permanent suspension.</p>
+                
+                <div class="verification-box hover-suspicious" 
+                     @onmouseover="ShowLinkTooltip" 
+                     @onmouseout="HideLinkTooltip">
+                    <h3>Account Verification Required</h3>
+                    <p>Click the button below to verify your account immediately:</p>
+                    <button class="verify-button" @onclick="HandleSuspiciousClick">
+                        VERIFY ACCOUNT NOW
+                    </button>
+                    <p class="small-text">This link expires in 24 hours</p>
+                </div>
+                
+                <p>If you don't verify your account, the following restrictions will apply:</p>
+                <ul>
+                    <li>Email access will be suspended</li>
+                    <li>File sharing privileges will be revoked</li>
+                    <li>VPN access will be disabled</li>
+                </ul>
+                
+                <p>This is an automated security measure. Please do not reply to this email.</p>
+                
+                <p>Best regards,<br>
+                <strong>IT Security Team</strong><br>
+                Company IT Department</p>
+                
+                <div class="email-signature">
+                    <hr style="border: 1px solid #e8eaed; margin: 20px 0;">
+                    <div class="signature-content hover-suspicious" 
+                         @onmouseover="ShowSignatureTooltip" 
+                         @onmouseout="HideSignatureTooltip">
+                        <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjQwIiB2aWV3Qm94PSIwIDAgMTIwIDQwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMTIwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjNDA0MDQwIi8+Cjx0ZXh0IHg9IjYwIiB5PSIyNSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iI0ZGRkZGRiIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0Ij5Db21wYW55IExvZ288L3RleHQ+Cjwvc3ZnPgo=" alt="Company Logo" style="height: 40px;">
+                        <div class="signature-text">
+                            <strong>Company IT Security</strong><br>
+                            <span style="color: #5f6368;">Protecting your digital assets</span><br>
+                            <a href="mailto:security@company-portal.com" style="color: #1a73e8;">security@company-portal.com</a> | 
+                            <a href="https://company-portal.com" style="color: #1a73e8;" class="hover-suspicious">www.company-portal.com</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Email Footer Actions -->
+        <div class="email-footer">
+            <div class="footer-actions">
+                <button class="btn-reply" @onclick="ReplyEmail">
+                    <i class="bi bi-reply"></i>
+                    Reply
+                </button>
+                <button class="btn-forward" @onclick="ForwardEmail">
+                    <i class="bi bi-arrow-right"></i>
+                    Forward
+                </button>
+            </div>
+            <div class="footer-info">
+                <span class="email-size">1.2 KB</span>
+                <div class="footer-menu">
+                    <button class="btn-footer" @onclick="ShowEmailDetails">Show details</button>
+                    <button class="btn-footer" @onclick="ShowOriginal">Show original</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Coaching Tooltip -->
+    @if (showTooltip)
+    {
+        <div class="coaching-tooltip" style="top: @tooltipTop; left: @tooltipLeft;">
+            <div class="tooltip-header">
+                <i class="bi bi-robot"></i>
+                <span>AI Security Coach</span>
+            </div>
+            <div class="tooltip-content">
+                @((MarkupString)tooltipContent)
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+/* Gmail-style Email Client */
+.email-client {
+    background: var(--white);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    font-family: var(--font-inter);
+    position: relative;
+    border: 1px solid var(--gray-200);
+}
+
+/* Toolbar */
+.email-toolbar {
+    background: var(--gray-50);
+    border-bottom: 1px solid var(--gray-200);
+    padding: var(--space-2) var(--space-4);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.toolbar-left, .toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    padding: var(--space-2);
+    border-radius: var(--radius);
+    cursor: pointer;
+    color: var(--gray-500);
+    font-size: 1rem;
+    transition: all 0.2s ease;
+}
+
+.btn-icon:hover {
+    background-color: var(--gray-100);
+    color: var(--gray-700);
+    transform: scale(1.05);
+}
+
+.toolbar-divider {
+    width: 1px;
+    height: 24px;
+    background-color: var(--gray-300);
+    margin: 0 var(--space-2);
+}
+
+/* Email Header */
+.email-header {
+    padding: var(--space-5) var(--space-6) var(--space-4);
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.email-subject h1 {
+    font-size: 1.375rem;
+    font-weight: 500;
+    color: var(--gray-900);
+    margin: 0 0 var(--space-2) 0;
+    line-height: 1.6;
+    font-family: var(--font-inter);
+}
+
+.email-labels {
+    display: flex;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+}
+
+.label {
+    font-size: 0.75rem;
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-family: var(--font-inter);
+}
+
+.label.inbox {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: var(--primary-blue);
+}
+
+.label.important {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+}
+
+.email-meta {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+.sender-info {
+    display: flex;
+    gap: var(--space-3);
+}
+
+.sender-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-blue), var(--success));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--white);
+    font-size: 1.125rem;
+    flex-shrink: 0;
+    box-shadow: var(--shadow-sm);
+}
+
+.sender-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+
+.sender-line {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+}
+
+.sender-name {
+    color: var(--gray-900);
+    font-size: 0.875rem;
+    font-weight: 600;
+    font-family: var(--font-inter);
+}
+
+.sender-email {
+    color: var(--gray-500);
+    font-size: 0.875rem;
+    font-family: var(--font-inter);
+}
+
+.recipient-line, .timestamp-line {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--gray-500);
+    font-family: var(--font-inter);
+}
+
+.timestamp {
+    color: var(--gray-500);
+    font-family: var(--font-inter);
+}
+
+.email-actions-inline {
+    display: flex;
+    gap: var(--space-1);
+}
+
+.btn-inline {
+    background: none;
+    border: none;
+    padding: var(--space-1);
+    border-radius: var(--radius);
+    cursor: pointer;
+    color: var(--gray-500);
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+}
+
+.btn-inline:hover {
+    background-color: var(--gray-100);
+    color: var(--gray-700);
+    transform: scale(1.05);
+}
+
+.security-info {
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid var(--warning);
+    border-radius: var(--radius);
+    padding: var(--space-2) var(--space-3);
+    font-size: 0.75rem;
+    color: var(--warning);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+    font-family: var(--font-inter);
+    font-weight: 500;
+}
+
+.security-info i {
+    font-size: 0.875rem;
+}
+
+/* Email Body */
+.email-body {
+    padding: var(--space-5) var(--space-6);
+    line-height: 1.6;
+    font-family: var(--font-inter);
+}
+
+.email-text p {
+    margin: 0 0 var(--space-4) 0;
+    color: var(--gray-900);
+    font-size: 0.875rem;
+    font-family: var(--font-inter);
+}
+
+.email-text ul {
+    margin: var(--space-4) 0;
+    padding-left: var(--space-5);
+    color: var(--gray-900);
+    font-size: 0.875rem;
+    font-family: var(--font-inter);
+}
+
+.email-text li {
+    margin: var(--space-1) 0;
+}
+
+.verification-box {
+    background: var(--gray-50);
+    border: 2px solid var(--primary-blue);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    text-align: center;
+    margin: var(--space-5) 0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: var(--font-inter);
+}
+
+.verification-box:hover {
+    border-color: var(--primary-blue-dark);
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+.verification-box h3 {
+    margin: 0 0 var(--space-3) 0;
+    color: var(--primary-blue);
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: var(--font-inter);
+}
+
+.verification-box p {
+    margin: var(--space-2) 0;
+    font-size: 0.875rem;
+    font-family: var(--font-inter);
+}
+
+.verify-button {
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+    color: var(--white);
+    border: none;
+    padding: var(--space-3) var(--space-6);
+    border-radius: var(--radius-lg);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: var(--font-inter);
+    box-shadow: var(--shadow-sm);
+}
+
+.verify-button:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.small-text {
+    font-size: 0.75rem !important;
+    color: var(--gray-500) !important;
+    font-family: var(--font-inter) !important;
+}
+
+.email-signature {
+    margin-top: var(--space-6);
+}
+
+.signature-content {
+    display: flex;
+    gap: var(--space-3);
+    align-items: center;
+}
+
+.signature-text {
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    font-family: var(--font-inter);
+}
+
+.signature-text strong {
+    color: var(--gray-900);
+}
+
+/* Email Footer */
+.email-footer {
+    background: var(--gray-50);
+    border-top: 1px solid var(--gray-200);
+    padding: var(--space-3) var(--space-6);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.footer-actions {
+    display: flex;
+    gap: var(--space-2);
+}
+
+.btn-reply, .btn-forward {
+    background: var(--white);
+    border: 1px solid var(--gray-300);
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius);
+    cursor: pointer;
+    color: var(--gray-600);
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    transition: all 0.2s ease;
+    font-family: var(--font-inter);
+    font-weight: 500;
+}
+
+.btn-reply:hover, .btn-forward:hover {
+    background-color: var(--gray-50);
+    border-color: var(--gray-400);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.footer-info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    font-size: 0.75rem;
+    color: var(--gray-500);
+    font-family: var(--font-inter);
+}
+
+.footer-menu {
+    display: flex;
+    gap: var(--space-4);
+}
+
+.btn-footer {
+    background: none;
+    border: none;
+    color: var(--primary-blue);
+    font-size: 0.75rem;
+    cursor: pointer;
+    text-decoration: underline;
+    font-family: var(--font-inter);
+    transition: color 0.2s ease;
+}
+
+/* Hover Effects & Suspicious Elements */
+.hover-suspicious {
+    position: relative;
+    transition: all 0.2s ease;
+    border-radius: var(--radius-sm);
+}
+
+.hover-suspicious:hover {
+    background-color: rgba(245, 158, 11, 0.1);
+    cursor: help;
+    box-shadow: var(--shadow-sm);
+}
+
+.hover-warning:hover {
+    background-color: rgba(239, 68, 68, 0.1);
+    border-color: var(--danger);
+    box-shadow: var(--shadow-sm);
+}
+
+/* AI Coaching Tooltip */
+.coaching-tooltip {
+    position: fixed;
+    background: var(--navy-dark);
+    color: var(--white);
+    border-radius: var(--radius-lg);
+    padding: 0;
+    z-index: 10000;
+    max-width: 320px;
+    box-shadow: var(--shadow-xl);
+    font-size: 0.8125rem;
+    overflow: hidden;
+    font-family: var(--font-inter);
+    border: 1px solid var(--gray-300);
+}
+
+.tooltip-header {
+    background: var(--navy-medium);
+    padding: var(--space-2) var(--space-3);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-weight: 600;
+    font-family: var(--font-inter);
+}
+
+.tooltip-header i {
+    color: var(--success);
+}
+
+.tooltip-content {
+    padding: var(--space-3);
+    line-height: 1.5;
+    font-family: var(--font-inter);
+}
+
+.tooltip-content strong {
+    color: var(--warning);
+}
+
+.tooltip-content .warning {
+    color: #fca5a5;
+}
+
+.tooltip-content .tip {
+    color: #93c5fd;
+}
+</style>
+
+@code {
+    [Parameter] public AICoachPanel? CoachingPanel { get; set; }
+    
+    private bool showTooltip = false;
+    private string tooltipTop = "0px";
+    private string tooltipLeft = "0px";
+    private string tooltipContent = "";
+
+    private void ShowTooltip()
+    {
+        showTooltip = true;
+        tooltipContent = @"<strong>🚨 Suspicious Domain Detected</strong><br><br>
+                           <span class='warning'>The sender's email domain ""company-portal.com"" does not match your actual company domain.</span><br><br>
+                           <span class='tip'>💡 Tip: Always verify the sender's email address matches your organization's official domain.</span>";
+        tooltipTop = "120px";
+        tooltipLeft = "300px";
+        
+        // Notify AI coaching panel
+        NotifyCoachingPanel("domain_analysis", "Suspicious domain detected in sender address");
+    }
+
+    private void ShowSecurityTooltip()
+    {
+        showTooltip = true;
+        tooltipContent = @"<strong>⚠️ External Sender Warning</strong><br><br>
+                           This email claims to be from your IT security team, but originated from an external domain.<br><br>
+                           <span class='tip'>💡 Tip: Your real IT team would email from your company's official domain.</span>";
+        tooltipTop = "180px";
+        tooltipLeft = "300px";
+    }
+
+    private void ShowLinkTooltip()
+    {
+        showTooltip = true;
+        tooltipContent = @"<strong>🎯 Phishing Attempt Detected</strong><br><br>
+                           <span class='warning'>This button likely leads to a fake login page designed to steal your credentials.</span><br><br>
+                           <span class='tip'>💡 Tip: Never click verification links in unsolicited emails. Contact IT directly instead.</span>";
+        tooltipTop = "400px";
+        tooltipLeft = "200px";
+    }
+
+    private void ShowSignatureTooltip()
+    {
+        showTooltip = true;
+        tooltipContent = @"<strong>🔍 Fake Company Logo</strong><br><br>
+                           The logo and website link don't match your actual company branding.<br><br>
+                           <span class='tip'>💡 Tip: Scammers often use generic logos or slightly modified company names.</span>";
+        tooltipTop = "600px";
+        tooltipLeft = "200px";
+    }
+
+    private void HideTooltip()
+    {
+        showTooltip = false;
+    }
+
+    private void HideSecurityTooltip()
+    {
+        showTooltip = false;
+    }
+
+    private void HideLinkTooltip()
+    {
+        showTooltip = false;
+    }
+
+    private void HideSignatureTooltip()
+    {
+        showTooltip = false;
+    }
+
+    // Email Actions
+    private async Task ArchiveEmail()
+    {
+        // Implement archive logic
+        await Task.Delay(100);
+    }
+
+    private async Task ReportSpam()
+    {
+        // Implement report spam logic - this would be the correct action!
+        await Task.Delay(100);
+    }
+
+    private async Task DeleteEmail()
+    {
+        // Implement delete logic
+        await Task.Delay(100);
+    }
+
+    private async Task ToggleReadStatus()
+    {
+        await Task.Delay(100);
+    }
+
+    private async Task AddToTasks()
+    {
+        await Task.Delay(100);
+    }
+
+    private async Task ShowMoveOptions()
+    {
+        await Task.Delay(100);
+    }
+
+    private async Task PrintEmail()
+    {
+        await Task.Delay(100);
+    }
+
+    private async Task PopOutEmail()
+    {
+        await Task.Delay(100);
+    }
+
+    private async Task ReplyEmail()
+    {
+        await Task.Delay(100);
+    }
+
+    private async Task ForwardEmail()
+    {
+        await Task.Delay(100);
+    }
+
+    private async Task ShowMoreOptions()
+    {
+        await Task.Delay(100);
+    }
+
+    private async Task HandleSuspiciousClick()
+    {
+        // This would be the wrong action - clicking the phishing link
+        await Task.Delay(100);
+    }
+
+    private async Task ShowEmailDetails()
+    {
+        await Task.Delay(100);
+    }
+
+    private async Task ShowOriginal()
+    {
+        await Task.Delay(100);
+    }
+
+    private void NotifyCoachingPanel(string action, string message)
+    {
+        // This would be expanded to communicate with the AI coaching panel
+        // For now, we'll use JavaScript to trigger events or use SignalR
+    }
+}

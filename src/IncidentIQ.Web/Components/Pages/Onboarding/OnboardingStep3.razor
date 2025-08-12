@@ -1,0 +1,553 @@
+@page "/onboarding/step3"
+@using Microsoft.AspNetCore.Components.Forms
+@using System.ComponentModel.DataAnnotations
+@inject NavigationManager Navigation
+
+<PageTitle>Experience & Company Context | IncidentIQ</PageTitle>
+
+<div class="onboarding-container">
+    <div class="onboarding-header">
+        <div class="progress-indicator">
+            <div class="step completed">1</div>
+            <div class="step-connector completed"></div>
+            <div class="step completed">2</div>
+            <div class="step-connector completed"></div>
+            <div class="step active">3</div>
+            <div class="step-connector"></div>
+            <div class="step">4</div>
+            <div class="step-connector"></div>
+            <div class="step">5</div>
+        </div>
+        <h1 class="onboarding-title">Tell Us About Your Experience</h1>
+        <p class="onboarding-subtitle">Help our AI calibrate the difficulty and context of your personalized training scenarios</p>
+    </div>
+
+    <div class="onboarding-content">
+        <EditForm Model="@contextInfo" OnValidSubmit="@HandleSubmit">
+            <DataAnnotationsValidator />
+            
+            <!-- Security Experience Level -->
+            <div class="form-section">
+                <h2 class="section-title">Security Experience Level</h2>
+                <p class="section-description">How familiar are you with cybersecurity concepts and practices?</p>
+                
+                <div class="experience-grid">
+                    @foreach (var level in experienceLevels)
+                    {
+                        <div class="experience-card @(contextInfo.ExperienceLevel == level.Id ? "selected" : "")" 
+                             @onclick="() => SelectExperience(level.Id)">
+                            <div class="experience-icon">@level.Icon</div>
+                            <h3 class="experience-title">@level.Title</h3>
+                            <p class="experience-description">@level.Description</p>
+                            <div class="experience-characteristics">
+                                @foreach (var characteristic in level.Characteristics)
+                                {
+                                    <span class="characteristic-tag">@characteristic</span>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+                <ValidationMessage For="@(() => contextInfo.ExperienceLevel)" class="validation-message" />
+            </div>
+
+            <!-- Company Information -->
+            <div class="form-section">
+                <h2 class="section-title">Company Context</h2>
+                <p class="section-description">Tell us about your organization so we can create realistic scenarios</p>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="industry" class="form-label">Industry *</label>
+                        <InputSelect id="industry" @bind-Value="contextInfo.Industry" class="form-select">
+                            <option value="">Select your industry</option>
+                            @foreach (var industry in industries)
+                            {
+                                <option value="@industry">@industry</option>
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="@(() => contextInfo.Industry)" class="validation-message" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="companySize" class="form-label">Company Size *</label>
+                        <InputSelect id="companySize" @bind-Value="contextInfo.CompanySize" class="form-select">
+                            <option value="">Select company size</option>
+                            <option value="startup">Startup (1-50 employees)</option>
+                            <option value="small">Small Business (51-200 employees)</option>
+                            <option value="medium">Medium Business (201-1,000 employees)</option>
+                            <option value="large">Large Enterprise (1,001-10,000 employees)</option>
+                            <option value="enterprise">Global Enterprise (10,000+ employees)</option>
+                        </InputSelect>
+                        <ValidationMessage For="@(() => contextInfo.CompanySize)" class="validation-message" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="securityTools" class="form-label">Common Security Tools (Optional)</label>
+                    <div class="checkbox-grid">
+                        @foreach (var tool in securityTools)
+                        {
+                            <label class="checkbox-label tool-checkbox">
+                                <input type="checkbox" @onchange="(e) => ToggleTool(tool, (bool)e.Value!)" />
+                                <span class="checkbox-text">@tool</span>
+                            </label>
+                        }
+                    </div>
+                    <div class="form-hint">Select tools your organization uses - this helps create more realistic scenarios</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="concerns" class="form-label">Primary Security Concerns (Optional)</label>
+                    <InputTextArea id="concerns" @bind-Value="contextInfo.SecurityConcerns" 
+                                 class="form-textarea" rows="3"
+                                 placeholder="What security challenges does your organization face? e.g., remote work security, customer data protection, regulatory compliance..." />
+                    <div class="form-hint">This helps our AI focus on your most relevant security risks</div>
+                </div>
+            </div>
+
+            <!-- Training Preferences -->
+            <div class="form-section">
+                <h2 class="section-title">Learning Preferences</h2>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="frequency" class="form-label">Preferred Training Frequency *</label>
+                        <InputSelect id="frequency" @bind-Value="contextInfo.TrainingFrequency" class="form-select">
+                            <option value="">Select frequency</option>
+                            <option value="daily">Daily (5-10 minutes)</option>
+                            <option value="weekly">Weekly (20-30 minutes)</option>
+                            <option value="biweekly">Bi-weekly (30-45 minutes)</option>
+                            <option value="monthly">Monthly (45-60 minutes)</option>
+                        </InputSelect>
+                        <ValidationMessage For="@(() => contextInfo.TrainingFrequency)" class="validation-message" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="difficulty" class="form-label">Preferred Challenge Level *</label>
+                        <InputSelect id="difficulty" @bind-Value="contextInfo.DifficultyPreference" class="form-select">
+                            <option value="">Select difficulty</option>
+                            <option value="easy">Gentle Introduction</option>
+                            <option value="moderate">Balanced Challenge</option>
+                            <option value="challenging">Push My Limits</option>
+                            <option value="adaptive">Let AI Decide (Adaptive)</option>
+                        </InputSelect>
+                        <ValidationMessage For="@(() => contextInfo.DifficultyPreference)" class="validation-message" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" @onclick="GoBack">
+                    <i class="icon-arrow-left"></i>
+                    Back to Role Selection
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    Continue to AI Processing
+                    <i class="icon-arrow-right"></i>
+                </button>
+            </div>
+        </EditForm>
+
+        <!-- AI Context Preview -->
+        <div class="ai-context">
+            <div class="context-icon">🧠</div>
+            <h3>AI Learning Context</h3>
+            <div class="context-preview">
+                @if (!string.IsNullOrEmpty(contextInfo.ExperienceLevel))
+                {
+                    <div class="context-item">
+                        <strong>Experience:</strong> @GetExperienceTitle()
+                        <p>@GetExperienceDescription()</p>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(contextInfo.Industry))
+                {
+                    <div class="context-item">
+                        <strong>Industry Focus:</strong> @contextInfo.Industry
+                        <p>Scenarios will include industry-specific threats and regulations</p>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(contextInfo.CompanySize))
+                {
+                    <div class="context-item">
+                        <strong>Organization Size:</strong> @GetCompanySizeDisplay()
+                        <p>@GetCompanySizeDescription()</p>
+                    </div>
+                }
+                @if (contextInfo.SelectedTools.Any())
+                {
+                    <div class="context-item">
+                        <strong>Security Tools:</strong>
+                        <div class="selected-tools">
+                            @foreach (var tool in contextInfo.SelectedTools)
+                            {
+                                <span class="tool-tag">@tool</span>
+                            }
+                        </div>
+                        <p>Scenarios will reference these tools and platforms</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.experience-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-4);
+    margin-bottom: var(--spacing-6);
+}
+
+.experience-card {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-5);
+    cursor: pointer;
+    transition: all 0.3s var(--easing-smooth);
+    text-align: center;
+}
+
+.experience-card:hover {
+    border-color: var(--primary-300);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.experience-card.selected {
+    border-color: var(--primary-500);
+    background: var(--primary-50);
+    box-shadow: 0 0 0 3px var(--primary-100);
+}
+
+.experience-icon {
+    font-size: 2rem;
+    margin-bottom: var(--spacing-3);
+}
+
+.experience-title {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-2);
+}
+
+.experience-description {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-3);
+    line-height: 1.4;
+}
+
+.experience-characteristics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-2);
+    justify-content: center;
+}
+
+.characteristic-tag {
+    background: var(--primary-100);
+    color: var(--primary-700);
+    padding: var(--spacing-1) var(--spacing-2);
+    border-radius: var(--border-radius-sm);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-6);
+}
+
+.form-select {
+    width: 100%;
+    padding: var(--spacing-3) var(--spacing-4);
+    border: 1px solid var(--border);
+    border-radius: var(--border-radius-md);
+    font-size: var(--font-size-sm);
+    background: var(--surface);
+    color: var(--text-primary);
+}
+
+.form-select:focus {
+    outline: none;
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 3px var(--primary-100);
+}
+
+.checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-3);
+    margin-bottom: var(--spacing-3);
+}
+
+.tool-checkbox {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-3);
+    transition: all 0.3s var(--easing-smooth);
+}
+
+.tool-checkbox:hover {
+    border-color: var(--primary-300);
+    background: var(--primary-50);
+}
+
+.tool-checkbox input:checked + .checkbox-text {
+    color: var(--primary-700);
+    font-weight: var(--font-weight-medium);
+}
+
+.ai-context {
+    background: var(--surface);
+    border: 1px solid var(--primary-200);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-6);
+    position: sticky;
+    top: var(--spacing-8);
+}
+
+.context-icon {
+    font-size: 2rem;
+    text-align: center;
+    margin-bottom: var(--spacing-4);
+}
+
+.ai-context h3 {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-4);
+    text-align: center;
+}
+
+.context-preview {
+    space-y: var(--spacing-4);
+}
+
+.context-item {
+    margin-bottom: var(--spacing-4);
+    padding-bottom: var(--spacing-3);
+    border-bottom: 1px solid var(--border);
+}
+
+.context-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.context-item strong {
+    color: var(--text-primary);
+    font-size: var(--font-size-sm);
+    display: block;
+    margin-bottom: var(--spacing-2);
+}
+
+.context-item p {
+    color: var(--text-tertiary);
+    font-size: var(--font-size-xs);
+    margin: 0;
+    line-height: 1.4;
+}
+
+.selected-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-2);
+    margin: var(--spacing-2) 0;
+}
+
+.tool-tag {
+    background: var(--success-100);
+    color: var(--success-700);
+    padding: var(--spacing-1) var(--spacing-2);
+    border-radius: var(--border-radius-sm);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+}
+
+@@media (max-width: 1024px) {
+    .onboarding-content {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-8);
+    }
+    
+    .ai-context {
+        position: static;
+    }
+}
+
+@@media (max-width: 768px) {
+    .experience-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-4);
+    }
+    
+    .checkbox-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+@code {
+    private ContextInfo contextInfo = new();
+
+    private List<ExperienceLevel> experienceLevels = new()
+    {
+        new ExperienceLevel
+        {
+            Id = "beginner",
+            Title = "Beginner",
+            Icon = "🌱",
+            Description = "New to cybersecurity concepts",
+            Characteristics = new[] { "Learning basics", "Need clear explanations", "Step-by-step guidance" }
+        },
+        new ExperienceLevel
+        {
+            Id = "intermediate",
+            Title = "Intermediate",
+            Icon = "📚",
+            Description = "Some security awareness and training",
+            Characteristics = new[] { "Know common threats", "Want practical tips", "Ready for scenarios" }
+        },
+        new ExperienceLevel
+        {
+            Id = "advanced",
+            Title = "Advanced",
+            Icon = "🎯",
+            Description = "Strong security background",
+            Characteristics = new[] { "Know best practices", "Want complex challenges", "Seek latest threats" }
+        },
+        new ExperienceLevel
+        {
+            Id = "expert",
+            Title = "Expert",
+            Icon = "🏆",
+            Description = "Security professional or enthusiast",
+            Characteristics = new[] { "Deep expertise", "Want cutting-edge scenarios", "Help others learn" }
+        }
+    };
+
+    private string[] industries = new[]
+    {
+        "Technology", "Healthcare", "Financial Services", "Education", "Government",
+        "Manufacturing", "Retail", "Legal Services", "Real Estate", "Consulting",
+        "Non-Profit", "Energy", "Transportation", "Media", "Other"
+    };
+
+    private string[] securityTools = new[]
+    {
+        "Microsoft 365", "Google Workspace", "Slack", "Zoom", "VPN",
+        "Antivirus Software", "Firewall", "Password Manager", "Two-Factor Auth",
+        "Security Training Platform", "Endpoint Detection", "Email Security"
+    };
+
+    private void SelectExperience(string experienceId)
+    {
+        contextInfo.ExperienceLevel = experienceId;
+    }
+
+    private void ToggleTool(string tool, bool selected)
+    {
+        if (selected)
+        {
+            contextInfo.SelectedTools.Add(tool);
+        }
+        else
+        {
+            contextInfo.SelectedTools.Remove(tool);
+        }
+    }
+
+    private string GetExperienceTitle()
+    {
+        var experience = experienceLevels.FirstOrDefault(e => e.Id == contextInfo.ExperienceLevel);
+        return experience?.Title ?? "";
+    }
+
+    private string GetExperienceDescription()
+    {
+        var experience = experienceLevels.FirstOrDefault(e => e.Id == contextInfo.ExperienceLevel);
+        return experience?.Description ?? "";
+    }
+
+    private string GetCompanySizeDisplay()
+    {
+        return contextInfo.CompanySize switch
+        {
+            "startup" => "Startup (1-50)",
+            "small" => "Small Business (51-200)",
+            "medium" => "Medium Business (201-1,000)",
+            "large" => "Large Enterprise (1,001-10,000)",
+            "enterprise" => "Global Enterprise (10,000+)",
+            _ => ""
+        };
+    }
+
+    private string GetCompanySizeDescription()
+    {
+        return contextInfo.CompanySize switch
+        {
+            "startup" => "Focus on resource-efficient security practices",
+            "small" => "Balance security with operational flexibility",
+            "medium" => "Structured security processes and compliance",
+            "large" => "Enterprise-grade security and governance",
+            "enterprise" => "Advanced threat protection and risk management",
+            _ => ""
+        };
+    }
+
+    private void HandleSubmit()
+    {
+        // Store context info in session/service
+        Navigation.NavigateTo("/onboarding/step4");
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/onboarding/step2");
+    }
+
+    public class ContextInfo
+    {
+        [Required(ErrorMessage = "Please select your experience level")]
+        public string? ExperienceLevel { get; set; }
+
+        [Required(ErrorMessage = "Please select your industry")]
+        public string? Industry { get; set; }
+
+        [Required(ErrorMessage = "Please select your company size")]
+        public string? CompanySize { get; set; }
+
+        public HashSet<string> SelectedTools { get; set; } = new();
+
+        public string? SecurityConcerns { get; set; }
+
+        [Required(ErrorMessage = "Please select your preferred training frequency")]
+        public string? TrainingFrequency { get; set; }
+
+        [Required(ErrorMessage = "Please select your difficulty preference")]
+        public string? DifficultyPreference { get; set; }
+    }
+
+    public class ExperienceLevel
+    {
+        public required string Id { get; set; }
+        public required string Title { get; set; }
+        public required string Icon { get; set; }
+        public required string Description { get; set; }
+        public required string[] Characteristics { get; set; }
+    }
+}

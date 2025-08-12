@@ -1,0 +1,531 @@
+@page "/register"
+@using Microsoft.AspNetCore.Identity
+@using IncidentIQ.Infrastructure.Data
+@using IncidentIQ.Domain.Entities
+@using IncidentIQ.Domain.Enums
+@using IncidentIQ.Application.Interfaces
+@rendermode InteractiveServer
+@inject NavigationManager Navigation
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+@inject IAuthenticationService AuthService
+@inject ILogger<Register> Logger
+
+<PageTitle>Create Your Account - IncidentIQ</PageTitle>
+
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h1 class="auth-title">Create Your Account</h1>
+            <p class="auth-subtitle">Join thousands of security professionals personalizing their cybersecurity training</p>
+        </div>
+
+        <EditForm Model="registrationModel" OnValidSubmit="HandleRegistration" class="auth-form">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="validation-summary" />
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-error">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    @errorMessage
+                </div>
+            }
+
+            <!-- Personal Information Section -->
+            <div class="form-section">
+                <h3 class="section-title">Personal Information</h3>
+                
+                <div class="form-group">
+                    <label for="firstName" class="form-label">First Name</label>
+                    <InputText id="firstName" class="form-input" @bind-Value="registrationModel.FirstName" placeholder="Enter your first name" />
+                    <ValidationMessage For="() => registrationModel.FirstName" class="validation-message" />
+                </div>
+
+                <div class="form-group">
+                    <label for="lastName" class="form-label">Last Name</label>
+                    <InputText id="lastName" class="form-input" @bind-Value="registrationModel.LastName" placeholder="Enter your last name" />
+                    <ValidationMessage For="() => registrationModel.LastName" class="validation-message" />
+                </div>
+
+                <div class="form-group">
+                    <label for="email" class="form-label">Email Address</label>
+                    <InputText id="email" type="email" class="form-input" @bind-Value="registrationModel.Email" placeholder="Enter your work email" />
+                    <ValidationMessage For="() => registrationModel.Email" class="validation-message" />
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <InputText id="password" type="password" class="form-input" @bind-Value="registrationModel.Password" placeholder="Create a strong password" />
+                    <ValidationMessage For="() => registrationModel.Password" class="validation-message" />
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmPassword" class="form-label">Confirm Password</label>
+                    <InputText id="confirmPassword" type="password" class="form-input" @bind-Value="registrationModel.ConfirmPassword" placeholder="Confirm your password" />
+                    <ValidationMessage For="() => registrationModel.ConfirmPassword" class="validation-message" />
+                </div>
+            </div>
+
+            <!-- Organizational Context Section -->
+            <div class="form-section">
+                <h3 class="section-title">Organizational Context</h3>
+                <p class="section-description">Help us personalize your security training scenarios</p>
+                
+                <div class="form-group">
+                    <label for="company" class="form-label">Company Name</label>
+                    <InputText id="company" class="form-input" @bind-Value="registrationModel.Company" placeholder="Enter your company name" />
+                    <ValidationMessage For="() => registrationModel.Company" class="validation-message" />
+                </div>
+
+                <div class="form-group">
+                    <label for="department" class="form-label">Department</label>
+                    <InputText id="department" class="form-input" @bind-Value="registrationModel.Department" placeholder="e.g., Engineering, Marketing, HR" />
+                    <ValidationMessage For="() => registrationModel.Department" class="validation-message" />
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="role" class="form-label">Your Role</label>
+                        <InputSelect id="role" class="form-input" @bind-Value="registrationModel.Role">
+                            <option value="">Select your role</option>
+                            @foreach (UserRole role in Enum.GetValues<UserRole>())
+                            {
+                                <option value="@role">@GetRoleDisplayName(role)</option>
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="() => registrationModel.Role" class="validation-message" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="accessLevel" class="form-label">Access Level</label>
+                        <InputSelect id="accessLevel" class="form-input" @bind-Value="registrationModel.AccessLevel">
+                            <option value="">Select access level</option>
+                            @foreach (AccessLevel level in Enum.GetValues<AccessLevel>())
+                            {
+                                <option value="@level">@GetAccessLevelDisplayName(level)</option>
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="() => registrationModel.AccessLevel" class="validation-message" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Experience Section -->
+            <div class="form-section">
+                <h3 class="section-title">Security Experience</h3>
+                
+                <div class="form-group">
+                    <label class="form-label">How would you rate your cybersecurity knowledge?</label>
+                    <div class="radio-group">
+                        @foreach (SecurityLevel level in Enum.GetValues<SecurityLevel>())
+                        {
+                            <label class="radio-option">
+                                <InputRadio name="securityLevel" Value="@level" @bind-Value="registrationModel.SecurityLevel" />
+                                <span class="radio-label">
+                                    <strong>@level</strong>
+                                    <small>@GetSecurityLevelDescription(level)</small>
+                                </span>
+                            </label>
+                        }
+                    </div>
+                    <ValidationMessage For="() => registrationModel.SecurityLevel" class="validation-message" />
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-lg" disabled="@isSubmitting">
+                    @if (isSubmitting)
+                    {
+                        <i class="bi bi-arrow-clockwise spin"></i>
+                        <span>Creating Account...</span>
+                    }
+                    else
+                    {
+                        <i class="bi bi-person-plus"></i>
+                        <span>Create Account</span>
+                    }
+                </button>
+            </div>
+        </EditForm>
+
+        <div class="auth-footer">
+            <p>Already have an account? <a href="/login" class="auth-link">Sign in here</a></p>
+        </div>
+    </div>
+</div>
+
+<style>
+.auth-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--color-primary-50) 0%, var(--color-surface) 100%);
+    padding: var(--spacing-6);
+}
+
+.auth-card {
+    background: var(--color-surface);
+    border-radius: var(--border-radius-xl);
+    box-shadow: var(--shadow-xl);
+    padding: var(--spacing-8);
+    width: 100%;
+    max-width: 600px;
+    border: 1px solid var(--color-border);
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: var(--spacing-8);
+}
+
+.auth-title {
+    font-size: 2rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-2);
+}
+
+.auth-subtitle {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-base);
+    margin: 0;
+    line-height: 1.5;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-6);
+}
+
+.form-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-4);
+}
+
+.section-title {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin: 0;
+    border-bottom: 2px solid var(--color-primary-200);
+    padding-bottom: var(--spacing-2);
+}
+
+.section-description {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    margin: 0;
+    font-style: italic;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-4);
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-2);
+}
+
+.form-label {
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-primary);
+    font-size: var(--font-size-sm);
+}
+
+.form-input {
+    padding: var(--spacing-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    font-size: var(--font-size-base);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--color-primary-500);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3);
+}
+
+.radio-option {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-2);
+    cursor: pointer;
+    padding: var(--spacing-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    transition: all 0.2s ease;
+}
+
+.radio-option:hover {
+    background-color: var(--color-primary-50);
+    border-color: var(--color-primary-300);
+}
+
+.radio-option:has(input:checked) {
+    background-color: var(--color-primary-100);
+    border-color: var(--color-primary-500);
+}
+
+.radio-label {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-1);
+}
+
+.radio-label small {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-xs);
+}
+
+.form-actions {
+    margin-top: var(--spacing-4);
+}
+
+.btn-lg {
+    padding: var(--spacing-4) var(--spacing-6);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    border-radius: var(--border-radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-2);
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+.btn-lg:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: var(--spacing-6);
+    padding-top: var(--spacing-4);
+    border-top: 1px solid var(--color-border);
+}
+
+.auth-link {
+    color: var(--color-primary-600);
+    text-decoration: none;
+    font-weight: var(--font-weight-medium);
+}
+
+.auth-link:hover {
+    text-decoration: underline;
+}
+
+.alert {
+    padding: var(--spacing-3);
+    border-radius: var(--border-radius-md);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-4);
+}
+
+.alert-error {
+    background-color: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #b91c1c;
+}
+
+.validation-summary {
+    color: #b91c1c;
+    background-color: #fef2f2;
+    border: 1px solid #fecaca;
+    padding: var(--spacing-3);
+    border-radius: var(--border-radius-md);
+    font-size: var(--font-size-sm);
+}
+
+.validation-message {
+    color: #b91c1c;
+    font-size: var(--font-size-xs);
+    margin-top: var(--spacing-1);
+}
+
+@media (max-width: 768px) {
+    .auth-container {
+        padding: var(--spacing-4);
+    }
+    
+    .auth-card {
+        padding: var(--spacing-6);
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+@code {
+    private readonly RegisterModel registrationModel = new();
+    private string errorMessage = string.Empty;
+    private bool isSubmitting = false;
+
+    private async Task HandleRegistration()
+    {
+        isSubmitting = true;
+        errorMessage = string.Empty;
+        
+        try
+        {
+            // Create the user registration model
+            var userRegistrationModel = new UserRegistrationModel
+            {
+                FirstName = registrationModel.FirstName,
+                LastName = registrationModel.LastName,
+                Email = registrationModel.Email,
+                Company = registrationModel.Company,
+                Department = registrationModel.Department,
+                Role = registrationModel.Role,
+                AccessLevel = registrationModel.AccessLevel,
+                SecurityLevel = registrationModel.SecurityLevel
+            };
+
+            // Create ApplicationUser
+            var applicationUser = new ApplicationUser
+            {
+                UserName = registrationModel.Email,
+                Email = registrationModel.Email,
+                FirstName = registrationModel.FirstName,
+                LastName = registrationModel.LastName,
+                CompletedOnboarding = false
+            };
+
+            var identityResult = await UserManager.CreateAsync(applicationUser, registrationModel.Password);
+            
+            if (identityResult.Succeeded)
+            {
+                // Create the linked User profile
+                var authResult = await AuthService.CreateUserProfileAsync(applicationUser, userRegistrationModel);
+                
+                if (authResult.Success)
+                {
+                    Logger.LogInformation("User created account with profile for {Email} with role {Role}", 
+                        registrationModel.Email, registrationModel.Role);
+                    
+                    await SignInManager.SignInAsync(applicationUser, isPersistent: false);
+                    Navigation.NavigateTo("/onboarding/step1");
+                }
+                else
+                {
+                    // Profile creation failed, cleanup
+                    await UserManager.DeleteAsync(applicationUser);
+                    errorMessage = authResult.ErrorMessage ?? "Failed to create user profile";
+                }
+            }
+            else
+            {
+                errorMessage = string.Join(", ", identityResult.Errors.Select(error => error.Description));
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error occurred during registration");
+            errorMessage = "An unexpected error occurred. Please try again.";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private static string GetRoleDisplayName(UserRole role)
+    {
+        return role switch
+        {
+            UserRole.Customer_Support => "Customer Support",
+            UserRole.DataScientist => "Data Scientist",
+            _ => role.ToString()
+        };
+    }
+
+    private static string GetAccessLevelDisplayName(AccessLevel level)
+    {
+        return level switch
+        {
+            AccessLevel.Standard => "Standard User",
+            AccessLevel.Elevated => "Elevated Access",
+            AccessLevel.Administrative => "Administrative",
+            AccessLevel.Executive => "Executive Level",
+            _ => level.ToString()
+        };
+    }
+
+    private static string GetSecurityLevelDescription(SecurityLevel level)
+    {
+        return level switch
+        {
+            SecurityLevel.Beginner => "New to cybersecurity concepts",
+            SecurityLevel.Intermediate => "Some security awareness experience",
+            SecurityLevel.Advanced => "Regular security training participant",
+            SecurityLevel.Expert => "Security professional or highly experienced",
+            _ => ""
+        };
+    }
+
+    public class RegisterModel
+    {
+        [Required(ErrorMessage = "First name is required")]
+        public string FirstName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Last name is required")]
+        public string LastName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Please enter a valid email address")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Password is required")]
+        [StringLength(100, MinimumLength = 8, ErrorMessage = "Password must be at least 8 characters long")]
+        public string Password { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Please confirm your password")]
+        [Compare(nameof(Password), ErrorMessage = "Passwords do not match")]
+        public string ConfirmPassword { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Company name is required")]
+        public string Company { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Department is required")]
+        public string Department { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Please select your role")]
+        public UserRole Role { get; set; }
+
+        [Required(ErrorMessage = "Please select your access level")]
+        public AccessLevel AccessLevel { get; set; }
+
+        [Required(ErrorMessage = "Please select your security experience level")]
+        public SecurityLevel SecurityLevel { get; set; }
+    }
+}

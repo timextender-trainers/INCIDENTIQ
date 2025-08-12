@@ -121,7 +121,7 @@
                         @foreach (SecurityLevel level in Enum.GetValues<SecurityLevel>())
                         {
                             <label class="radio-option">
-                                <InputRadio name="securityLevel" Value="@level" @bind-Value="registrationModel.SecurityLevel" />
+                                <InputRadio name="securityLevel" Value="@level" @onchange="@((e) => registrationModel.SecurityLevel = level)" />
                                 <span class="radio-label">
                                     <strong>@level</strong>
                                     <small>@GetSecurityLevelDescription(level)</small>

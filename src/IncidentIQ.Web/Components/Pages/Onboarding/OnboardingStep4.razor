@@ -169,17 +169,17 @@
     animation: brain-think 3s ease-in-out infinite;
 }
 
-@@keyframes pulse {
+@keyframes pulse {
     0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 var(--primary-200); }
     50% { transform: scale(1.05); box-shadow: 0 0 0 20px transparent; }
 }
 
-@@keyframes neuron-pulse {
+@keyframes neuron-pulse {
     0%, 100% { opacity: 0.3; transform: rotate(var(--angle)) translateX(80px) translateY(-4px) scale(1); }
     50% { opacity: 1; transform: rotate(var(--angle)) translateX(90px) translateY(-4px) scale(1.5); }
 }
 
-@@keyframes brain-think {
+@keyframes brain-think {
     0%, 100% { transform: scale(1) rotate(0deg); }
     33% { transform: scale(1.1) rotate(-5deg); }
     66% { transform: scale(1.1) rotate(5deg); }
@@ -217,7 +217,7 @@
     opacity: 0.6;
 }
 
-@@keyframes step-highlight {
+@keyframes step-highlight {
     0%, 100% { box-shadow: 0 0 0 0 var(--primary-200); }
     50% { box-shadow: 0 0 0 8px transparent; }
 }
@@ -262,7 +262,7 @@
     animation: spin 1s linear infinite;
 }
 
-@@keyframes spin {
+@keyframes spin {
     to { transform: rotate(360deg); }
 }
 
@@ -290,7 +290,7 @@
     animation: fade-in 0.5s ease-in;
 }
 
-@@keyframes fade-in {
+@keyframes fade-in {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
@@ -342,7 +342,7 @@
     animation: slide-in 0.6s ease-out;
 }
 
-@@keyframes slide-in {
+@keyframes slide-in {
     from { opacity: 0; transform: translateX(-20px); }
     to { opacity: 1; transform: translateX(0); }
 }

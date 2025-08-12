@@ -46,7 +46,7 @@ public class SemanticKernelService : ISemanticKernelService
         try
         {
             var result = await _kernel.InvokeAsync<T>(pluginName, functionName, arguments);
-            return result;
+            return result ?? throw new InvalidOperationException($"Semantic Kernel function {pluginName}.{functionName} returned null");
         }
         catch (Exception ex)
         {

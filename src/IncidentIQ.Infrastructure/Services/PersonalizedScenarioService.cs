@@ -757,7 +757,7 @@ namespace IncidentIQ.Infrastructure.Services
         private List<ScenarioTemplate> FilterTemplatesByUserContext(List<ScenarioTemplate> templates, UserProfile profile)
         {
             return templates
-                .Where(t => t.ApplicableIndustries.Contains(profile.Industry) || 
+                .Where(t => t.ApplicableIndustries.Contains(profile.Industry ?? "Unknown") || 
                            t.ApplicableIndustries.Contains("All") ||
                            !t.ApplicableIndustries.Any())
                 .OrderBy(t => GetDifficultyNumericValue(t.DifficultyLevel))
@@ -936,7 +936,7 @@ namespace IncidentIQ.Infrastructure.Services
             if (GetPrimaryThreatForRole(profile.SelectedRoleId) == template.ScenarioType)
                 reasons.Add($"Primary threat for {profile.SelectedRoleId} professionals");
 
-            if (template.ApplicableIndustries.Contains(profile.Industry))
+            if (!string.IsNullOrEmpty(profile.Industry) && template.ApplicableIndustries.Contains(profile.Industry))
                 reasons.Add($"Common in {profile.Industry} industry");
 
             if (reasons.Any())

@@ -32,7 +32,11 @@
       "Bash(fuser:*)",
       "Bash(ss:*)",
       "Bash(kill:*)",
-      "Bash(dotnet ef database update:*)"
+      "Bash(dotnet ef database update:*)",
+      "Bash(sed:*)",
+      "Bash(grep:*)",
+      "Bash(docker build:*)",
+      "Bash(docker ps:*)"
     ],
     "deny": []
   }

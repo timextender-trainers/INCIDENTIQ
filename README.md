@@ -35,6 +35,30 @@ The project follows Clean Architecture principles:
 
 ## Quick Start
 
+### Option 1: Docker-Only Setup (Easiest)
+
+1. **Clone and configure**:
+   ```bash
+   git clone <repository-url>
+   cd IncidentIQ
+   ```
+
+2. **Add your OpenAI API key**:
+   - Copy `.env.example` to `.env`: `cp .env.example .env`  
+   - Edit `.env` and replace `your_openai_api_key_here` with your actual API key
+   - Get API key from: https://platform.openai.com/api-keys
+
+3. **Start everything**:
+   ```bash
+   docker compose up -d
+   ```
+
+4. **Access the application**:
+   - HTTP: http://localhost:8080
+   - HTTPS: https://localhost:8081
+
+### Option 2: Local Development Setup
+
 ### 1. Clone the Repository
 
 ```bash
@@ -42,30 +66,40 @@ git clone <repository-url>
 cd IncidentIQ
 ```
 
-### 2. Set Up Environment Variables
+### 2. Set Up API Keys (Required for AI Features)
 
-Copy the example environment file and configure it:
+**Option A: Using Environment Variables (Recommended for sensitive data)**
 
-```bash
-cp .env.example .env
-```
-
-Edit `.env` with your configuration:
+Set environment variables directly in your system or IDE:
 
 ```bash
-# OpenAI Configuration (required for AI features)
-OPENAI_API_KEY=your_openai_api_key_here
+# Windows (Command Prompt)
+set OPENAI_API_KEY=your_actual_api_key_here
 
-# Azure OpenAI Configuration (optional)
-AZURE_OPENAI_API_KEY=your_azure_openai_api_key_here
-AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
+# Windows (PowerShell)  
+$env:OPENAI_API_KEY="your_actual_api_key_here"
 
-# Database Configuration
-DB_PASSWORD=IncidentIQ123!
-
-# Application Settings
-ASPNETCORE_ENVIRONMENT=Development
+# macOS/Linux
+export OPENAI_API_KEY=your_actual_api_key_here
 ```
+
+**Option B: Using appsettings.Development.json (Quick setup)**
+
+Edit `src/IncidentIQ.Web/appsettings.Development.json` and add your API key:
+
+```json
+{
+  "OpenAI": {
+    "ApiKey": "your_actual_api_key_here"
+  }
+}
+```
+
+**⚠️ Security Note:** Never commit real API keys to git. The .gitignore excludes `appsettings.*.json` files except the base ones.
+
+**Getting API Keys:**
+- OpenAI: Get your key from [OpenAI Platform](https://platform.openai.com/api-keys)
+- Azure OpenAI: Get from your Azure OpenAI resource (optional)
 
 ### 3. Start Required Services
 
@@ -76,8 +110,10 @@ docker compose up -d sqlserver redis
 ```
 
 This will start:
-- **SQL Server 2022** on port `1433`
+- **SQL Server 2022** on port `1433` with pre-configured credentials
 - **Redis** on port `6379`
+
+**📝 Note:** The database credentials are automatically configured by Docker Compose. You don't need to set up SQL Server manually - the container handles everything including creating the `sa` user with the password `IncidentIQ123!` (for local development only).
 
 ### 4. Restore Dependencies
 
@@ -105,6 +141,32 @@ dotnet run --urls="http://localhost:5001"
 ```
 
 The application will be available at `http://localhost:5001`.
+
+## Alternative: Complete Docker Setup
+
+If you prefer to run everything in Docker (including the web application):
+
+```bash
+# Start all services including the web application
+docker compose up -d
+
+# View logs from all services
+docker compose logs -f
+
+# View logs from just the web application
+docker compose logs -f web
+
+# Stop all services
+docker compose down
+```
+
+The application will be available at `http://localhost:8080` (HTTP) and `https://localhost:8081` (HTTPS).
+
+**Docker Setup Benefits:**
+- No need to install .NET SDK locally
+- Consistent environment across all machines
+- All services managed together
+- Easy cleanup with `docker compose down`
 
 ## Development Workflow
 
@@ -260,6 +322,26 @@ dotnet run --urls="http://localhost:5002"
    ```bash
    dotnet ef migrations list --startup-project src/IncidentIQ.Web --project src/IncidentIQ.Infrastructure
    ```
+
+#### API Key Issues
+
+If AI features aren't working:
+
+1. **Check API key configuration**:
+   ```bash
+   # Verify environment variable is set
+   echo $OPENAI_API_KEY  # macOS/Linux
+   echo %OPENAI_API_KEY%  # Windows CMD
+   ```
+
+2. **Check appsettings.Development.json**:
+   - Ensure the `OpenAI.ApiKey` value is set (not empty)
+   - Verify the key starts with `sk-`
+
+3. **Common issues**:
+   - API key not set or empty
+   - Invalid API key format  
+   - API key committed to git (check with `git status`)
 
 #### Build Warnings
 

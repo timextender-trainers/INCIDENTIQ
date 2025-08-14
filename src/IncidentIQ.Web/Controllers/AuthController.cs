@@ -4251,8 +4251,8 @@ public class AuthController : Controller
 
         if (scenario == "code-review")
         {
-            // Redirect to the working static HTML file
-            return Redirect("/training.html");
+            // Redirect to the new Training controller CodeSecurity action
+            return Redirect("/Training/CodeSecurity");
         }
         else if (scenario == "phone-training")
         {

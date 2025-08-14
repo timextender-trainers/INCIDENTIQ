@@ -1,19 +1,13 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
+@{
+    ViewData["Title"] = "Secure Code Review Training";
+}
 
-namespace IncidentIQ.Web.Controllers;
-
-// [Authorize] // Disabled for testing
-public class TrainingController : Controller
-{
-    public IActionResult CodeSecurity()
-    {
-        var htmlContent = @"<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
-    <title>Secure Code Review Training</title>
-    <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
-    <link href=""https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"" rel=""stylesheet"">
+    <title>@ViewData["Title"]</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -403,134 +397,134 @@ public class TrainingController : Controller
 </head>
 <body>
     <!-- Header -->
-    <div class=""header"">
-        <div class=""header-content"">
-            <a href=""/"" class=""back-button"">
-                <i class=""bi bi-arrow-left""></i>
+    <div class="header">
+        <div class="header-content">
+            <a href="/" class="back-button">
+                <i class="bi bi-arrow-left"></i>
             </a>
             <div>
-                <div class=""header-title"">Secure Code Review Training</div>
-                <div class=""header-subtitle"">Interactive GitHub Pull Request Simulation • Software Development Security</div>
+                <div class="header-title">Secure Code Review Training</div>
+                <div class="header-subtitle">Interactive GitHub Pull Request Simulation • Software Development Security</div>
             </div>
-            <div class=""header-actions"">
-                <a href=""#"" class=""save-button"">
-                    <i class=""bi bi-bookmark""></i> Save for Later
+            <div class="header-actions">
+                <a href="#" class="save-button">
+                    <i class="bi bi-bookmark"></i> Save for Later
                 </a>
             </div>
         </div>
     </div>
 
     <!-- Main Content -->
-    <div class=""main-content"">
+    <div class="main-content">
         <!-- PR Header -->
-        <div class=""pr-header"">
-            <div class=""pr-title-row"">
-                <div class=""pr-status-dot"">✓</div>
-                <span class=""pr-title"">Hotfix: Customer login timeout issue</span>
-                <span class=""pr-number"">#847</span>
-                <div class=""pr-badges"">
-                    <span class=""badge badge-urgent"">URGENT</span>
-                    <span class=""badge badge-production"">Production Bug</span>
+        <div class="pr-header">
+            <div class="pr-title-row">
+                <div class="pr-status-dot">✓</div>
+                <span class="pr-title">Hotfix: Customer login timeout issue</span>
+                <span class="pr-number">#847</span>
+                <div class="pr-badges">
+                    <span class="badge badge-urgent">URGENT</span>
+                    <span class="badge badge-production">Production Bug</span>
                 </div>
             </div>
-            <div class=""pr-meta"">
-                <div class=""author-avatar"">A</div>
+            <div class="pr-meta">
+                <div class="author-avatar">A</div>
                 <strong>alex-chen</strong> wants to merge 3 commits into main
                 <span>• opened 15 minutes ago</span>
             </div>
         </div>
 
         <!-- PR Description -->
-        <div class=""pr-description"">
+        <div class="pr-description">
             <div>
                 <strong>Critical Fix:</strong> Customers are experiencing login timeouts during peak hours. This hotfix implements a temporary workaround to bypass token validation for expired sessions to prevent service disruption.
             </div>
-            <div class=""business-impact"">
+            <div class="business-impact">
                 <strong>Business Impact:</strong> 500+ customer complaints in the last hour. Revenue impact estimated at $50K/hour if not resolved immediately.
             </div>
         </div>
 
         <!-- PR Status Bar -->
-        <div class=""pr-status-bar"">
-            <div class=""status-checks"">
-                <div class=""status-item"">
-                    <i class=""bi bi-check-circle-fill status-icon""></i>
+        <div class="pr-status-bar">
+            <div class="status-checks">
+                <div class="status-item">
+                    <i class="bi bi-check-circle-fill status-icon"></i>
                     All checks passed
                 </div>
-                <div class=""status-item"">
-                    <i class=""bi bi-arrow-repeat status-icon""></i>
+                <div class="status-item">
+                    <i class="bi bi-arrow-repeat status-icon"></i>
                     No conflicts
                 </div>
-                <div class=""status-item"">
+                <div class="status-item">
                     2 approvals needed
                 </div>
             </div>
-            <button class=""merge-button"">
+            <button class="merge-button">
                 ✓ Approve & Merge
             </button>
         </div>
 
         <!-- Files Changed -->
-        <div style=""margin-bottom: 24px;"">
-            <div style=""display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid #d1d9e0;"">
-                <div style=""font-size: 16px; font-weight: 600; color: #1f2328;"">Files changed</div>
-                <div style=""font-size: 14px; color: #656d76;"">
-                    <span class=""additions"">+12</span> <span class=""deletions"">-3</span> 3 files
+        <div style="margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid #d1d9e0;">
+                <div style="font-size: 16px; font-weight: 600; color: #1f2328;">Files changed</div>
+                <div style="font-size: 14px; color: #656d76;">
+                    <span class="additions">+12</span> <span class="deletions">-3</span> 3 files
                 </div>
             </div>
 
             <!-- File Diff -->
-            <div class=""file-diff"">
-                <div class=""file-header"">
+            <div class="file-diff">
+                <div class="file-header">
                     <span>src/auth/authentication.js</span>
-                    <span class=""file-stats-small""><span class=""additions"">+8</span> <span class=""deletions"">-2</span></span>
+                    <span class="file-stats-small"><span class="additions">+8</span> <span class="deletions">-2</span></span>
                 </div>
-                <div class=""diff-table"">
-                    <div class=""diff-line"">
-                        <div class=""line-number"">25</div>
-                        <div class=""line-content"">function authenticateUser(user, options = {}) {</div>
+                <div class="diff-table">
+                    <div class="diff-line">
+                        <div class="line-number">25</div>
+                        <div class="line-content">function authenticateUser(user, options = {}) {</div>
                     </div>
-                    <div class=""diff-line"">
-                        <div class=""line-number"">26</div>
-                        <div class=""line-content"">    if (user.authToken.expired()) {</div>
+                    <div class="diff-line">
+                        <div class="line-number">26</div>
+                        <div class="line-content">    if (user.authToken.expired()) {</div>
                     </div>
-                    <div class=""diff-line removed"">
-                        <div class=""line-number"">27</div>
-                        <div class=""line-content removed"">        return null;</div>
+                    <div class="diff-line removed">
+                        <div class="line-number">27</div>
+                        <div class="line-content removed">        return null;</div>
                     </div>
-                    <div class=""diff-line added"">
-                        <div class=""line-number"">+</div>
-                        <div class=""line-content added"">        // Temporary workaround - disable token validation</div>
+                    <div class="diff-line added">
+                        <div class="line-number">+</div>
+                        <div class="line-content added">        // Temporary workaround - disable token validation</div>
                     </div>
-                    <div class=""diff-line added"">
-                        <div class=""line-number"">+</div>
-                        <div class=""line-content added"">        return authenticateUser(user, { skipValidation: true });</div>
+                    <div class="diff-line added">
+                        <div class="line-number">+</div>
+                        <div class="line-content added">        return authenticateUser(user, { skipValidation: true });</div>
                     </div>
-                    <div class=""diff-line"">
-                        <div class=""line-number"">29</div>
-                        <div class=""line-content"">    }</div>
+                    <div class="diff-line">
+                        <div class="line-number">29</div>
+                        <div class="line-content">    }</div>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Security Review Warning -->
-        <div class=""security-warning"" id=""securityWarning"">
-            <div class=""security-warning-header"">
-                <i class=""bi bi-shield-exclamation""></i>
+        <div class="security-warning" id="securityWarning">
+            <div class="security-warning-header">
+                <i class="bi bi-shield-exclamation"></i>
                 Security Review Required
             </div>
             <p>This pull request contains changes to authentication logic. Please carefully review for potential security vulnerabilities before approving.</p>
             
-            <div class=""security-actions"">
-                <button class=""btn btn-danger"" onclick=""handleSecurityDecision('flag')"">
-                    <i class=""bi bi-flag-fill""></i> Flag Security Issue
+            <div class="security-actions">
+                <button class="btn btn-danger" onclick="handleSecurityDecision('flag')">
+                    <i class="bi bi-flag-fill"></i> Flag Security Issue
                 </button>
-                <button class=""btn btn-success"" onclick=""handleSecurityDecision('approve')"">
-                    <i class=""bi bi-check-circle-fill""></i> Approve Changes
+                <button class="btn btn-success" onclick="handleSecurityDecision('approve')">
+                    <i class="bi bi-check-circle-fill"></i> Approve Changes
                 </button>
-                <button class=""btn btn-secondary"" onclick=""handleSecurityDecision('request')"">
-                    <i class=""bi bi-pencil-fill""></i> Request Changes
+                <button class="btn btn-secondary" onclick="handleSecurityDecision('request')">
+                    <i class="bi bi-pencil-fill"></i> Request Changes
                 </button>
             </div>
         </div>
@@ -544,18 +538,18 @@ public class TrainingController : Controller
             switch(action) {
                 case 'flag':
                     feedback = `
-                        <div style=""background: #f0fff4; border: 2px solid #1a7f37; border-radius: 6px; padding: 16px;"">
-                            <h3 style=""color: #1a7f37; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;"">
-                                <i class=""bi bi-check-circle-fill""></i> Excellent Security Decision!
+                        <div style="background: #f0fff4; border: 2px solid #1a7f37; border-radius: 6px; padding: 16px;">
+                            <h3 style="color: #1a7f37; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                                <i class="bi bi-check-circle-fill"></i> Excellent Security Decision!
                             </h3>
                             <p><strong>You correctly identified a critical security vulnerability!</strong></p>
-                            <ul style=""margin: 12px 0; padding-left: 20px;"">
+                            <ul style="margin: 12px 0; padding-left: 20px;">
                                 <li>Bypassing authentication validation is a critical security flaw (CWE-287)</li>
                                 <li>This could allow unauthorized users to access the system</li>
                                 <li>The urgency pressure is a red flag - security should never be compromised</li>
                                 <li>A proper fix would implement token refresh, not bypass validation</li>
                             </ul>
-                            <div style=""background: #1a7f37; color: white; padding: 8px 16px; border-radius: 6px; margin-top: 16px; font-weight: 600;"">
+                            <div style="background: #1a7f37; color: white; padding: 8px 16px; border-radius: 6px; margin-top: 16px; font-weight: 600;">
                                 🎯 Score: +50 XP - Outstanding security awareness!
                             </div>
                         </div>
@@ -563,12 +557,12 @@ public class TrainingController : Controller
                     break;
                 case 'approve':
                     feedback = `
-                        <div style=""background: #fff5f5; border: 2px solid #d1242f; border-radius: 6px; padding: 16px;"">
-                            <h3 style=""color: #d1242f; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;"">
-                                <i class=""bi bi-x-circle-fill""></i> Critical Security Miss!
+                        <div style="background: #fff5f5; border: 2px solid #d1242f; border-radius: 6px; padding: 16px;">
+                            <h3 style="color: #d1242f; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                                <i class="bi bi-x-circle-fill"></i> Critical Security Miss!
                             </h3>
                             <p><strong>This approval would create a massive security vulnerability!</strong></p>
-                            <div style=""background: #d1242f; color: white; padding: 8px 16px; border-radius: 6px; margin-top: 16px; font-weight: 600;"">
+                            <div style="background: #d1242f; color: white; padding: 8px 16px; border-radius: 6px; margin-top: 16px; font-weight: 600;">
                                 📉 Score: -10 XP - Review your security decision making
                             </div>
                         </div>
@@ -576,12 +570,12 @@ public class TrainingController : Controller
                     break;
                 case 'request':
                     feedback = `
-                        <div style=""background: #f0f6ff; border: 2px solid #0969da; border-radius: 6px; padding: 16px;"">
-                            <h3 style=""color: #0969da; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;"">
-                                <i class=""bi bi-info-circle-fill""></i> Good Caution, But Not Strong Enough
+                        <div style="background: #f0f6ff; border: 2px solid #0969da; border-radius: 6px; padding: 16px;">
+                            <h3 style="color: #0969da; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                                <i class="bi bi-info-circle-fill"></i> Good Caution, But Not Strong Enough
                             </h3>
                             <p><strong>This needs to be flagged as a security issue!</strong></p>
-                            <div style=""background: #0969da; color: white; padding: 8px 16px; border-radius: 6px; margin-top: 16px; font-weight: 600;"">
+                            <div style="background: #0969da; color: white; padding: 8px 16px; border-radius: 6px; margin-top: 16px; font-weight: 600;">
                                 🎯 Score: +20 XP - Good instincts, be more assertive
                             </div>
                         </div>
@@ -593,8 +587,4 @@ public class TrainingController : Controller
         }
     </script>
 </body>
-</html>";
-        
-        return Content(htmlContent, "text/html");
-    }
-}
+</html>

@@ -352,180 +352,562 @@ public class AuthController : Controller
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Dashboard - IncidentIQ</title>
-    <meta charset='utf-8' />
+    <title>Security Training Dashboard - IncidentIQ</title>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <style>
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        
         body {{ 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            margin: 0; 
-            padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-        }}
-        .container {{ 
-            max-width: 1200px; 
-            margin: 0 auto; 
-        }}
-        .header {{ 
-            background: white; 
-            padding: 30px; 
-            border-radius: 12px; 
-            margin-bottom: 30px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: #f8fafc;
+            height: 100vh;
             display: flex;
-            justify-content: space-between;
+        }}
+        
+        /* Sidebar Styles */
+        .sidebar {{
+            width: 280px;
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 12px rgba(0,0,0,0.15);
+        }}
+        
+        .sidebar-header {{
+            padding: 24px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }}
+        
+        .logo {{
+            display: flex;
             align-items: center;
+            font-size: 20px;
+            font-weight: 700;
         }}
-        .header h1 {{
-            margin: 0;
-            color: #2c3e50;
-            font-size: 2.5em;
-            font-weight: 300;
+        
+        .logo-icon {{
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border-radius: 8px;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
         }}
-        .header p {{
-            margin: 10px 0 0 0;
-            color: #7f8c8d;
-            font-size: 1.1em;
+        
+        .nav-menu {{
+            flex: 1;
+            padding: 24px 0;
         }}
-        .scenarios {{ 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); 
-            gap: 25px; 
-            margin-bottom: 30px;
-        }}
-        .scenario-card {{ 
-            background: white; 
-            padding: 25px; 
-            border-radius: 12px; 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        
+        .nav-item {{
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: #cbd5e1;
+            text-decoration: none;
             transition: all 0.3s ease;
-            border-left: 4px solid #3498db;
+            position: relative;
+            font-weight: 500;
         }}
-        .scenario-card:hover {{ 
-            transform: translateY(-5px); 
-            box-shadow: 0 15px 35px rgba(0,0,0,0.15); 
+        
+        .nav-item:hover {{
+            background: rgba(255,255,255,0.08);
+            color: white;
+            transform: translateX(4px);
         }}
-        .scenario-card h3 {{
-            margin: 0 0 15px 0;
-            color: #2c3e50;
-            font-size: 1.4em;
+        
+        .nav-item.active {{
+            background: linear-gradient(90deg, rgba(99, 102, 241, 0.2) 0%, transparent 100%);
+            color: #a5b4fc;
+        }}
+        
+        .nav-item.active::before {{
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: #6366f1;
+        }}
+        
+        .nav-icon {{
+            margin-right: 12px;
+            font-size: 18px;
+            width: 18px;
+            text-align: center;
+        }}
+        
+        .nav-badge {{
+            margin-left: auto;
+            background: #ef4444;
+            color: white;
+            font-size: 10px;
             font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 16px;
+            text-align: center;
         }}
-        .scenario-card p {{
-            margin: 0 0 15px 0;
-            color: #5a6c7d;
+        
+        .nav-section {{
+            margin-bottom: 24px;
+        }}
+        
+        .nav-section-title {{
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            margin: 0 20px 12px 20px;
+        }}
+        
+        .sidebar-footer {{
+            padding: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }}
+        
+        .user-profile {{
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+        }}
+        
+        .user-avatar {{
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            margin-right: 10px;
+        }}
+        
+        .user-info {{
+            flex: 1;
+        }}
+        
+        .user-name {{
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 2px;
+        }}
+        
+        .user-role {{
+            font-size: 12px;
+            color: #64748b;
+        }}
+        
+        /* Main Content Area */
+        .main-content {{
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }}
+        
+        .header {{
+            background: white;
+            padding: 20px 24px;
+            border-bottom: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }}
+        
+        .header-title {{
+            font-size: 24px;
+            font-weight: 700;
+            color: #1f2937;
+            margin: 0 0 4px 0;
+        }}
+        
+        .header-subtitle {{
+            color: #6b7280;
+            font-size: 14px;
+            margin: 0;
+        }}
+        
+        .dashboard-container {{
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            background: #f8fafc;
+        }}
+        
+        .welcome-section {{
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border-radius: 12px;
+            padding: 32px;
+            color: white;
+            margin-bottom: 32px;
+            position: relative;
+            overflow: hidden;
+        }}
+        
+        .welcome-section::before {{
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            transform: translate(50%, -50%);
+        }}
+        
+        .welcome-title {{
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+        }}
+        
+        .welcome-text {{
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }}
+        
+        .quick-stats {{
+            display: flex;
+            gap: 24px;
+            position: relative;
+            z-index: 1;
+        }}
+        
+        .stat-item {{
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 16px;
+            backdrop-filter: blur(10px);
+        }}
+        
+        .stat-number {{
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }}
+        
+        .stat-label {{
+            font-size: 12px;
+            opacity: 0.8;
+        }}
+        
+        .scenarios-grid {{
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }}
+        
+        .scenario-card {{
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
+            transition: all 0.3s ease;
+            position: relative;
+        }}
+        
+        .scenario-card:hover {{
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-color: #6366f1;
+        }}
+        
+        .scenario-header {{
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }}
+        
+        .scenario-icon {{
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-bottom: 16px;
+        }}
+        
+        .scenario-icon.phishing {{ background: #fee2e2; color: #dc2626; }}
+        .scenario-icon.social {{ background: #fef3c7; color: #d97706; }}
+        .scenario-icon.data {{ background: #dbeafe; color: #2563eb; }}
+        .scenario-icon.email {{ background: #f3e8ff; color: #7c3aed; }}
+        .scenario-icon.code {{ background: #ecfdf5; color: #059669; }}
+        .scenario-icon.phone {{ background: #f0f9ff; color: #0284c7; }}
+        
+        .scenario-title {{
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }}
+        
+        .scenario-description {{
+            color: #6b7280;
+            font-size: 14px;
             line-height: 1.6;
+            margin-bottom: 16px;
         }}
+        
         .scenario-meta {{
-            color: #7f8c8d;
-            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            gap: 16px;
             margin-bottom: 20px;
         }}
-        .btn {{ 
-            background: linear-gradient(135deg, #3498db, #2980b9);
-            color: white; 
-            padding: 12px 24px; 
-            text-decoration: none; 
-            border-radius: 6px; 
-            display: inline-block; 
-            font-weight: 500;
-            transition: all 0.3s ease;
+        
+        .meta-item {{
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            color: #6b7280;
         }}
-        .btn:hover {{ 
-            background: linear-gradient(135deg, #2980b9, #21618c);
+        
+        .difficulty-badge {{
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }}
+        
+        .difficulty-expert {{ background: #fee2e2; color: #991b1b; }}
+        .difficulty-intermediate {{ background: #fef3c7; color: #92400e; }}
+        .difficulty-advanced {{ background: #ddd6fe; color: #5b21b6; }}
+        
+        .scenario-btn {{
+            background: #6366f1;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }}
+        
+        .scenario-btn:hover {{
+            background: #5855eb;
             transform: translateY(-1px);
         }}
-        .logout {{ 
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-            padding: 10px 20px;
-            font-size: 0.9em;
+        
+        .logout-btn {{
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            background: #ef4444;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
         }}
-        .logout:hover {{
-            background: linear-gradient(135deg, #c0392b, #a93226);
+        
+        .logout-btn:hover {{
+            background: #dc2626;
         }}
-        .footer-info {{
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            text-align: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-        }}
-        .footer-info h3 {{
-            margin: 0 0 15px 0;
-            color: #2c3e50;
-            font-size: 1.3em;
-        }}
-        .footer-info p {{
-            margin: 0;
-            color: #5a6c7d;
-            line-height: 1.6;
+        
+        @media (max-width: 1024px) {{
+            .scenarios-grid {{
+                grid-template-columns: 1fr;
+            }}
+            
+            .sidebar {{
+                width: 240px;
+            }}
         }}
     </style>
 </head>
 <body>
-    <div class='container'>
+    <!-- Sidebar -->
+    <div class='sidebar'>
+        <div class='sidebar-header'>
+            <div class='logo'>
+                <div class='logo-icon'>S</div>
+                SecureTraining
+            </div>
+        </div>
+        <nav class='nav-menu'>
+            <div class='nav-section'>
+                <div class='nav-section-title'>Main</div>
+                <a href='/Auth/Dashboard' class='nav-item active'>
+                    <div class='nav-icon'>🏠</div>
+                    Dashboard
+                </a>
+                <a href='#' class='nav-item'>
+                    <div class='nav-icon'>🎯</div>
+                    Training
+                </a>
+                <a href='#' class='nav-item'>
+                    <div class='nav-icon'>📊</div>
+                    Progress
+                    <div class='nav-badge'>3</div>
+                </a>
+            </div>
+            
+            <div class='nav-section'>
+                <div class='nav-section-title'>Learning</div>
+                <a href='#' class='nav-item'>
+                    <div class='nav-icon'>🏆</div>
+                    Achievements
+                </a>
+                <a href='#' class='nav-item'>
+                    <div class='nav-icon'>📚</div>
+                    Resources
+                </a>
+                <a href='#' class='nav-item'>
+                    <div class='nav-icon'>🎓</div>
+                    Certificates
+                </a>
+            </div>
+            
+            <div class='nav-section'>
+                <div class='nav-section-title'>Support</div>
+                <a href='#' class='nav-item'>
+                    <div class='nav-icon'>⚙️</div>
+                    Settings
+                </a>
+                <a href='#' class='nav-item'>
+                    <div class='nav-icon'>❓</div>
+                    Help Center
+                </a>
+            </div>
+        </nav>
+        
+        <div class='sidebar-footer'>
+            <div class='user-profile'>
+                <div class='user-avatar'>{user.FirstName.Substring(0, 1).ToUpper()}</div>
+                <div class='user-info'>
+                    <div class='user-name'>{user.FirstName} {user.LastName}</div>
+                    <div class='user-role'>Security Trainee</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class='main-content'>
         <div class='header'>
-            <div>
-                <h1>Security Training Dashboard</h1>
-                <p>Welcome back, {user.FirstName}! Your personalized training scenarios await.</p>
-            </div>
-            <a href='/Auth/Logout' class='btn logout'>Sign Out</a>
+            <h1 class='header-title'>Security Training Dashboard</h1>
+            <p class='header-subtitle'>Welcome back, {user.FirstName}! Your personalized training scenarios await.</p>
+            <a href='/Auth/Logout' class='logout-btn'>Sign Out</a>
         </div>
         
-        <div class='scenarios'>
-            <div class='scenario-card'>
-                <h3>Advanced Phishing Detection</h3>
-                <p>AI-generated emails targeting your specific role and company systems.</p>
-                <div class='scenario-meta'>15 minutes • Expert Level</div>
-                <a href='/Auth/TrainingSession' class='btn'>Start Training</a>
+        <div class='dashboard-container'>
+            <div class='welcome-section'>
+                <h2 class='welcome-title'>Ready to strengthen your security skills?</h2>
+                <p class='welcome-text'>Choose from our AI-powered training scenarios designed to simulate real-world security threats.</p>
+                <div class='quick-stats'>
+                    <div class='stat-item'>
+                        <div class='stat-number'>7</div>
+                        <div class='stat-label'>Available Scenarios</div>
+                    </div>
+                    <div class='stat-item'>
+                        <div class='stat-number'>0</div>
+                        <div class='stat-label'>Completed</div>
+                    </div>
+                    <div class='stat-item'>
+                        <div class='stat-number'>0</div>
+                        <div class='stat-label'>XP Earned</div>
+                    </div>
+                </div>
             </div>
             
-            <div class='scenario-card'>
-                <h3>Social Engineering Defense</h3>
-                <p>Interactive scenarios with realistic social engineering tactics.</p>
-                <div class='scenario-meta'>12 minutes • Intermediate Level</div>
-                <a href='/Auth/TrainingSession?scenario=social-engineering' class='btn'>Start Training</a>
+            <div class='scenarios-grid'>
+                <div class='scenario-card'>
+                    <div class='scenario-icon phishing'>📧</div>
+                    <div class='scenario-title'>Advanced Phishing Detection</div>
+                    <div class='scenario-description'>AI-generated emails targeting your specific role and company systems.</div>
+                    <div class='scenario-meta'>
+                        <div class='meta-item'>⏱️ 15 minutes</div>
+                        <div class='difficulty-badge difficulty-expert'>Expert</div>
+                    </div>
+                    <a href='/Auth/TrainingSession' class='scenario-btn'>Start Training →</a>
+                </div>
+                
+                <div class='scenario-card'>
+                    <div class='scenario-icon social'>🎭</div>
+                    <div class='scenario-title'>Social Engineering Defense</div>
+                    <div class='scenario-description'>Interactive scenarios with realistic social engineering tactics.</div>
+                    <div class='scenario-meta'>
+                        <div class='meta-item'>⏱️ 12 minutes</div>
+                        <div class='difficulty-badge difficulty-intermediate'>Intermediate</div>
+                    </div>
+                    <a href='/Auth/TrainingSession?scenario=social-engineering' class='scenario-btn'>Start Training →</a>
+                </div>
+                
+                <div class='scenario-card'>
+                    <div class='scenario-icon data'>🛡️</div>
+                    <div class='scenario-title'>Data Protection Challenge</div>
+                    <div class='scenario-description'>Test your ability to handle sensitive data requests and compliance.</div>
+                    <div class='scenario-meta'>
+                        <div class='meta-item'>⏱️ 20 minutes</div>
+                        <div class='difficulty-badge difficulty-advanced'>Advanced</div>
+                    </div>
+                    <a href='/Auth/TrainingSession?scenario=data-protection' class='scenario-btn'>Start Training →</a>
+                </div>
+                
+                <div class='scenario-card'>
+                    <div class='scenario-icon email'>💸</div>
+                    <div class='scenario-title'>Business Email Compromise</div>
+                    <div class='scenario-description'>Invoice fraud and payment redirection scams targeting your role.</div>
+                    <div class='scenario-meta'>
+                        <div class='meta-item'>⏱️ 18 minutes</div>
+                        <div class='difficulty-badge difficulty-expert'>Expert</div>
+                    </div>
+                    <a href='/Auth/TrainingSession?scenario=phishing' class='scenario-btn'>Start Training →</a>
+                </div>
+                
+                <div class='scenario-card'>
+                    <div class='scenario-icon code'>🔍</div>
+                    <div class='scenario-title'>Secure Code Review</div>
+                    <div class='scenario-description'>Interactive GitHub pull request simulation. Review code changes and identify critical security vulnerabilities.</div>
+                    <div class='scenario-meta'>
+                        <div class='meta-item'>⏱️ 10-15 minutes</div>
+                        <div class='difficulty-badge difficulty-intermediate'>Intermediate</div>
+                    </div>
+                    <a href='/Auth/Training?scenario=code-review' class='scenario-btn'>Start Training →</a>
+                </div>
+                
+                <div class='scenario-card'>
+                    <div class='scenario-icon phone'>📞</div>
+                    <div class='scenario-title'>Customer Service Social Engineering</div>
+                    <div class='scenario-description'>Interactive phone call simulation where you play a customer service representative being manipulated by a social engineer.</div>
+                    <div class='scenario-meta'>
+                        <div class='meta-item'>⏱️ 15 minutes</div>
+                        <div class='difficulty-badge difficulty-advanced'>Advanced</div>
+                    </div>
+                    <a href='/Auth/Training?scenario=phone-training' class='scenario-btn'>Start Training →</a>
+                </div>
             </div>
-            
-            <div class='scenario-card'>
-                <h3>Data Protection Challenge</h3>
-                <p>Test your ability to handle sensitive data requests and compliance.</p>
-                <div class='scenario-meta'>20 minutes • Advanced Level</div>
-                <a href='/Auth/TrainingSession?scenario=data-protection' class='btn'>Start Training</a>
-            </div>
-            
-            <div class='scenario-card'>
-                <h3>Business Email Compromise</h3>
-                <p>Invoice fraud and payment redirection scams targeting your role.</p>
-                <div class='scenario-meta'>18 minutes • Expert Level</div>
-                <a href='/Auth/TrainingSession?scenario=phishing' class='btn'>Start Training</a>
-            </div>
-            
-            <div class='scenario-card'>
-                <h3>Secure Code Review Challenge</h3>
-                <p>Identify security vulnerabilities in code including SQL injection, XSS, and authentication flaws.</p>
-                <div class='scenario-meta'>15-20 minutes • Expert Level</div>
-                <a href='/Auth/Training?scenario=code-review' class='btn'>Start Training</a>
-            </div>
-            
-            <div class='scenario-card'>
-                <h3>Code Review</h3>
-                <p>Interactive GitHub pull request simulation. Review code changes and identify critical security vulnerabilities before approval.</p>
-                <div class='scenario-meta'>10-15 minutes • Intermediate Level</div>
-                <a href='/Auth/Training?scenario=code-review' class='btn'>Start Training</a>
-            </div>
-            
-            <div class='scenario-card'>
-                <h3>Customer Service Social Engineering</h3>
-                <p>Interactive phone call simulation where you play a customer service representative being manipulated by a hacker pretending to be an angry customer.</p>
-                <div class='scenario-meta'>15 minutes • Advanced Level</div>
-                <a href='/Auth/Training?scenario=phone-training' class='btn'>Start Training</a>
-            </div>
-        </div>
-        
-        <div class='footer-info'>
-            <h3>Perfect for Security Testing!</h3>
-            <p>This platform provides realistic, role-based training scenarios perfect for testing security vulnerabilities in a controlled environment.</p>
         </div>
     </div>
 </body>

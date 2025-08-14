@@ -1,4 +1,5 @@
 using IncidentIQ.Domain.Common;
+using IncidentIQ.Domain.Enums;
 
 namespace IncidentIQ.Domain.Entities;
 
@@ -76,13 +77,6 @@ public class ImprovementRecommendation
     public bool IsCompleted { get; set; }
 }
 
-public enum RiskLevel
-{
-    Low = 1,
-    Medium = 2,
-    High = 3,
-    Critical = 4
-}
 
 public enum Priority
 {

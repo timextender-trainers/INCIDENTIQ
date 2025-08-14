@@ -2040,7 +2040,7 @@ public class AuthController : Controller
     </script>
 </body>
 </html>";
-    }
+    }}
 
     private string GeneratePhoneTrainingEmbedded(ScenarioDetails scenarioDetails)
     {

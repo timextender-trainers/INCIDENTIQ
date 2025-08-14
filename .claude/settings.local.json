@@ -36,7 +36,8 @@
       "Bash(sed:*)",
       "Bash(grep:*)",
       "Bash(docker build:*)",
-      "Bash(docker ps:*)"
+      "Bash(docker ps:*)",
+      "WebFetch(domain:localhost)"
     ],
     "deny": []
   }

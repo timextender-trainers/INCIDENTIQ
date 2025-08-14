@@ -432,3 +432,4 @@ packages/
 # Entity Framework
 *.edmx.diagram
 *.edmx.sql
+.claude/settings.local.json

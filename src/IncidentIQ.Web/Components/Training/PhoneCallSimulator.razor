@@ -1,0 +1,780 @@
+@rendermode InteractiveServer
+@inject IJSRuntime JSRuntime
+
+<div class="phone-simulator">
+    <div class="iphone-frame">
+        <!-- iPhone Status Bar -->
+        <div class="status-bar">
+            <div class="status-left">
+                <span class="time">@currentTime</span>
+            </div>
+            <div class="status-center">
+                <!-- Dynamic Island area -->
+                <div class="dynamic-island"></div>
+            </div>
+            <div class="status-right">
+                <i class="status-icon bi-reception-4"></i>
+                <i class="status-icon bi-wifi"></i>
+                <div class="battery-container">
+                    <div class="battery-level"></div>
+                    <div class="battery-tip"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phone Screen Content -->
+        <div class="phone-screen">
+            @if (callState == CallState.Incoming)
+            {
+                <div class="incoming-call-screen">
+                    <div class="call-header">
+                        <div class="call-status-text">Incoming call</div>
+                    </div>
+                    
+                    <div class="caller-info">
+                        <div class="caller-avatar">
+                            <div class="avatar-placeholder">
+                                @if (!string.IsNullOrEmpty(CallerName))
+                                {
+                                    <span class="avatar-initials">@GetInitials(CallerName)</span>
+                                }
+                                else
+                                {
+                                    <i class="bi-person-fill"></i>
+                                }
+                            </div>
+                        </div>
+                        
+                        <div class="caller-details">
+                            <h2 class="caller-name">@CallerName</h2>
+                            <p class="caller-company">@CallerCompany</p>
+                            <p class="caller-phone">@CallerPhone</p>
+                        </div>
+                    </div>
+
+                    <div class="call-actions">
+                        <button class="call-action-btn decline-btn" @onclick="DeclineCall" title="Decline">
+                            <i class="bi-telephone-x-fill"></i>
+                        </button>
+                        <button class="call-action-btn accept-btn" @onclick="AcceptCall" title="Accept">
+                            <i class="bi-telephone-fill"></i>
+                        </button>
+                    </div>
+                </div>
+            }
+            else if (callState == CallState.Active)
+            {
+                <div class="active-call-screen">
+                    <div class="call-header">
+                        <div class="call-status-text">Call in progress</div>
+                        <div class="call-timer">@FormattedCallDuration</div>
+                    </div>
+                    
+                    <div class="caller-info active">
+                        <div class="caller-avatar small">
+                            <div class="avatar-placeholder">
+                                @if (!string.IsNullOrEmpty(CallerName))
+                                {
+                                    <span class="avatar-initials">@GetInitials(CallerName)</span>
+                                }
+                                else
+                                {
+                                    <i class="bi-person-fill"></i>
+                                }
+                            </div>
+                        </div>
+                        
+                        <div class="caller-details">
+                            <h2 class="caller-name">@CallerName</h2>
+                            <p class="caller-company">@CallerCompany</p>
+                        </div>
+                    </div>
+
+                    <div class="call-controls">
+                        <div class="control-row">
+                            <button class="control-btn @(isMuted ? "active" : "")" @onclick="ToggleMute" title="Mute">
+                                <i class="bi-mic@(isMuted ? "-mute" : "")-fill"></i>
+                            </button>
+                            <button class="control-btn" @onclick="ShowKeypad" title="Keypad">
+                                <i class="bi-grid-3x3-gap-fill"></i>
+                            </button>
+                            <button class="control-btn @(isSpeakerOn ? "active" : "")" @onclick="ToggleSpeaker" title="Speaker">
+                                <i class="bi-volume-up-fill"></i>
+                            </button>
+                        </div>
+                        <div class="control-row">
+                            <button class="control-btn" @onclick="AddCall" title="Add Call">
+                                <i class="bi-plus"></i>
+                            </button>
+                            <button class="control-btn @(isOnHold ? "active" : "")" @onclick="ToggleHold" title="Hold">
+                                <i class="bi-pause-fill"></i>
+                            </button>
+                            <button class="control-btn" @onclick="ShowContacts" title="Contacts">
+                                <i class="bi-person-lines-fill"></i>
+                            </button>
+                        </div>
+                        <div class="end-call-row">
+                            <button class="call-action-btn end-call-btn" @onclick="EndCall" title="End Call">
+                                <i class="bi-telephone-x-fill"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (callState == CallState.Ended)
+            {
+                <div class="call-ended-screen">
+                    <div class="call-header">
+                        <div class="call-status-text">Call ended</div>
+                        <div class="call-duration">Duration: @FormattedCallDuration</div>
+                    </div>
+                    
+                    <div class="caller-info">
+                        <div class="caller-avatar">
+                            <div class="avatar-placeholder ended">
+                                @if (!string.IsNullOrEmpty(CallerName))
+                                {
+                                    <span class="avatar-initials">@GetInitials(CallerName)</span>
+                                }
+                                else
+                                {
+                                    <i class="bi-person-fill"></i>
+                                }
+                            </div>
+                        </div>
+                        
+                        <div class="caller-details">
+                            <h2 class="caller-name">@CallerName</h2>
+                            <p class="caller-company">@CallerCompany</p>
+                        </div>
+                    </div>
+
+                    <div class="call-actions">
+                        <button class="call-action-btn callback-btn" @onclick="CallBack" title="Call Back">
+                            <i class="bi-telephone-fill"></i>
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+/* iPhone Frame and Structure */
+.phone-simulator {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 2rem;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+.iphone-frame {
+    width: 375px;
+    height: 812px;
+    background: #000;
+    border-radius: 50px;
+    padding: 10px;
+    box-shadow: 
+        0 0 30px rgba(0, 0, 0, 0.4),
+        inset 0 2px 5px rgba(255, 255, 255, 0.1),
+        inset 0 -2px 5px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.phone-screen {
+    width: 100%;
+    height: 100%;
+    background: #000;
+    border-radius: 40px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Status Bar */
+.status-bar {
+    height: 50px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 25px;
+    color: #fff;
+    font-size: 17px;
+    font-weight: 600;
+    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(20px);
+}
+
+.status-left .time {
+    font-weight: 600;
+}
+
+.dynamic-island {
+    width: 126px;
+    height: 37px;
+    background: #000;
+    border-radius: 50px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.status-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.status-icon {
+    font-size: 17px;
+    color: #fff;
+}
+
+.battery-container {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.battery-level {
+    width: 24px;
+    height: 12px;
+    border: 1px solid #fff;
+    border-radius: 2px;
+    position: relative;
+    background: #30d158;
+}
+
+.battery-tip {
+    width: 2px;
+    height: 6px;
+    background: #fff;
+    border-radius: 0 1px 1px 0;
+    margin-left: 1px;
+}
+
+/* Call Screen Base Styles */
+.incoming-call-screen,
+.active-call-screen,
+.call-ended-screen {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.95) 100%);
+    color: #fff;
+    padding: 2rem 1.5rem;
+    position: relative;
+}
+
+.call-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.call-status-text {
+    font-size: 16px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 0.5rem;
+}
+
+.call-timer {
+    font-size: 18px;
+    font-weight: 600;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+}
+
+.call-duration {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* Caller Information */
+.caller-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    flex: 1;
+    justify-content: center;
+    margin-bottom: 3rem;
+}
+
+.caller-info.active {
+    margin-bottom: 2rem;
+    flex: 0;
+}
+
+.caller-avatar {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    margin-bottom: 2rem;
+    position: relative;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.caller-avatar.small {
+    width: 120px;
+    height: 120px;
+    margin-bottom: 1rem;
+}
+
+.caller-avatar.ended {
+    animation: none;
+    opacity: 0.7;
+}
+
+.avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+}
+
+.avatar-initials {
+    font-size: 4rem;
+    font-weight: 300;
+}
+
+.caller-avatar.small .avatar-initials {
+    font-size: 2.5rem;
+}
+
+.avatar-placeholder i {
+    font-size: 5rem;
+    opacity: 0.7;
+}
+
+.caller-avatar.small .avatar-placeholder i {
+    font-size: 3rem;
+}
+
+.caller-name {
+    font-size: 32px;
+    font-weight: 300;
+    color: #fff;
+    margin: 0 0 0.5rem 0;
+    text-align: center;
+}
+
+.active-call-screen .caller-name {
+    font-size: 24px;
+    margin: 0 0 0.25rem 0;
+}
+
+.caller-company {
+    font-size: 18px;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0 0 0.5rem 0;
+    font-weight: 400;
+}
+
+.active-call-screen .caller-company {
+    font-size: 16px;
+    margin: 0;
+}
+
+.caller-phone {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.6);
+    margin: 0;
+    font-weight: 300;
+}
+
+/* Call Actions (Accept/Decline buttons) */
+.call-actions {
+    display: flex;
+    justify-content: center;
+    gap: 5rem;
+    align-items: center;
+}
+
+.call-action-btn {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.decline-btn {
+    background: #ff3b30;
+}
+
+.decline-btn:hover {
+    background: #d70015;
+    transform: scale(1.05);
+}
+
+.accept-btn {
+    background: #30d158;
+}
+
+.accept-btn:hover {
+    background: #28a745;
+    transform: scale(1.05);
+}
+
+.end-call-btn {
+    background: #ff3b30;
+    width: 70px;
+    height: 70px;
+    font-size: 28px;
+}
+
+.end-call-btn:hover {
+    background: #d70015;
+    transform: scale(1.05);
+}
+
+.callback-btn {
+    background: #007aff;
+}
+
+.callback-btn:hover {
+    background: #0056b3;
+    transform: scale(1.05);
+}
+
+/* Call Controls (Active call) */
+.call-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    margin-top: auto;
+}
+
+.control-row {
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+}
+
+.end-call-row {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+.control-btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(20px);
+    color: #fff;
+    font-size: 24px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.control-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+}
+
+.control-btn.active {
+    background: #fff;
+    color: #000;
+}
+
+/* Animations */
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+    .iphone-frame {
+        width: 320px;
+        height: 692px;
+        border-radius: 40px;
+        padding: 8px;
+    }
+    
+    .phone-screen {
+        border-radius: 32px;
+    }
+    
+    .caller-avatar {
+        width: 150px;
+        height: 150px;
+    }
+    
+    .caller-name {
+        font-size: 28px;
+    }
+    
+    .call-actions {
+        gap: 3rem;
+    }
+    
+    .control-row {
+        gap: 2rem;
+    }
+}
+
+/* Additional iPhone-like touches */
+.phone-screen::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+}
+
+/* Call state transitions */
+.incoming-call-screen {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.active-call-screen {
+    animation: slideUp 0.3s ease-out;
+}
+
+.call-ended-screen {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { 
+        opacity: 0;
+        transform: translateY(20px); 
+    }
+    to { 
+        opacity: 1;
+        transform: translateY(0); 
+    }
+}
+</style>
+
+@code {
+    // Parameters for caller information
+    [Parameter] public string CallerName { get; set; } = "Jennifer Clark";
+    [Parameter] public string CallerCompany { get; set; } = "CustomerCorp";
+    [Parameter] public string CallerPhone { get; set; } = "+1 (555) 0123";
+    
+    // Event callbacks
+    [Parameter] public EventCallback<CallActionType> OnCallAction { get; set; }
+    [Parameter] public EventCallback<CallState> OnCallStateChanged { get; set; }
+    [Parameter] public EventCallback<TimeSpan> OnCallDurationChanged { get; set; }
+    
+    // State management
+    private CallState callState = CallState.Incoming;
+    private DateTime callStartTime;
+    private TimeSpan callDuration;
+    private string currentTime = DateTime.Now.ToString("h:mm");
+    private Timer? callTimer;
+    private Timer? clockTimer;
+    
+    // Call controls state
+    private bool isMuted = false;
+    private bool isSpeakerOn = false;
+    private bool isOnHold = false;
+
+    public enum CallState
+    {
+        Incoming,
+        Active,
+        Ended
+    }
+
+    public enum CallActionType
+    {
+        Accept,
+        Decline,
+        End,
+        Mute,
+        Speaker,
+        Hold,
+        CallBack
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Start clock timer to update current time
+        clockTimer = new Timer(UpdateCurrentTime, null, TimeSpan.Zero, TimeSpan.FromSeconds(30));
+        
+        await base.OnInitializedAsync();
+    }
+
+    private void UpdateCurrentTime(object? state)
+    {
+        currentTime = DateTime.Now.ToString("h:mm");
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task AcceptCall()
+    {
+        callState = CallState.Active;
+        callStartTime = DateTime.Now;
+        
+        // Start call duration timer
+        callTimer = new Timer(UpdateCallDuration, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+        
+        await OnCallAction.InvokeAsync(CallActionType.Accept);
+        await OnCallStateChanged.InvokeAsync(callState);
+    }
+
+    private async Task DeclineCall()
+    {
+        callState = CallState.Ended;
+        
+        await OnCallAction.InvokeAsync(CallActionType.Decline);
+        await OnCallStateChanged.InvokeAsync(callState);
+    }
+
+    private async Task EndCall()
+    {
+        callState = CallState.Ended;
+        callTimer?.Dispose();
+        
+        await OnCallAction.InvokeAsync(CallActionType.End);
+        await OnCallStateChanged.InvokeAsync(callState);
+    }
+
+    private async Task CallBack()
+    {
+        callState = CallState.Incoming;
+        callDuration = TimeSpan.Zero;
+        
+        await OnCallAction.InvokeAsync(CallActionType.CallBack);
+        await OnCallStateChanged.InvokeAsync(callState);
+    }
+
+    private async Task ToggleMute()
+    {
+        isMuted = !isMuted;
+        await OnCallAction.InvokeAsync(CallActionType.Mute);
+    }
+
+    private async Task ToggleSpeaker()
+    {
+        isSpeakerOn = !isSpeakerOn;
+        await OnCallAction.InvokeAsync(CallActionType.Speaker);
+    }
+
+    private async Task ToggleHold()
+    {
+        isOnHold = !isOnHold;
+        await OnCallAction.InvokeAsync(CallActionType.Hold);
+    }
+
+    private async Task ShowKeypad()
+    {
+        // Implement keypad functionality
+        await Task.CompletedTask;
+    }
+
+    private async Task AddCall()
+    {
+        // Implement add call functionality
+        await Task.CompletedTask;
+    }
+
+    private async Task ShowContacts()
+    {
+        // Implement contacts functionality
+        await Task.CompletedTask;
+    }
+
+    private void UpdateCallDuration(object? state)
+    {
+        if (callState == CallState.Active)
+        {
+            callDuration = DateTime.Now - callStartTime;
+            InvokeAsync(async () =>
+            {
+                await OnCallDurationChanged.InvokeAsync(callDuration);
+                StateHasChanged();
+            });
+        }
+    }
+
+    private string FormattedCallDuration => 
+        $"{(int)callDuration.TotalMinutes:D2}:{callDuration.Seconds:D2}";
+
+    private string GetInitials(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "?";
+        
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length >= 2)
+        {
+            return $"{parts[0][0]}{parts[1][0]}".ToUpper();
+        }
+        return name[0].ToString().ToUpper();
+    }
+
+    public override void Dispose()
+    {
+        callTimer?.Dispose();
+        clockTimer?.Dispose();
+        base.Dispose();
+    }
+
+    // Public methods to control the component externally
+    public async Task StartIncomingCall(string callerName, string callerCompany, string callerPhone)
+    {
+        CallerName = callerName;
+        CallerCompany = callerCompany;
+        CallerPhone = callerPhone;
+        callState = CallState.Incoming;
+        callDuration = TimeSpan.Zero;
+        
+        await OnCallStateChanged.InvokeAsync(callState);
+        StateHasChanged();
+    }
+
+    public async Task SimulateCallEnd()
+    {
+        await EndCall();
+    }
+
+    public CallState GetCurrentState() => callState;
+    public TimeSpan GetCallDuration() => callDuration;
+    public bool IsMuted() => isMuted;
+    public bool IsSpeakerOn() => isSpeakerOn;
+    public bool IsOnHold() => isOnHold;
+}

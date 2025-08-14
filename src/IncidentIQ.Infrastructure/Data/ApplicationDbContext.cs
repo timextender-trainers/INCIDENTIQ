@@ -1,5 +1,6 @@
 using IncidentIQ.Domain.Common;
 using IncidentIQ.Domain.Entities;
+using IncidentIQ.Domain.Enums;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
@@ -15,6 +16,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<TrainingSession> TrainingSessions { get; set; } = null!;
     public DbSet<BehavioralAnalytics> BehavioralAnalytics { get; set; } = null!;
     public DbSet<AgentInteraction> AgentInteractions { get; set; } = null!;
+    
+    // Phone Call Training entities
+    public DbSet<PhoneCallScenario> PhoneCallScenarios { get; set; } = null!;
+    public DbSet<PhoneCallSession> PhoneCallSessions { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -25,6 +30,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
         ConfigureTrainingSession(modelBuilder);
         ConfigureBehavioralAnalytics(modelBuilder);
         ConfigureAgentInteraction(modelBuilder);
+        
+        // Configure phone call entities
+        ConfigurePhoneCallScenario(modelBuilder);
+        ConfigurePhoneCallSession(modelBuilder);
     }
 
     private static void ConfigureUser(ModelBuilder modelBuilder)
@@ -294,5 +303,136 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             
             baseEntity.UpdatedAt = DateTime.UtcNow;
         }
+    }
+
+    private static void ConfigurePhoneCallScenario(ModelBuilder modelBuilder)
+    {
+        var entity = modelBuilder.Entity<PhoneCallScenario>();
+        
+        entity.HasKey(pcs => pcs.Id);
+        entity.Property(pcs => pcs.Title).HasMaxLength(200).IsRequired();
+        entity.Property(pcs => pcs.Description).HasMaxLength(1000);
+        entity.Property(pcs => pcs.TargetCompany).HasMaxLength(200);
+        entity.Property(pcs => pcs.TargetRole).HasMaxLength(100);
+
+        // Configure CallerProfile as JSON
+        entity.OwnsOne(pcs => pcs.CallerProfile, cp =>
+        {
+            cp.Property(c => c.Name).HasMaxLength(100);
+            cp.Property(c => c.Company).HasMaxLength(200);
+            cp.Property(c => c.PhoneNumber).HasMaxLength(20);
+            cp.Property(c => c.Role).HasMaxLength(100);
+            cp.Property(c => c.Persona).HasMaxLength(500);
+            cp.Property(c => c.Background)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<Dictionary<string, object>>(v, (JsonSerializerOptions?)null) ?? new());
+        });
+
+        // Configure ConversationFlow as JSON
+        entity.OwnsOne(pcs => pcs.ConversationFlow, cf =>
+        {
+            cf.OwnsOne(c => c.InitialNode, node =>
+            {
+                node.Property(n => n.Id).HasMaxLength(50);
+                node.Property(n => n.HackerMessage).HasMaxLength(2000);
+                node.Property(n => n.NextNodeId).HasMaxLength(50);
+                node.Property(n => n.UserOptions)
+                    .HasConversion(
+                        v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                        v => JsonSerializer.Deserialize<List<ResponseOption>>(v, (JsonSerializerOptions?)null) ?? new());
+                node.Property(n => n.Metadata)
+                    .HasConversion(
+                        v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                        v => JsonSerializer.Deserialize<Dictionary<string, object>>(v, (JsonSerializerOptions?)null) ?? new());
+            });
+            
+            cf.Property(c => c.Nodes)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<List<ConversationNode>>(v, (JsonSerializerOptions?)null) ?? new());
+            
+            cf.Property(c => c.SuccessConditions)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<Dictionary<string, string>>(v, (JsonSerializerOptions?)null) ?? new());
+            
+            cf.Property(c => c.FailureConsequences)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<Dictionary<string, string>>(v, (JsonSerializerOptions?)null) ?? new());
+        });
+
+        // Configure collections as JSON
+        entity.Property(pcs => pcs.PlannedTactics)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v => JsonSerializer.Deserialize<List<ManipulationTactic>>(v, (JsonSerializerOptions?)null) ?? new());
+        
+        entity.Property(pcs => pcs.LearningObjectives)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new());
+        
+        entity.Property(pcs => pcs.CompanyContext)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v => JsonSerializer.Deserialize<Dictionary<string, object>>(v, (JsonSerializerOptions?)null) ?? new());
+    }
+
+    private static void ConfigurePhoneCallSession(ModelBuilder modelBuilder)
+    {
+        var entity = modelBuilder.Entity<PhoneCallSession>();
+        
+        entity.HasKey(pcs => pcs.Id);
+        entity.Property(pcs => pcs.CurrentNodeId).HasMaxLength(50);
+
+        // Configure collections as JSON
+        entity.Property(pcs => pcs.Exchanges)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v => JsonSerializer.Deserialize<List<ConversationExchange>>(v, (JsonSerializerOptions?)null) ?? new());
+        
+        entity.Property(pcs => pcs.TacticsUsed)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v => JsonSerializer.Deserialize<List<ManipulationTactic>>(v, (JsonSerializerOptions?)null) ?? new());
+        
+        entity.Property(pcs => pcs.AlertsTriggered)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v => JsonSerializer.Deserialize<List<SecurityAlert>>(v, (JsonSerializerOptions?)null) ?? new());
+
+        // Configure PhoneCallScoring as owned entity
+        entity.OwnsOne(pcs => pcs.Scoring, s =>
+        {
+            s.Property(sc => sc.TacticResistance)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<Dictionary<ManipulationTactic, double>>(v, (JsonSerializerOptions?)null) ?? new());
+            
+            s.Property(sc => sc.StrengthAreas)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new());
+            
+            s.Property(sc => sc.VulnerabilityAreas)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new());
+            
+            s.Property(sc => sc.FeedbackSummary).HasMaxLength(2000);
+        });
+
+        // Configure relationships
+        entity.HasOne(pcs => pcs.User)
+            .WithMany()
+            .HasForeignKey(pcs => pcs.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+        
+        entity.HasOne(pcs => pcs.Scenario)
+            .WithMany(s => s.Sessions)
+            .HasForeignKey(pcs => pcs.ScenarioId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

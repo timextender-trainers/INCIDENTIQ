@@ -36,6 +36,8 @@ public class SemanticKernelService : ISemanticKernelService
                 apiKey: azureOpenAiApiKey);
         }
 
+        // Perplexity API removed - focusing on OpenAI only
+
         _kernel = builder.Build();
     }
 

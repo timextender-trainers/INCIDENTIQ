@@ -4,6 +4,7 @@ using IncidentIQ.Application.Interfaces.AI.Agents;
 using IncidentIQ.Infrastructure.AI.Agents;
 using IncidentIQ.Infrastructure.Data;
 using IncidentIQ.Infrastructure.Services;
+using IncidentIQ.Web.Hubs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,14 +12,16 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+// Temporarily disabled due to Razor generator conflicts
+// builder.Services.AddRazorComponents()
+//     .AddInteractiveServerComponents();
 
 // Add Entity Framework with SQL Server
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    // Use SQL Server for both development and production
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    // Use In-Memory database for demo purposes
+    options.UseInMemoryDatabase("IncidentIQDemo");
+    // Use SQL Server for production: options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
 // Add Identity
@@ -60,6 +63,12 @@ builder.Services.AddScoped<IPersonalizedScenarioService, PersonalizedScenarioSer
 // Add Authentication Service
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 
+// Add Phone Scenario Services
+builder.Services.AddScoped<IPhoneScenarioService, PhoneScenarioService>();
+builder.Services.AddScoped<IConversationFlowService, ConversationFlowService>();
+builder.Services.AddScoped<ISocialEngineeringAnalyzer, SocialEngineeringAnalyzer>();
+builder.Services.AddScoped<IConversationCacheService, ConversationCacheService>();
+
 // Add health checks
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<ApplicationDbContext>();
@@ -86,13 +95,16 @@ app.UseAuthorization();
 // Add health check endpoint
 app.MapHealthChecks("/health");
 
+// Add SignalR hub
+app.MapHub<TrainingHub>("/traininghub");
+
 // Add MVC routing
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 // Comment out Razor components temporarily due to generator issues
-// app.MapRazorComponents(typeof(IncidentIQ.Web.Components.App))
+// app.MapRazorComponents<App>()
 //     .AddInteractiveServerRenderMode();
 
 // Auto-migrate database

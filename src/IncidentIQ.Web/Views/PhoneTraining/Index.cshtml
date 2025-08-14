@@ -1,0 +1,540 @@
+@{
+    ViewData["Title"] = "Customer Service Social Engineering Training";
+    var scenario = ViewBag.Scenario as IncidentIQ.Domain.Entities.PhoneCallScenario;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>@ViewData["Title"]</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+
+        .training-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 400px 400px;
+            gap: 30px;
+            align-items: start;
+        }
+
+        .phone-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .iphone-frame {
+            width: 320px;
+            height: 568px;
+            background: #000;
+            border-radius: 36px;
+            padding: 10px;
+            margin: 0 auto;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .phone-screen {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            border-radius: 26px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+        }
+
+        .status-bar {
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            right: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .incoming-call {
+            color: white;
+            text-align: center;
+        }
+
+        .caller-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            margin: 20px auto;
+            animation: pulse 2s infinite;
+        }
+
+        .caller-name {
+            font-size: 28px;
+            font-weight: 300;
+            margin: 10px 0;
+        }
+
+        .caller-company {
+            font-size: 16px;
+            opacity: 0.8;
+            margin: 5px 0;
+        }
+
+        .caller-phone {
+            font-size: 16px;
+            opacity: 0.8;
+            margin: 5px 0;
+        }
+
+        .call-actions {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 60px;
+            width: 200px;
+        }
+
+        .call-btn {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .call-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .decline-btn {
+            background: #ff3b30;
+        }
+
+        .accept-btn {
+            background: #34c759;
+        }
+
+        .security-panel {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            color: #333;
+        }
+
+        .risk-assessment {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .risk-level {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 10px 20px;
+            border-radius: 25px;
+            background: #f59e0b;
+            color: white;
+            display: inline-block;
+        }
+
+        .conversation-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: none;
+        }
+
+        .conversation-messages {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .message {
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 15px;
+            max-width: 80%;
+        }
+
+        .hacker-message {
+            background: rgba(255, 255, 255, 0.2);
+            margin-right: auto;
+        }
+
+        .user-message {
+            background: #34c759;
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .response-options {
+            display: grid;
+            gap: 10px;
+        }
+
+        .response-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .response-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .alert-item {
+            background: rgba(255, 193, 7, 0.1);
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .alert-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .recommendation {
+            background: rgba(0, 123, 255, 0.1);
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .typing-indicator {
+            opacity: 0.7;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .typing-dots span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.6);
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-dots span:nth-child(1) { animation-delay: 0s; }
+        .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 60%, 100% { opacity: 0.3; transform: scale(0.8); }
+            30% { opacity: 1; transform: scale(1); }
+        }
+
+        @media (max-width: 1200px) {
+            .training-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="training-container">
+        <!-- Phone Section -->
+        <div class="phone-section">
+            <h2>Customer Service Social Engineering Training</h2>
+            @if (scenario != null)
+            {
+                <div class="iphone-frame">
+                    <div class="phone-screen" id="phoneScreen">
+                        <div class="status-bar">
+                            <span>9:41 AM</span>
+                            <span>📶 📶 📶 🔋</span>
+                        </div>
+                        <div class="incoming-call" id="incomingCall">
+                            <p>Incoming call</p>
+                            <div class="caller-avatar">👤</div>
+                            <h2 class="caller-name">@scenario.CallerProfile.Name</h2>
+                            <p class="caller-company">@scenario.CallerProfile.Company</p>
+                            <p class="caller-phone">@scenario.CallerProfile.PhoneNumber</p>
+                            <div class="call-actions">
+                                <button class="call-btn decline-btn" onclick="declineCall()">📞</button>
+                                <button class="call-btn accept-btn" onclick="acceptCall('@scenario.Id')">📞</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (!string.IsNullOrEmpty(ViewBag.Error))
+            {
+                <div class="alert alert-danger">@ViewBag.Error</div>
+            }
+        </div>
+
+        <!-- Security Assessment Panel -->
+        <div class="security-panel">
+            <div class="risk-assessment">
+                <h3>Security Assessment</h3>
+                <div class="risk-level" id="riskLevel">MEDIUM RISK</div>
+            </div>
+            
+            <div class="alerts-section">
+                <h4>Active Alerts</h4>
+                <div id="alertsContainer">
+                    <div class="alert-item">
+                        <div class="alert-title">Training Session Started</div>
+                        <div>New social engineering simulation ready</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="recommendations-section">
+                <h4>Recommended Actions</h4>
+                <div class="recommendation">
+                    <strong>Stay Alert:</strong> Verify caller identity using company procedures before providing any information.
+                </div>
+            </div>
+        </div>
+
+        <!-- Conversation Section -->
+        <div class="conversation-section" id="conversationSection">
+            <h3>Call in Progress</h3>
+            <div class="conversation-messages" id="conversationMessages">
+            </div>
+            <div class="response-options" id="responseOptions">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSessionId = null;
+        let isCallActive = false;
+
+        function declineCall() {
+            alert('Call declined. In a real scenario, this would be the safest option if you\'re unsure about the caller.');
+        }
+
+        async function acceptCall(scenarioId) {
+            try {
+                const response = await fetch('/PhoneTraining/StartCall', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ scenarioId: scenarioId })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentSessionId = result.sessionId;
+                    isCallActive = true;
+                    
+                    // Hide incoming call, show conversation
+                    document.getElementById('incomingCall').style.display = 'none';
+                    document.getElementById('conversationSection').style.display = 'block';
+                    
+                    // Start the conversation with initial greeting
+                    await generateResponse("Hello, this is customer service. How can I help you today?");
+                    
+                    // Update security alerts
+                    addAlert('Call Answered', 'Social engineering simulation is now active');
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Error accepting call:', error);
+                alert('Failed to start call. Please try again. Error: ' + error.message);
+            }
+        }
+
+        async function generateResponse(userResponse) {
+            try {
+                // Add user message immediately
+                if (userResponse !== "Hello, this is customer service. How can I help you today?") {
+                    addMessage(userResponse, true);
+                }
+                
+                // Show typing indicator
+                const typingIndicator = addTypingIndicator();
+                
+                const response = await fetch('/PhoneTraining/GenerateResponse', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ userResponse: userResponse })
+                });
+
+                // Remove typing indicator
+                if (typingIndicator) {
+                    typingIndicator.remove();
+                }
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Stream the hacker response with typing effect
+                    await streamMessage(result.hackerResponse, false);
+                    
+                    // Update response options
+                    updateResponseOptions(result.responseOptions);
+                    
+                    // Update risk level
+                    updateRiskLevel(result.riskLevel);
+                    
+                    // Show turn count
+                    updateTurnCounter(result.turnCount || 0);
+                } else {
+                    console.error('Error generating response:', result.error);
+                    addMessage("I'm having technical difficulties. Let me transfer you to my supervisor.", false);
+                }
+            } catch (error) {
+                console.error('Error generating response:', error);
+                addMessage("I'm experiencing system issues. Please hold while I get help.", false);
+            }
+        }
+
+        function addMessage(message, isUser) {
+            const messagesContainer = document.getElementById('conversationMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'hacker-message'}`;
+            messageDiv.textContent = message;
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function updateResponseOptions(options) {
+            const optionsContainer = document.getElementById('responseOptions');
+            optionsContainer.innerHTML = '';
+            
+            options.forEach(option => {
+                const button = document.createElement('button');
+                button.className = 'response-btn';
+                button.textContent = `"${option.Text}"`;
+                button.onclick = () => selectResponse(option.Text);
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        function selectResponse(responseText) {
+            generateResponse(responseText);
+        }
+
+        function updateRiskLevel(level) {
+            const riskElement = document.getElementById('riskLevel');
+            riskElement.textContent = `${level} RISK`;
+            
+            // Update color based on risk level
+            riskElement.className = 'risk-level';
+            if (level === 'High' || level === 'Critical') {
+                riskElement.style.background = '#ef4444';
+            } else if (level === 'Medium') {
+                riskElement.style.background = '#f59e0b';
+            } else {
+                riskElement.style.background = '#10b981';
+            }
+        }
+
+        function addAlert(title, description) {
+            const alertsContainer = document.getElementById('alertsContainer');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert-item';
+            alertDiv.innerHTML = `
+                <div class="alert-title">${title}</div>
+                <div>${description}</div>
+            `;
+            alertsContainer.appendChild(alertDiv);
+        }
+
+        function addTypingIndicator() {
+            const messagesContainer = document.getElementById('conversationMessages');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message hacker-message typing-indicator';
+            typingDiv.innerHTML = `
+                <div class="typing-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            `;
+            messagesContainer.appendChild(typingDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            return typingDiv;
+        }
+
+        async function streamMessage(message, isUser) {
+            const messagesContainer = document.getElementById('conversationMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'hacker-message'}`;
+            messagesContainer.appendChild(messageDiv);
+
+            // Stream the text character by character for effect
+            const words = message.split(' ');
+            for (let i = 0; i < words.length; i++) {
+                await new Promise(resolve => setTimeout(resolve, 50)); // 50ms delay between words
+                messageDiv.textContent += (i > 0 ? ' ' : '') + words[i];
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+        }
+
+        function updateTurnCounter(turnCount) {
+            const maxTurns = 20;
+            const remaining = maxTurns - turnCount;
+            
+            if (remaining <= 5) {
+                addAlert('Conversation Limit', `Only ${remaining} exchanges remaining in this training session`);
+            }
+        }
+    </script>
+</body>
+</html>

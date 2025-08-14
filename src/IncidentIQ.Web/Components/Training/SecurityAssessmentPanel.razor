@@ -1,0 +1,534 @@
+@rendermode InteractiveServer
+@using IncidentIQ.Domain.Entities
+@using IncidentIQ.Domain.Enums
+
+<div class="security-assessment-panel">
+    <!-- Risk Assessment Header -->
+    <div class="risk-assessment">
+        <h3>Security Assessment</h3>
+        <div class="risk-level-container">
+            <div class="risk-label">Risk Level:</div>
+            <div class="risk-level @CurrentRiskLevel.ToString().ToLower()">
+                @CurrentRiskLevel.ToString().ToUpper()
+            </div>
+        </div>
+        <div class="risk-bar">
+            <div class="risk-fill @CurrentRiskLevel.ToString().ToLower()" 
+                 style="width: @GetRiskPercentage()%;"></div>
+        </div>
+    </div>
+
+    <!-- Active Alerts -->
+    <div class="alerts-section">
+        <h4>Active Alerts</h4>
+        <div class="alerts-container">
+            @if (ActiveAlerts.Any())
+            {
+                @foreach (var alert in ActiveAlerts.OrderByDescending(a => a.TriggeredAt))
+                {
+                    <div class="alert-item @alert.Level.ToString().ToLower()" @key="alert.Id">
+                        <div class="alert-icon">
+                            <i class="bi bi-@alert.Icon"></i>
+                        </div>
+                        <div class="alert-content">
+                            <div class="alert-title">@alert.Title</div>
+                            <div class="alert-description">@alert.Description</div>
+                            <div class="alert-time">@alert.TriggeredAt.ToString("HH:mm:ss")</div>
+                        </div>
+                        <div class="alert-badge @alert.Level.ToString().ToLower()">
+                            @alert.Level.ToString().Substring(0, 1)
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="no-alerts">
+                    <i class="bi bi-shield-check"></i>
+                    <p>No active security alerts</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Recommended Actions -->
+    <div class="recommendations-section">
+        <h4>Recommended Actions</h4>
+        <div class="recommendation-item">
+            <div class="recommendation-icon">
+                <i class="bi bi-@CurrentRecommendation.Icon"></i>
+            </div>
+            <div class="recommendation-content">
+                <p>@CurrentRecommendation.Text</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Response Options -->
+    <div class="response-options-section">
+        <h4>Your Response Options</h4>
+        <div class="response-options-container">
+            @if (ResponseOptions.Any())
+            {
+                @foreach (var option in ResponseOptions)
+                {
+                    <button class="response-option @(option.IsCorrect ? "correct" : "risky")" 
+                            @onclick="() => SelectResponse(option)" 
+                            @key="option.Id">
+                        <div class="response-text">"@option.Text"</div>
+                        <div class="security-score">
+                            <div class="score-bar">
+                                <div class="score-fill" style="width: @(option.SecurityScore * 10)%;"></div>
+                            </div>
+                            <span class="score-text">@option.SecurityScore/10</span>
+                        </div>
+                    </button>
+                }
+            }
+            else
+            {
+                <div class="no-options">
+                    <p>Waiting for conversation to begin...</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons-section">
+        <button class="action-btn end-call" @onclick="OnEndCall" disabled="@(!IsCallActive)">
+            <i class="bi bi-telephone-x"></i>
+            <span>End Call</span>
+        </button>
+        <button class="action-btn escalate" @onclick="OnEscalate" disabled="@(!IsCallActive)">
+            <i class="bi bi-arrow-up-circle"></i>
+            <span>Escalate</span>
+        </button>
+        <button class="action-btn need-help" @onclick="OnNeedHelp">
+            <i class="bi bi-question-circle"></i>
+            <span>Need Help</span>
+        </button>
+    </div>
+</div>
+
+<style>
+.security-assessment-panel {
+    width: 100%;
+    max-width: 400px;
+    background: var(--white);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    padding: var(--space-6);
+    font-family: var(--font-inter);
+    border: 1px solid var(--gray-200);
+    height: fit-content;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+}
+
+.risk-assessment {
+    margin-bottom: var(--space-6);
+    text-align: center;
+}
+
+.risk-assessment h3 {
+    font-size: var(--text-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--gray-900);
+    margin-bottom: var(--space-4);
+}
+
+.risk-level-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+}
+
+.risk-label {
+    font-size: var(--text-sm);
+    color: var(--gray-600);
+    font-weight: var(--font-weight-medium);
+}
+
+.risk-level {
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
+}
+
+.risk-level.low {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.risk-level.medium {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.risk-level.high {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.risk-level.critical {
+    background: rgba(239, 68, 68, 0.2);
+    color: #dc2626;
+}
+
+.risk-bar {
+    height: 8px;
+    background: var(--gray-200);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    position: relative;
+}
+
+.risk-fill {
+    height: 100%;
+    transition: width 0.8s ease;
+    border-radius: var(--radius-full);
+}
+
+.risk-fill.low { background: linear-gradient(90deg, #10b981, #34d399); }
+.risk-fill.medium { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.risk-fill.high { background: linear-gradient(90deg, #ef4444, #f87171); }
+.risk-fill.critical { background: linear-gradient(90deg, #dc2626, #ef4444); }
+
+.alerts-section, .recommendations-section, .response-options-section, .action-buttons-section {
+    margin-bottom: var(--space-6);
+}
+
+.alerts-section h4, .recommendations-section h4, .response-options-section h4 {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-semibold);
+    color: var(--gray-900);
+    margin-bottom: var(--space-3);
+}
+
+.alerts-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.alert-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-3);
+    border-radius: var(--radius-lg);
+    border-left: 4px solid;
+    transition: all 0.2s ease;
+    animation: slideIn 0.3s ease-out;
+}
+
+.alert-item.low {
+    background: rgba(16, 185, 129, 0.05);
+    border-color: #10b981;
+}
+
+.alert-item.medium {
+    background: rgba(245, 158, 11, 0.05);
+    border-color: #f59e0b;
+}
+
+.alert-item.high {
+    background: rgba(239, 68, 68, 0.05);
+    border-color: #ef4444;
+}
+
+.alert-item.critical {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: #dc2626;
+}
+
+.alert-icon {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--text-sm);
+}
+
+.alert-content {
+    flex: 1;
+}
+
+.alert-title {
+    font-weight: var(--font-weight-semibold);
+    font-size: var(--text-sm);
+    color: var(--gray-900);
+    margin-bottom: var(--space-1);
+}
+
+.alert-description {
+    font-size: var(--text-xs);
+    color: var(--gray-600);
+    line-height: 1.4;
+}
+
+.alert-time {
+    font-size: var(--text-xs);
+    color: var(--gray-500);
+    margin-top: var(--space-1);
+}
+
+.alert-badge {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--text-xs);
+    font-weight: var(--font-weight-bold);
+    color: white;
+}
+
+.alert-badge.low { background: #10b981; }
+.alert-badge.medium { background: #f59e0b; }
+.alert-badge.high { background: #ef4444; }
+.alert-badge.critical { background: #dc2626; }
+
+.no-alerts {
+    text-align: center;
+    padding: var(--space-8);
+    color: var(--gray-500);
+}
+
+.no-alerts i {
+    font-size: var(--text-2xl);
+    color: #10b981;
+    margin-bottom: var(--space-2);
+}
+
+.recommendation-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    background: rgba(59, 130, 246, 0.05);
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.recommendation-icon {
+    width: 24px;
+    height: 24px;
+    background: #3b82f6;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--text-sm);
+    flex-shrink: 0;
+}
+
+.recommendation-content p {
+    margin: 0;
+    color: var(--gray-700);
+    font-size: var(--text-sm);
+    line-height: 1.5;
+}
+
+.response-options-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.response-option {
+    width: 100%;
+    padding: var(--space-3);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--gray-300);
+    background: var(--white);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+}
+
+.response-option:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.response-option.correct {
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.02);
+}
+
+.response-option.risky {
+    border-color: #ef4444;
+    background: rgba(239, 68, 68, 0.02);
+}
+
+.response-text {
+    font-size: var(--text-sm);
+    color: var(--gray-900);
+    margin-bottom: var(--space-2);
+    font-style: italic;
+}
+
+.security-score {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.score-bar {
+    flex: 1;
+    height: 4px;
+    background: var(--gray-200);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+}
+
+.score-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ef4444, #f59e0b, #10b981);
+    transition: width 0.3s ease;
+}
+
+.score-text {
+    font-size: var(--text-xs);
+    font-weight: var(--font-weight-medium);
+    color: var(--gray-600);
+    min-width: 30px;
+}
+
+.no-options {
+    text-align: center;
+    padding: var(--space-4);
+    color: var(--gray-500);
+    font-style: italic;
+}
+
+.action-buttons-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.action-btn {
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-lg);
+    border: none;
+    font-weight: var(--font-weight-medium);
+    font-size: var(--text-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+}
+
+.action-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.action-btn.end-call {
+    background: #ef4444;
+    color: white;
+}
+
+.action-btn.end-call:hover:not(:disabled) {
+    background: #dc2626;
+    transform: translateY(-1px);
+}
+
+.action-btn.escalate {
+    background: #f59e0b;
+    color: white;
+}
+
+.action-btn.escalate:hover:not(:disabled) {
+    background: #d97706;
+    transform: translateY(-1px);
+}
+
+.action-btn.need-help {
+    background: #3b82f6;
+    color: white;
+}
+
+.action-btn.need-help:hover:not(:disabled) {
+    background: #2563eb;
+    transform: translateY(-1px);
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@media (max-width: 768px) {
+    .security-assessment-panel {
+        max-width: none;
+        margin: var(--space-4);
+    }
+}
+</style>
+
+@code {
+    [Parameter] public RiskLevel CurrentRiskLevel { get; set; } = RiskLevel.Medium;
+    [Parameter] public List<SecurityAlert> ActiveAlerts { get; set; } = new();
+    [Parameter] public List<ResponseOption> ResponseOptions { get; set; } = new();
+    [Parameter] public bool IsCallActive { get; set; } = false;
+    
+    [Parameter] public EventCallback<ResponseOption> OnResponseSelected { get; set; }
+    [Parameter] public EventCallback OnEndCall { get; set; }
+    [Parameter] public EventCallback OnEscalate { get; set; }
+    [Parameter] public EventCallback OnNeedHelp { get; set; }
+
+    public class Recommendation
+    {
+        public string Text { get; set; } = "";
+        public string Icon { get; set; } = "";
+    }
+
+    private Recommendation CurrentRecommendation => CurrentRiskLevel switch
+    {
+        RiskLevel.Low => new() { Text = "Continue monitoring. User is handling the situation well.", Icon = "shield-check" },
+        RiskLevel.Medium => new() { Text = "Stay alert. Verify caller identity using company procedures.", Icon = "shield-exclamation" },
+        RiskLevel.High => new() { Text = "Exercise caution. Consider escalating to supervisor.", Icon = "exclamation-triangle" },
+        RiskLevel.Critical => new() { Text = "High risk detected. End call and report to security immediately.", Icon = "shield-slash" },
+        _ => new() { Text = "Monitor the situation carefully.", Icon = "shield" }
+    };
+
+    private int GetRiskPercentage()
+    {
+        return CurrentRiskLevel switch
+        {
+            RiskLevel.Low => 25,
+            RiskLevel.Medium => 50,
+            RiskLevel.High => 75,
+            RiskLevel.Critical => 100,
+            _ => 50
+        };
+    }
+
+    private async Task SelectResponse(ResponseOption option)
+    {
+        if (OnResponseSelected.HasDelegate)
+        {
+            await OnResponseSelected.InvokeAsync(option);
+        }
+    }
+}

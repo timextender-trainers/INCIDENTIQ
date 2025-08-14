@@ -484,6 +484,9 @@
             case "social-engineering":
                 Navigation.NavigateTo("/training/social-engineering");
                 break;
+            case "phone-training":
+                Navigation.NavigateTo("/Auth/Training?scenario=phone-training");
+                break;
             case "data-protection":
                 Navigation.NavigateTo("/training/data-protection");
                 break;
@@ -517,7 +520,10 @@
                     20, "Advanced", "Developer", "linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark))", "bi bi-code-slash"),
                 new("social-engineering", "Developer-Targeted Social Engineering", 
                     "Phone and messaging attacks targeting developers through technical support pretexts.", 
-                    12, "Intermediate", "Developer", "linear-gradient(135deg, var(--warning), #d97706)", "bi bi-telephone-fill")
+                    12, "Intermediate", "Developer", "linear-gradient(135deg, var(--warning), #d97706)", "bi bi-telephone-fill"),
+                new("phone-training", "Customer Service Social Engineering", 
+                    "Interactive phone call simulation where you play a customer service rep being manipulated by a hacker.", 
+                    15, "Advanced", "Developer", "linear-gradient(135deg, #ef4444, #dc2626)", "bi bi-phone-fill")
             },
             UserRole.HR => new List<TrainingScenario>
             {
@@ -529,7 +535,10 @@
                     15, "Intermediate", "HR", "linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark))", "bi bi-file-earmark-lock-fill"),
                 new("phishing", "HR-Targeted Phishing", 
                     "Phishing emails specifically designed to target HR professionals with employee-related themes.", 
-                    12, "Intermediate", "HR", "linear-gradient(135deg, var(--danger), #dc2626)", "bi bi-envelope-exclamation-fill")
+                    12, "Intermediate", "HR", "linear-gradient(135deg, var(--danger), #dc2626)", "bi bi-envelope-exclamation-fill"),
+                new("phone-training", "Customer Service Social Engineering", 
+                    "Interactive phone call simulation where you handle customer inquiries while detecting manipulation tactics.", 
+                    15, "Advanced", "HR", "linear-gradient(135deg, #ef4444, #dc2626)", "bi bi-phone-fill")
             },
             UserRole.Finance => new List<TrainingScenario>
             {
@@ -541,7 +550,10 @@
                     15, "Advanced", "Finance", "linear-gradient(135deg, var(--danger), #dc2626)", "bi bi-envelope-exclamation-fill"),
                 new("social-engineering", "Wire Transfer Fraud", 
                     "Phone-based social engineering attacks targeting wire transfer processes.", 
-                    20, "Expert", "Finance", "linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark))", "bi bi-telephone-fill")
+                    20, "Expert", "Finance", "linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark))", "bi bi-telephone-fill"),
+                new("phone-training", "Customer Service Social Engineering", 
+                    "Interactive phone call simulation with financial service scenarios and account access requests.", 
+                    15, "Advanced", "Finance", "linear-gradient(135deg, #ef4444, #dc2626)", "bi bi-phone-fill")
             },
             UserRole.Executive => new List<TrainingScenario>
             {
@@ -565,7 +577,10 @@
                     12, "Intermediate", "All Roles", "linear-gradient(135deg, var(--warning), #d97706)", "bi bi-telephone-fill"),
                 new("data-protection", "Data Security Basics", 
                     "Fundamental data protection scenarios applicable to all roles.", 
-                    18, "Beginner", "All Roles", "linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark))", "bi bi-file-earmark-lock-fill")
+                    18, "Beginner", "All Roles", "linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark))", "bi bi-file-earmark-lock-fill"),
+                new("phone-training", "Customer Service Social Engineering", 
+                    "Interactive phone call training to recognize and resist social engineering tactics.", 
+                    15, "Intermediate", "All Roles", "linear-gradient(135deg, #ef4444, #dc2626)", "bi bi-phone-fill")
             }
         };
     }

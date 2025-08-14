@@ -1163,6 +1163,9 @@ public class PhoneTrainingController : Controller
             
             // Enhanced fallback responses with realistic social engineering progression
             setTimeout(() => {{
+                // Remove typing indicator first
+                if (typingIndicator) typingIndicator.remove();
+                
                 const conversationTurn = document.querySelectorAll('.caller-message').length;
                 let callerResponse = """";
                 let nextOptions = [];

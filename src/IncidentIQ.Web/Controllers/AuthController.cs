@@ -595,7 +595,8 @@ public class AuthController : Controller
         // If this is phone training in training mode, embed the phone interface with sidebar
         if (scenario == "phone-training" && mode == "training")
         {
-            return Content(GeneratePhoneTrainingWithSidebar(scenarioDetails), "text/html");
+            // Redirect to the new messaging interface
+            return Redirect("/PhoneTraining");
         }
 
         return Content($@"
@@ -1608,18 +1609,15 @@ public class AuthController : Controller
             background: #f8fafc;
         }}
         
-        /* Phone training styles - copied from PhoneTrainingController */
+        /* Modern Messaging Interface Styles */
         .training-container {{
             max-width: 1400px;
-            margin: 0 auto;
+            width: 100%;
             display: grid;
             grid-template-columns: 400px 1fr;
-            grid-template-rows: auto 1fr;
             gap: 24px;
-            height: calc(100vh - 200px);
-            grid-template-areas: 
-                'phone security'
-                'conversation conversation';
+            height: 90vh;
+            max-height: 800px;
         }}
         
         /* Phone Interface Section */

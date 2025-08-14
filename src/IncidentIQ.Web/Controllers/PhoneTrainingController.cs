@@ -315,6 +315,13 @@ public class PhoneTrainingController : Controller
         return feedback;
     }
 
+    public string GeneratePhoneTrainingHtmlForAuth(dynamic scenarioDetails)
+    {
+        // Create a dummy scenario for the messaging interface
+        var scenario = CreateFallbackScenario();
+        return GeneratePhoneTrainingHtml(scenario, "");
+    }
+    
     private string GeneratePhoneTrainingHtml(PhoneCallScenario scenario, string errorMessage)
     {
         var errorAlert = !string.IsNullOrEmpty(errorMessage) 
@@ -337,9 +344,12 @@ public class PhoneTrainingController : Controller
         
         body {{
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f8fafc;
-            color: #1f2937;
-            line-height: 1.5;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
         }}
         
         .error-alert {{
@@ -349,145 +359,344 @@ public class PhoneTrainingController : Controller
             border-radius: 8px;
             margin-bottom: 20px;
             border: 1px solid #fde68a;
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
         }}
         
         .training-container {{
             max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
+            width: 100%;
             display: grid;
             grid-template-columns: 400px 1fr;
-            grid-template-rows: auto 1fr;
             gap: 24px;
-            height: 100vh;
-            grid-template-areas: 
-                'phone security'
-                'conversation conversation';
+            height: 90vh;
+            max-height: 800px;
         }}
         
-        /* Phone Interface Section */
+        /* Phone/Message Interface Section */
         .phone-section {{
-            grid-area: phone;
             background: white;
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }}
-        
-        .phone-header {{
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 20px;
-            color: #374151;
-        }}
-        
-        .iphone-frame {{
-            width: 300px;
-            height: 520px;
-            background: #000;
-            border-radius: 30px;
-            padding: 8px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-            position: relative;
-        }}
-        
-        .phone-screen {{
-            background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
-            height: 100%;
-            border-radius: 22px;
-            position: relative;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             overflow: hidden;
             display: flex;
             flex-direction: column;
         }}
         
-        .status-bar {{
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 20px;
+        .message-header {{
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
             color: white;
-            font-size: 14px;
-            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }}
         
-        .call-interface {{
+        .back-arrow {{
+            font-size: 24px;
+            cursor: pointer;
+            opacity: 0.9;
+        }}
+        
+        .contact-info {{
             flex: 1;
+        }}
+        
+        .contact-name {{
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }}
+        
+        .contact-status {{
+            font-size: 13px;
+            opacity: 0.8;
+        }}
+        
+        .call-button {{
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }}
+        
+        .call-button:hover {{
+            background: rgba(255,255,255,0.3);
+        }}
+        
+        /* Messages Area */
+        .messages-container {{
+            flex: 1;
+            background: #f0f4f8;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }}
+        
+        .message {{
+            max-width: 70%;
+            word-wrap: break-word;
+            animation: slideIn 0.3s ease;
+        }}
+        
+        .message-bubble {{
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 15px;
+            line-height: 1.4;
+            position: relative;
+        }}
+        
+        .user-message {{
+            align-self: flex-end;
+        }}
+        
+        .user-message .message-bubble {{
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }}
+        
+        .caller-message {{
+            align-self: flex-start;
+        }}
+        
+        .caller-message .message-bubble {{
+            background: white;
+            color: #1f2937;
+            border: 1px solid #e5e7eb;
+            border-bottom-left-radius: 4px;
+        }}
+        
+        .message-time {{
+            font-size: 11px;
+            opacity: 0.6;
+            margin-top: 4px;
+            text-align: right;
+        }}
+        
+        .caller-message .message-time {{
+            text-align: left;
+        }}
+        
+        /* Typing Indicator */
+        .typing-indicator {{
+            align-self: flex-start;
+            max-width: 70%;
+        }}
+        
+        .typing-bubble {{
+            background: white;
+            border: 1px solid #e5e7eb;
+            padding: 12px 16px;
+            border-radius: 18px;
+            border-bottom-left-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }}
+        
+        .typing-dots {{
+            display: flex;
+            gap: 4px;
+        }}
+        
+        .typing-dot {{
+            width: 8px;
+            height: 8px;
+            background: #9ca3af;
+            border-radius: 50%;
+            animation: typingAnimation 1.4s infinite ease-in-out;
+        }}
+        
+        .typing-dot:nth-child(1) {{ animation-delay: 0s; }}
+        .typing-dot:nth-child(2) {{ animation-delay: 0.2s; }}
+        .typing-dot:nth-child(3) {{ animation-delay: 0.4s; }}
+        
+        @keyframes typingAnimation {{
+            0%, 60%, 100% {{ 
+                transform: scale(0.8); 
+                opacity: 0.5;
+            }}
+            30% {{ 
+                transform: scale(1); 
+                opacity: 1;
+            }}
+        }}
+        
+        /* Input Area */
+        .input-container {{
+            background: white;
+            border-top: 1px solid #e5e7eb;
+            padding: 16px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }}
+        
+        .message-input-wrapper {{
+            flex: 1;
+            position: relative;
+        }}
+        
+        .message-input {{
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 24px;
+            font-size: 15px;
+            resize: none;
+            outline: none;
+            transition: border-color 0.2s;
+            max-height: 120px;
+            line-height: 1.4;
+        }}
+        
+        .message-input:focus {{
+            border-color: #667eea;
+        }}
+        
+        .send-button {{
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }}
+        
+        .send-button:hover {{
+            transform: scale(1.05);
+        }}
+        
+        .send-button:active {{
+            transform: scale(0.95);
+        }}
+        
+        /* Suggested Responses */
+        .suggested-responses {{
+            padding: 12px 16px 0;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            border-top: 1px solid #f0f0f0;
+            margin-top: 8px;
+        }}
+        
+        .suggestion-chip {{
+            padding: 6px 12px;
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            border-radius: 16px;
+            font-size: 13px;
+            color: #4b5563;
+            cursor: pointer;
+            transition: all 0.2s;
+        }}
+        
+        .suggestion-chip:hover {{
+            background: #e5e7eb;
+            border-color: #9ca3af;
+        }}
+        
+        /* Incoming Call Overlay */
+        .incoming-call-overlay {{
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 40px 20px;
             color: white;
-            text-align: center;
+            z-index: 100;
+            transition: opacity 0.3s, transform 0.3s;
         }}
         
-        .call-status {{
-            font-size: 12px;
-            opacity: 0.7;
-            margin-bottom: 20px;
+        .incoming-call-overlay.hidden {{
+            opacity: 0;
+            transform: scale(0.95);
+            pointer-events: none;
         }}
         
         .caller-avatar {{
-            width: 100px;
-            height: 100px;
+            width: 120px;
+            height: 120px;
             background: rgba(255,255,255,0.2);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 40px;
-            margin-bottom: 20px;
+            font-size: 48px;
+            margin-bottom: 24px;
+            animation: pulse 2s infinite;
         }}
         
-        .caller-info h2 {{
-            font-size: 24px;
-            font-weight: 600;
+        @keyframes pulse {{
+            0% {{ transform: scale(1); opacity: 1; }}
+            50% {{ transform: scale(1.05); opacity: 0.9; }}
+            100% {{ transform: scale(1); opacity: 1; }}
+        }}
+        
+        .caller-name {{
+            font-size: 28px;
+            font-weight: 300;
             margin-bottom: 8px;
         }}
         
         .caller-company {{
-            font-size: 16px;
+            font-size: 18px;
             opacity: 0.8;
-            margin-bottom: 4px;
+            margin-bottom: 8px;
         }}
         
         .caller-phone {{
-            font-size: 14px;
+            font-size: 16px;
             opacity: 0.6;
-            margin-bottom: 20px;
+            margin-bottom: 48px;
         }}
         
-        .call-timer {{
-            font-size: 18px;
-            font-weight: 300;
-            margin-bottom: 40px;
-        }}
-        
-        .call-controls {{
+        .call-actions {{
             display: flex;
-            justify-content: center;
-            gap: 40px;
-            margin-bottom: 20px;
+            gap: 60px;
         }}
         
-        .call-btn {{
-            width: 80px;
-            height: 60px;
-            border-radius: 30px;
+        .call-action-btn {{
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
             border: none;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 600;
             color: white;
-            transition: transform 0.2s ease;
+            font-size: 32px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }}
         
-        .call-btn:hover {{
-            transform: scale(1.05);
+        .call-action-btn:hover {{
+            transform: scale(1.1);
         }}
         
         .decline-btn {{
@@ -498,36 +707,31 @@ public class PhoneTrainingController : Controller
             background: #10b981;
         }}
         
-        .phone-actions {{
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-top: 20px;
-        }}
-        
-        .action-btn {{
-            padding: 8px 16px;
-            background: rgba(255,255,255,0.2);
-            border: 1px solid rgba(255,255,255,0.3);
-            border-radius: 20px;
-            color: white;
-            font-size: 12px;
-            cursor: pointer;
+        @keyframes slideIn {{
+            from {{
+                opacity: 0;
+                transform: translateY(10px);
+            }}
+            to {{
+                opacity: 1;
+                transform: translateY(0);
+            }}
         }}
         
         /* Security Assessment Panel */
         .security-section {{
-            grid-area: security;
             background: white;
-            border-radius: 16px;
+            border-radius: 24px;
             padding: 24px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }}
         
         .security-header {{
             font-size: 20px;
             font-weight: 600;
-            margin-bottom: 20px;
             color: #1f2937;
         }}
         
@@ -700,35 +904,55 @@ public class PhoneTrainingController : Controller
 <body>
     {errorAlert}
     <div class='training-container'>
-        <!-- Phone Interface Section -->
+        <!-- Phone/Message Interface Section -->
         <div class='phone-section'>
-            <div class='phone-header'>Incoming Call</div>
-            <div class='iphone-frame'>
-                <div class='phone-screen'>
-                    <div class='status-bar'>
-                        <span>9:41 AM</span>
-                        <span style='font-family: Arial, sans-serif;'>●●●● 100%</span>
-                    </div>
-                    <div class='call-interface' id='callInterface'>
-                        <div class='call-status'>Incoming call</div>
-                        <div class='caller-avatar' style='font-family: Arial, sans-serif;'>JC</div>
-                        <div class='caller-info'>
-                            <h2>Jennifer Clark</h2>
-                            <div class='caller-company'>CustomerCorp</div>
-                            <div class='caller-phone'>+1 (555) 0123</div>
-                            <div class='call-timer' id='callTimer'>00:00</div>
-                        </div>
-                        <div class='call-controls'>
-                            <button class='call-btn decline-btn' onclick='declineCall()'>Decline</button>
-                            <button class='call-btn accept-btn' onclick='acceptCall(""{scenario.Id}"")'>Accept</button>
-                        </div>
-                    </div>
+            <!-- Incoming Call Overlay -->
+            <div class='incoming-call-overlay' id='incomingCallOverlay'>
+                <div class='caller-avatar'>👤</div>
+                <div class='caller-name'>Jennifer Clark</div>
+                <div class='caller-company'>CustomerCorp</div>
+                <div class='caller-phone'>+1 (555) 0123</div>
+                <div class='call-actions'>
+                    <button class='call-action-btn decline-btn' onclick='declineCall()' title='Decline'>
+                        ❌
+                    </button>
+                    <button class='call-action-btn accept-btn' onclick='acceptCall(""{scenario.Id}"")' title='Accept'>
+                        ✅
+                    </button>
                 </div>
             </div>
-            <div class='phone-actions' id='phoneActions' style='display:none;'>
-                <button class='action-btn'>Mute</button>
-                <button class='action-btn'>Speaker</button>
-                <button class='action-btn'>Hold</button>
+            
+            <!-- Message Interface -->
+            <div class='message-header' style='display:none;' id='messageHeader'>
+                <span class='back-arrow'>←</span>
+                <div class='contact-info'>
+                    <div class='contact-name'>Jennifer Clark</div>
+                    <div class='contact-status'>CustomerCorp • Active now</div>
+                </div>
+                <button class='call-button'>📞</button>
+            </div>
+            
+            <div class='messages-container' id='messagesContainer' style='display:none;'>
+                <!-- Messages will be added here -->
+            </div>
+            
+            <div class='input-container' id='inputContainer' style='display:none;'>
+                <div class='message-input-wrapper'>
+                    <textarea 
+                        class='message-input' 
+                        id='messageInput' 
+                        placeholder='Type a message...'
+                        rows='1'
+                        onkeydown='handleKeyDown(event)'
+                        oninput='autoResize(this)'
+                    ></textarea>
+                    <div class='suggested-responses' id='suggestedResponses' style='display:none;'>
+                        <!-- Suggestions will be added here -->
+                    </div>
+                </div>
+                <button class='send-button' onclick='sendMessage()'>
+                    ➤
+                </button>
             </div>
         </div>
         
@@ -764,56 +988,42 @@ public class PhoneTrainingController : Controller
             </div>
         </div>
         
-        <!-- Conversation Flow Area -->
-        <div class='conversation-section' id='conversationSection'>
-            <div class='conversation-header'>Call in Progress</div>
-            <div class='conversation-messages' id='conversationMessages'></div>
-            
-            <div class='response-options' id='responseOptions'>
-                <div class='section-title'>Your Response Options</div>
-                <!-- Response options will be populated here -->
-            </div>
-            
-            <div class='action-buttons'>
-                <button class='action-button end-call' onclick='endCall()'>End Call</button>
-                <button class='action-button escalate' onclick='escalate()'>Escalate</button>
-                <button class='action-button help' onclick='needHelp()'>Need Help</button>
-            </div>
-        </div>
     </div>
     
     <script>
-        let callStartTime = null;
-        let timerInterval = null;
         let isCallActive = false;
         let currentSessionId = null;
+        let currentSuggestions = [];
         
         function declineCall() {{
             alert('Call declined. In a real scenario, this would be the safest option if you are unsure about the caller.');
         }}
         
         async function acceptCall(scenarioId) {{
-            // Start the call
+            // Hide incoming call overlay with animation
+            const overlay = document.getElementById('incomingCallOverlay');
+            overlay.classList.add('hidden');
+            
+            // Show message interface after a brief delay
+            setTimeout(() => {{
+                document.getElementById('messageHeader').style.display = 'flex';
+                document.getElementById('messagesContainer').style.display = 'flex';
+                document.getElementById('inputContainer').style.display = 'flex';
+                
+                // Add initial message from Jennifer
+                setTimeout(() => {{
+                    addMessage(""Hello, this is Jennifer from CustomerCorp. I need immediate access to update my account - we have a major client presentation in 10 minutes and I can't log in!"", false);
+                    
+                    // Show suggested responses
+                    showSuggestedResponses([
+                        ""I'd be happy to help. Can you provide your employee ID for verification?"",
+                        ""Let me transfer you to technical support for login issues."",
+                        ""I understand the urgency. What specific account information do you need to update?""
+                    ]);
+                }}, 500);
+            }}, 300);
+            
             isCallActive = true;
-            callStartTime = new Date();
-            
-            // Update UI
-            document.getElementById('callInterface').querySelector('.call-status').textContent = 'Connected';
-            document.getElementById('phoneActions').style.display = 'flex';
-            document.getElementById('conversationSection').style.display = 'block';
-            
-            // Start timer
-            startCallTimer();
-            
-            // Add first message and show response options
-            addMessage(""Hello, this is Jennifer from CustomerCorp. I need immediate access to update my account - we have a major client presentation in 10 minutes and I can't log in!"", false);
-            
-            // Show response options
-            showResponseOptions([
-                ""I'd be happy to help. Can you provide your employee ID for verification?"",
-                ""Let me transfer you to technical support for login issues."",
-                ""I understand the urgency. What specific account information do you need to update?""
-            ]);
 
             try {{
                 const response = await fetch('/PhoneTraining/StartCall', {{
@@ -835,42 +1045,79 @@ public class PhoneTrainingController : Controller
             }}
         }}
         
-        function startCallTimer() {{
-            timerInterval = setInterval(() => {{
-                if (callStartTime) {{
-                    const elapsed = Math.floor((new Date() - callStartTime) / 1000);
-                    const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
-                    const seconds = (elapsed % 60).toString().padStart(2, '0');
-                    document.getElementById('callTimer').textContent = `${{minutes}}:${{seconds}}`;
-                }}
-            }}, 1000);
+        function autoResize(textarea) {{
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
         }}
         
-        function addMessage(message, isUser) {{
-            const messagesContainer = document.getElementById('conversationMessages');
+        function handleKeyDown(event) {{
+            if (event.key === 'Enter' && !event.shiftKey) {{
+                event.preventDefault();
+                sendMessage();
+            }}
+        }}
+        
+        function sendMessage() {{
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message
+            addMessage(message, true);
+            
+            // Clear input and reset height
+            input.value = '';
+            input.style.height = 'auto';
+            
+            // Hide suggestions
+            document.getElementById('suggestedResponses').style.display = 'none';
+            
+            // Process the response
+            processUserResponse(message);
+        }}
+        
+        function addMessage(text, isUser) {{
+            const messagesContainer = document.getElementById('messagesContainer');
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${{isUser ? 'user-message' : 'caller-message'}}`;
-            messageDiv.textContent = message;
+            
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = 'message-bubble';
+            bubbleDiv.textContent = text;
+            
+            const timeDiv = document.createElement('div');
+            timeDiv.className = 'message-time';
+            const now = new Date();
+            timeDiv.textContent = now.toLocaleTimeString('en-US', {{ hour: 'numeric', minute: '2-digit' }});
+            
+            messageDiv.appendChild(bubbleDiv);
+            messageDiv.appendChild(timeDiv);
             messagesContainer.appendChild(messageDiv);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }}
         
-        function showResponseOptions(options) {{
-            const optionsContainer = document.getElementById('responseOptions');
-            optionsContainer.innerHTML = '<div class=""section-title"">Your Response Options</div>';
+        function showSuggestedResponses(suggestions) {{
+            currentSuggestions = suggestions;
+            const container = document.getElementById('suggestedResponses');
+            container.innerHTML = '';
             
-            options.forEach(option => {{
-                const button = document.createElement('button');
-                button.className = 'response-btn';
-                button.textContent = option;
-                button.onclick = () => selectResponse(option);
-                optionsContainer.appendChild(button);
+            suggestions.forEach(suggestion => {{
+                const chip = document.createElement('div');
+                chip.className = 'suggestion-chip';
+                chip.textContent = suggestion.length > 50 ? suggestion.substring(0, 50) + '...' : suggestion;
+                chip.title = suggestion;
+                chip.onclick = () => {{
+                    document.getElementById('messageInput').value = suggestion;
+                    autoResize(document.getElementById('messageInput'));
+                }};
+                container.appendChild(chip);
             }});
+            
+            container.style.display = 'flex';
         }}
         
-        async function selectResponse(response) {{
-            addMessage(response, true);
-            
+        async function processUserResponse(response) {{
             // Show typing indicator
             const typingIndicator = addTypingIndicator();
             
@@ -898,9 +1145,9 @@ public class PhoneTrainingController : Controller
                             updateSecurityAlerts(result.detectedTactics || []);
                             updateRecommendations(result.recommendations || []);
                             
-                            // Show new response options
+                            // Show new suggested responses
                             if (result.responseOptions && result.responseOptions.length > 0) {{
-                                showResponseOptions(result.responseOptions.map(opt => opt.Text || opt));
+                                showSuggestedResponses(result.responseOptions.map(opt => opt.Text || opt));
                             }} else {{
                                 // End conversation if no more options
                                 setTimeout(() => endConversationWithResults(result), 2000);
@@ -1028,9 +1275,54 @@ public class PhoneTrainingController : Controller
                         }});
                     }}, 3000);
                 }} else {{
-                    showResponseOptions(nextOptions);
+                    showSuggestedResponses(nextOptions);
                 }}
             }}, 2000);
+        }}
+        
+        function addTypingIndicator() {{
+            const messagesContainer = document.getElementById('messagesContainer');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'typing-indicator';
+            typingDiv.innerHTML = `
+                <div class='typing-bubble'>
+                    <span style='color: #6b7280; font-size: 14px;'>Jennifer is typing</span>
+                    <div class='typing-dots'>
+                        <div class='typing-dot'></div>
+                        <div class='typing-dot'></div>
+                        <div class='typing-dot'></div>
+                    </div>
+                </div>
+            `;
+            messagesContainer.appendChild(typingDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            return typingDiv;
+        }}
+        
+        async function streamMessage(message, isUser) {{
+            const messagesContainer = document.getElementById('messagesContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${{isUser ? 'user-message' : 'caller-message'}}`;
+            
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = 'message-bubble';
+            
+            const timeDiv = document.createElement('div');
+            timeDiv.className = 'message-time';
+            const now = new Date();
+            timeDiv.textContent = now.toLocaleTimeString('en-US', {{ hour: 'numeric', minute: '2-digit' }});
+            
+            messageDiv.appendChild(bubbleDiv);
+            messageDiv.appendChild(timeDiv);
+            messagesContainer.appendChild(messageDiv);
+            
+            // Stream the text character by character for effect
+            const words = message.split(' ');
+            for (let i = 0; i < words.length; i++) {{
+                await new Promise(resolve => setTimeout(resolve, 50));
+                bubbleDiv.textContent += (i > 0 ? ' ' : '') + words[i];
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }}
         }}
         
         function updateRiskLevel(level) {{
@@ -1048,52 +1340,6 @@ public class PhoneTrainingController : Controller
             }}
         }}
         
-        function endCall() {{
-            isCallActive = false;
-            if (timerInterval) clearInterval(timerInterval);
-            alert('Call ended. Training complete!');
-        }}
-        
-        function escalate() {{
-            alert('Call escalated to supervisor. In real scenarios, always escalate when you feel pressured or uncertain.');
-        }}
-        
-        function needHelp() {{
-            alert('Help requested. Remember: When in doubt, verify through official channels and never skip security procedures.');
-        }}
-        
-        function addTypingIndicator() {{
-            const messagesContainer = document.getElementById('conversationMessages');
-            const typingDiv = document.createElement('div');
-            typingDiv.className = 'message caller-message typing-indicator';
-            typingDiv.innerHTML = `
-                <div style='display: flex; align-items: center; gap: 8px; opacity: 0.7;'>
-                    <span>Jennifer is typing</span>
-                    <div style='display: flex; gap: 4px;'>
-                        <div style='width: 6px; height: 6px; background: #991b1b; border-radius: 50%; animation: typing 1.4s infinite ease-in-out;'></div>
-                        <div style='width: 6px; height: 6px; background: #991b1b; border-radius: 50%; animation: typing 1.4s infinite ease-in-out 0.2s;'></div>
-                        <div style='width: 6px; height: 6px; background: #991b1b; border-radius: 50%; animation: typing 1.4s infinite ease-in-out 0.4s;'></div>
-                    </div>
-                </div>
-            `;
-            messagesContainer.appendChild(typingDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            return typingDiv;
-        }}
-        
-        async function streamMessage(message, isUser) {{
-            const messagesContainer = document.getElementById('conversationMessages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${{isUser ? 'user-message' : 'caller-message'}}`;
-            messagesContainer.appendChild(messageDiv);
-
-            const words = message.split(' ');
-            for (let i = 0; i < words.length; i++) {{
-                await new Promise(resolve => setTimeout(resolve, 80));
-                messageDiv.textContent += (i > 0 ? ' ' : '') + words[i];
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            }}
-        }}
         
         function updateSecurityAlerts(detectedTactics) {{
             const alertsContainer = document.getElementById('alertsContainer');
@@ -1224,10 +1470,6 @@ public class PhoneTrainingController : Controller
         
         function endConversationWithResults(results) {{
             isCallActive = false;
-            if (timerInterval) clearInterval(timerInterval);
-            
-            // Hide conversation area and show results
-            document.getElementById('conversationSection').style.display = 'none';
             
             // Calculate score based on user responses
             const userMessages = document.querySelectorAll('.user-message');

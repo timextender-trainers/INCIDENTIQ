@@ -433,3 +433,4 @@ packages/
 *.edmx.diagram
 *.edmx.sql
 .claude/settings.local.json
+.claude/settings.local.json

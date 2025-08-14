@@ -37,7 +37,8 @@
       "Bash(grep:*)",
       "Bash(docker build:*)",
       "Bash(docker ps:*)",
-      "WebFetch(domain:localhost)"
+      "WebFetch(domain:localhost)",
+      "Bash(ASPNETCORE_ENVIRONMENT=Development dotnet run --urls=\"http://0.0.0.0:5001\")"
     ],
     "deny": []
   }

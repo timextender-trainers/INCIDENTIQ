@@ -16,6 +16,7 @@ public class ConversationFlowService : IConversationFlowService
     private readonly ISemanticKernelService _kernelService;
     private readonly ISocialEngineeringAnalyzer _analyzer;
     private readonly IConversationCacheService _cacheService;
+    private readonly IClaudeApiService _claudeApiService;
     private readonly ILogger<ConversationFlowService> _logger;
     
     private const int MAX_CONVERSATION_TURNS = 20;
@@ -25,12 +26,14 @@ public class ConversationFlowService : IConversationFlowService
         ISemanticKernelService kernelService,
         ISocialEngineeringAnalyzer analyzer,
         IConversationCacheService cacheService,
+        IClaudeApiService claudeApiService,
         ILogger<ConversationFlowService> logger)
     {
         _context = context;
         _kernelService = kernelService;
         _analyzer = analyzer;
         _cacheService = cacheService;
+        _claudeApiService = claudeApiService;
         _logger = logger;
     }
 
@@ -51,28 +54,16 @@ public class ConversationFlowService : IConversationFlowService
             if (scenario == null)
                 throw new ArgumentException($"Scenario {session.ScenarioId} not found");
 
-            // Use cached context for more efficient prompts
-            var isFollowUp = session.Exchanges.Count > 3;
+            // Try Claude API first, then fallback to OpenAI, then hardcoded responses
             string hackerResponse;
+            var conversationHistory = BuildConversationHistory(session);
 
-            try
-            {
-                var prompt = await _cacheService.BuildCompactPromptAsync(session, userResponse, isFollowUp);
-                
-                var arguments = new KernelArguments
-                {
-                    ["userResponse"] = userResponse,
-                    ["nextTactic"] = DetermineNextTactic(session, userResponse).ToString(),
-                    ["escalationLevel"] = CalculateEscalationLevel(session).ToString()
-                };
-
-                hackerResponse = await _kernelService.ExecutePromptAsync(prompt, arguments);
-            }
-            catch (Exception apiEx)
-            {
-                _logger.LogWarning(apiEx, "API call failed for session {SessionId}, using fallback response", session.Id);
-                hackerResponse = _cacheService.GetFallbackResponse(session);
-            }
+            // Try Claude API first (it handles its own fallback internally)
+            hackerResponse = await _claudeApiService.GeneratePhishingResponseAsync(session, userResponse, conversationHistory);
+            _logger.LogInformation("Generated response for session {SessionId}", session.Id);
+            
+            // The Claude service already handles fallback, so we don't need additional try-catch here
+            // If you want to verify if Claude was actually used, check the logs
 
             // Add this exchange to the session
             var exchange = new ConversationExchange
@@ -317,5 +308,30 @@ public class ConversationFlowService : IConversationFlowService
             // User fell for tactics, hacker pushes for final compromise
             return "Perfect! I knew you'd understand. Now just click on this link and we can get this resolved immediately: http://totally-not-suspicious.com/urgent-fix";
         }
+    }
+
+    private List<string> BuildConversationHistory(PhoneCallSession session)
+    {
+        var history = new List<string>();
+        
+        // Add initial Jennifer message
+        if (session.Exchanges.Count == 0)
+        {
+            history.Add("Hello, this is Jennifer from CustomerCorp. I need immediate access to update my account - we have a major client presentation in 10 minutes and I can't log in!");
+        }
+        
+        // Add all exchanges in chronological order
+        foreach (var exchange in session.Exchanges.OrderBy(e => e.Timestamp))
+        {
+            // Add Jennifer's message first
+            if (!string.IsNullOrEmpty(exchange.HackerMessage))
+                history.Add(exchange.HackerMessage);
+            
+            // Add user's response
+            if (!string.IsNullOrEmpty(exchange.UserResponse))
+                history.Add(exchange.UserResponse);
+        }
+        
+        return history;
     }
 }

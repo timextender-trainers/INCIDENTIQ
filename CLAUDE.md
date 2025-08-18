@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-IncidentIQ is an AI-powered interactive security training platform built with .NET 8, Entity Framework Core, and Blazor Server. The platform generates personalized phishing and social engineering scenarios using OpenAI's GPT models to train employees on cybersecurity awareness.
+IncidentIQ is an AI-powered interactive security training platform built with .NET 8, Entity Framework Core, and Blazor Server. The platform generates personalized phishing and social engineering scenarios using Claude API (primary) and OpenAI's GPT models (fallback) to train employees on cybersecurity awareness.
 
 ## Architecture
 
@@ -22,6 +22,8 @@ The solution follows Clean Architecture principles with four distinct layers:
 - **Microsoft.AspNetCore.Identity** for user authentication and authorization
 - **StackExchange.Redis** for caching and session management
 - **Blazor Server** for interactive web UI components
+- **Claude API (Anthropic)** for advanced phishing simulation conversations
+- **HttpClient** for external AI API integration
 
 ### AI Agent Architecture
 
@@ -30,8 +32,12 @@ The system implements several specialized AI agents:
 - `ICoachingAgent`: Provides real-time coaching during training sessions
 - `IBehaviorAnalystAgent`: Analyzes user behavior patterns (interface only)
 - `IContentValidatorAgent`: Validates generated content (interface only)
+- `IClaudeApiService`: Handles Claude API integration for phishing simulations
 
-All agents are orchestrated through `ISemanticKernelService` which handles OpenAI API integration.
+AI services are orchestrated through:
+- `ISemanticKernelService` for OpenAI/general AI functionality
+- `IClaudeApiService` for specialized phishing conversation generation
+- Automatic fallback from Claude → OpenAI → hardcoded responses
 
 ## Development Commands
 
@@ -85,21 +91,43 @@ docker compose down
 
 ### Required Environment Variables/Settings
 
-The application requires OpenAI API configuration:
+The application supports multiple AI providers with automatic fallback:
 
+#### Claude API (Primary for Phone Training)
 **Option 1: Environment Variables (Recommended)**
 ```bash
-export OPENAI_API_KEY=your_actual_api_key_here
+export ANTHROPIC_API_KEY=your_claude_api_key_here
+```
+
+**Option 2: appsettings.Development.json**
+```json
+{
+  "Claude": {
+    "ApiKey": "your_claude_api_key_here"
+  }
+}
+```
+
+#### OpenAI API (Fallback/General AI)
+**Option 1: Environment Variables (Recommended)**
+```bash
+export OPENAI_API_KEY=your_openai_api_key_here
 ```
 
 **Option 2: appsettings.Development.json**
 ```json
 {
   "OpenAI": {
-    "ApiKey": "your_actual_api_key_here"
+    "ApiKey": "your_openai_api_key_here"
   }
 }
 ```
+
+#### API Priority and Fallback
+The phone training system uses the following priority order:
+1. **Claude API** - Primary for Jennifer Clark phishing simulations
+2. **OpenAI/Semantic Kernel** - Fallback when Claude is unavailable
+3. **Hardcoded responses** - Final fallback for reliability
 
 ### Database Configuration
 
@@ -144,10 +172,25 @@ The application implements automatic database migration with fallback:
 
 ### AI Integration
 
-All AI functionality goes through `SemanticKernelService`:
-- Scenario generation uses structured prompts with user context
+The platform uses multiple AI services with intelligent fallback:
+
+**Claude API Integration (`ClaudeApiService`)**:
+- Primary service for Jennifer Clark phishing simulations
+- Uses Claude-3.5-Sonnet for natural conversation flow
+- Specialized prompts for social engineering tactics
+- Handles conversation history and context management
+
+**OpenAI Integration (`SemanticKernelService`)**:
+- General AI functionality and scenario generation
+- Fallback for when Claude API is unavailable
 - Coaching agents provide real-time feedback during training sessions
 - Content validation ensures appropriate and safe training materials
+
+**Conversation Flow (`ConversationFlowService`)**:
+- Orchestrates AI responses with multi-tier fallback
+- Tracks user responses and social engineering tactics
+- Analyzes security alerts and risk levels
+- Provides educational feedback and recommendations
 
 ## Testing
 
@@ -157,7 +200,9 @@ Currently no test framework is configured. When adding tests:
 
 ## Security Considerations
 
-- OpenAI API keys must never be committed to git
-- appsettings.Development.json and .env files are git-ignored
-- SQL Server uses TrustServerCertificate=true (development only)
-- User authentication handled through ASP.NET Core Identity
+- **API Keys**: Claude API and OpenAI API keys must never be committed to git
+- **Configuration Files**: appsettings.Development.json and .env files are git-ignored
+- **Database Security**: SQL Server uses TrustServerCertificate=true (development only)
+- **User Authentication**: Handled through ASP.NET Core Identity
+- **AI Safety**: All AI-generated content is for educational phishing simulation only
+- **Fallback Security**: System gracefully degrades to hardcoded responses if AI APIs fail

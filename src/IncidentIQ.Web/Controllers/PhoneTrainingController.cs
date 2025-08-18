@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using IncidentIQ.Application.Interfaces;
+using IncidentIQ.Application.Interfaces.AI;
 using IncidentIQ.Domain.Entities;
 using IncidentIQ.Domain.Enums;
+using System;
 
 namespace IncidentIQ.Web.Controllers;
 
@@ -9,15 +11,18 @@ public class PhoneTrainingController : Controller
 {
     private readonly IPhoneScenarioService _phoneScenarioService;
     private readonly IConversationFlowService _conversationFlowService;
+    private readonly IClaudeApiService _claudeApiService;
     private readonly ILogger<PhoneTrainingController> _logger;
 
     public PhoneTrainingController(
         IPhoneScenarioService phoneScenarioService,
         IConversationFlowService conversationFlowService,
+        IClaudeApiService claudeApiService,
         ILogger<PhoneTrainingController> logger)
     {
         _phoneScenarioService = phoneScenarioService;
         _conversationFlowService = conversationFlowService;
+        _claudeApiService = claudeApiService;
         _logger = logger;
     }
 
@@ -101,10 +106,71 @@ public class PhoneTrainingController : Controller
     {
         try
         {
-            // Generate mock conversation flow
-            var response = GenerateMockResponse(request);
+            // Check if Claude API is available first
+            var isClaudeAvailable = await _claudeApiService.IsApiAvailableAsync();
             
-            return Ok(response);
+            if (isClaudeAvailable)
+            {
+                _logger.LogInformation("Using Claude API for response generation");
+                // Try to get active session for the user
+                var activeSession = await _phoneScenarioService.GetActiveSessionAsync("demo-user-123");
+                
+                // If no active session, create a simple one for Claude to use
+                if (activeSession == null)
+                {
+                    _logger.LogInformation("No active session found, creating temporary session for Claude API");
+                    var fallbackScenario = CreateFallbackScenario();
+                    activeSession = new PhoneCallSession
+                    {
+                        Id = Guid.NewGuid(),
+                        UserId = Guid.Parse("11111111-1111-1111-1111-111111111111"), // dummy user GUID
+                        ScenarioId = fallbackScenario.Id,
+                        Scenario = fallbackScenario,
+                        CallStartedAt = DateTime.UtcNow,
+                        CallState = CallState.Active,
+                        Exchanges = new List<ConversationExchange>(),
+                        TacticsUsed = new List<ManipulationTactic>(),
+                        AlertsTriggered = new List<SecurityAlert>()
+                    };
+                }
+                
+                if (activeSession != null)
+                {
+                    try
+                    {
+                        // Use Claude API through ConversationFlowService
+                        var hackerResponse = await _conversationFlowService.GenerateHackerResponseAsync(activeSession, request.UserResponse);
+                        
+                        // Analyze the response for tactics and security alerts
+                        var alerts = await _conversationFlowService.AnalyzeManipulationTacticsAsync(activeSession, hackerResponse);
+                        var riskLevel = await _conversationFlowService.CalculateCurrentRiskLevelAsync(activeSession);
+                        
+                        var response = new ConversationResponse
+                        {
+                            Success = true,
+                            HackerResponse = hackerResponse,
+                            NextMessage = hackerResponse,
+                            DetectedTactics = alerts.Select(a => a.TacticDetected.ToString()).ToList(),
+                            RiskLevel = riskLevel.ToString(),
+                            SecurityFlags = alerts.Select(a => a.Description).ToList(),
+                            ResponseOptions = GenerateContextualResponseOptions(hackerResponse, activeSession.Exchanges.Count),
+                            Recommendations = GenerateRecommendations(alerts)
+                        };
+                        
+                        return Ok(response);
+                    }
+                    catch (Exception claudeEx)
+                    {
+                        _logger.LogWarning(claudeEx, "Claude API integration failed, falling back to mock response");
+                    }
+                }
+            }
+            
+            // Fallback to existing mock response logic
+            _logger.LogInformation("Using fallback mock response generation");
+            var mockResponse = GenerateMockResponse(request);
+            
+            return Ok(mockResponse);
         }
         catch (Exception ex)
         {
@@ -313,6 +379,80 @@ public class PhoneTrainingController : Controller
         
         feedback += "\nRemember: Never share sensitive information over the phone unless you initiated the call to a verified number.";
         return feedback;
+    }
+
+    private List<object> GenerateContextualResponseOptions(string hackerMessage, int exchangeCount)
+    {
+        // Generate contextual response options based on the hacker's message
+        var options = new List<object>();
+        
+        if (hackerMessage.ToLower().Contains("verify") || hackerMessage.ToLower().Contains("account"))
+        {
+            options.Add(new { Text = "I need to verify your identity using our standard security procedures first." });
+            options.Add(new { Text = "Let me transfer you to our verification department." });
+            options.Add(new { Text = "I can help you right away. What information do you need to update?" });
+        }
+        else if (hackerMessage.ToLower().Contains("urgent") || hackerMessage.ToLower().Contains("immediately"))
+        {
+            options.Add(new { Text = "I understand this is urgent, but I still need to follow our security protocols." });
+            options.Add(new { Text = "Let me escalate this to my supervisor who can help faster." });
+            options.Add(new { Text = "You're right, this can't wait. I'll do whatever you need." });
+        }
+        else
+        {
+            // Default options
+            options.Add(new { Text = "I need to verify your account details before proceeding." });
+            options.Add(new { Text = "Let me transfer you to the appropriate department." });
+            options.Add(new { Text = "I'll help you with that right now." });
+        }
+        
+        return options;
+    }
+
+    private List<object> GenerateRecommendations(List<SecurityAlert> alerts)
+    {
+        var recommendations = new List<object>();
+        
+        foreach (var alert in alerts)
+        {
+            switch (alert.TacticDetected)
+            {
+                case ManipulationTactic.Urgency:
+                    recommendations.Add(new { 
+                        Title = "Don't Rush Under Pressure", 
+                        Description = "Take time to follow proper procedures even when caller claims urgency" 
+                    });
+                    break;
+                case ManipulationTactic.Authority:
+                    recommendations.Add(new { 
+                        Title = "Verify Authority Claims", 
+                        Description = "Independently verify any authority figures or positions mentioned" 
+                    });
+                    break;
+                case ManipulationTactic.Fear:
+                    recommendations.Add(new { 
+                        Title = "Stay Calm Under Pressure", 
+                        Description = "Don't let fear tactics override proper security protocols" 
+                    });
+                    break;
+                default:
+                    recommendations.Add(new { 
+                        Title = "Verify Caller Identity", 
+                        Description = "Always verify caller identity using standard security procedures" 
+                    });
+                    break;
+            }
+        }
+        
+        if (!recommendations.Any())
+        {
+            recommendations.Add(new { 
+                Title = "Verify Caller Identity", 
+                Description = "Always verify caller identity using standard security procedures" 
+            });
+        }
+        
+        return recommendations;
     }
 
     public string GeneratePhoneTrainingHtmlForAuth(dynamic scenarioDetails)
@@ -916,7 +1056,7 @@ public class PhoneTrainingController : Controller
                     <button class='call-action-btn decline-btn' onclick='declineCall()' title='Decline'>
                         ❌
                     </button>
-                    <button class='call-action-btn accept-btn' onclick='acceptCall(""{scenario.Id}"")' title='Accept'>
+                    <button class='call-action-btn accept-btn' onclick='acceptCall(""{scenario.Id.ToString()}"")' title='Accept'>
                         ✅
                     </button>
                 </div>
@@ -1121,9 +1261,9 @@ public class PhoneTrainingController : Controller
             // Show typing indicator
             const typingIndicator = addTypingIndicator();
             
-            if (currentSessionId) {{
-                try {{
-                    const apiResponse = await fetch('/PhoneTraining/GenerateResponse', {{
+            // Always try the API first, regardless of session ID
+            try {{
+                const apiResponse = await fetch('/PhoneTraining/GenerateResponse', {{
                         method: 'POST',
                         headers: {{
                             'Content-Type': 'application/json',
@@ -1155,10 +1295,9 @@ public class PhoneTrainingController : Controller
                             return;
                         }}
                     }}
-                }} catch (error) {{
-                    console.error('Error generating AI response:', error);
-                    if (typingIndicator) typingIndicator.remove();
-                }}
+            }} catch (error) {{
+                console.error('Error generating AI response:', error);
+                if (typingIndicator) typingIndicator.remove();
             }}
             
             // Enhanced fallback responses with realistic social engineering progression

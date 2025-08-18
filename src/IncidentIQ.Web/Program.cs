@@ -55,6 +55,9 @@ builder.Services.AddScoped<ISemanticKernelService, SemanticKernelService>();
 builder.Services.AddScoped<IScenarioGeneratorAgent, ScenarioGeneratorAgent>();
 builder.Services.AddScoped<ICoachingAgent, CoachingAgent>();
 
+// Add Claude API Service with HttpClient
+builder.Services.AddHttpClient<IClaudeApiService, ClaudeApiService>();
+
 // Add User Profile Service
 builder.Services.AddScoped<IUserProfileService, UserProfileService>();
 

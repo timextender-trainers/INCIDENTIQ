@@ -434,3 +434,9 @@ packages/
 *.edmx.sql
 .claude/settings.local.json
 .claude/settings.local.json
+src/IncidentIQ.Web/appsettings.Development.json
+src/IncidentIQ.Web/appsettings.json
+src/IncidentIQ.Web/appsettings.json
+src/IncidentIQ.Web/appsettings.json
+src/IncidentIQ.Web/appsettings.Development.json
+src/IncidentIQ.Web/appsettings.json

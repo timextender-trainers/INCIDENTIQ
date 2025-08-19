@@ -73,6 +73,9 @@ builder.Services.AddScoped<IConversationFlowService, ConversationFlowService>();
 builder.Services.AddScoped<ISocialEngineeringAnalyzer, SocialEngineeringAnalyzer>();
 builder.Services.AddScoped<IConversationCacheService, ConversationCacheService>();
 
+// Add Session Evaluation Service
+builder.Services.AddScoped<ISessionEvaluationService, SessionEvaluationService>();
+
 // Add health checks
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<ApplicationDbContext>();

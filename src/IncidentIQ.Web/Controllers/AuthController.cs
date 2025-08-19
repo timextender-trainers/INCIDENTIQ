@@ -2878,45 +2878,57 @@ public class AuthController : Controller
             // Show typing indicator
             const typingIndicator = addTypingIndicator();
             
-            if (currentSessionId) {{
-                try {{
-                    const apiResponse = await fetch('/PhoneTraining/GenerateResponse', {{
-                        method: 'POST',
-                        headers: {{
-                            'Content-Type': 'application/json',
-                        }},
-                        body: JSON.stringify({{ userResponse: response }})
-                    }});
+            // Always try the API first, regardless of session ID
+            try {{
+                console.log('Calling Claude API for response generation...');
+                const apiResponse = await fetch('/PhoneTraining/GenerateResponse', {{
+                    method: 'POST',
+                    headers: {{
+                        'Content-Type': 'application/json',
+                    }},
+                    body: JSON.stringify({{ userResponse: response }})
+                }});
 
-                    // Remove typing indicator
-                    if (typingIndicator) typingIndicator.remove();
-
-                    if (apiResponse.ok) {{
-                        const result = await apiResponse.json();
-                        if (result.success) {{
-                            // Stream the hacker response
-                            await streamMessage(result.hackerResponse, false);
-                            
-                            // Update security assessment
-                            updateRiskLevel(result.riskLevel);
-                            updateSecurityAlerts(result.detectedTactics || []);
-                            updateRecommendations(result.recommendations || []);
-                            
-                            // Show new suggested responses
-                            if (result.responseOptions && result.responseOptions.length > 0) {{
-                                showSuggestedResponses(result.responseOptions.map(opt => opt.Text || opt));
-                            }} else {{
-                                // End conversation if no more options
-                                setTimeout(() => endConversationWithResults(result), 2000);
-                            }}
-                            return;
+                console.log('API Response Status:', apiResponse.status);
+                
+                if (apiResponse.ok) {{
+                    const result = await apiResponse.json();
+                    console.log('API Response:', result);
+                    
+                    if (result.success && result.hackerResponse) {{
+                        // Remove typing indicator
+                        if (typingIndicator) typingIndicator.remove();
+                        
+                        console.log('Using Claude API response:', result.hackerResponse);
+                        
+                        // Stream the hacker response
+                        await streamMessage(result.hackerResponse, false);
+                        
+                        // Update security assessment
+                        updateRiskLevel(result.riskLevel || 'Medium');
+                        updateSecurityAlerts(result.detectedTactics || []);
+                        updateRecommendations(result.recommendations || []);
+                        
+                        // Show new suggested responses
+                        if (result.responseOptions && result.responseOptions.length > 0) {{
+                            showSuggestedResponses(result.responseOptions.map(opt => opt.Text || opt.text || opt));
+                        }} else {{
+                            // End conversation if no more options
+                            setTimeout(() => endConversationWithResults(result), 2000);
                         }}
+                        return; // Successfully used API - exit function
                     }}
-                }} catch (error) {{
-                    console.error('Error generating AI response:', error);
-                    if (typingIndicator) typingIndicator.remove();
                 }}
+                
+                // If we get here, API didn't return success
+                console.warn('API call did not return success, using fallback responses');
+                
+            }} catch (error) {{
+                console.error('Error calling Claude API:', error);
             }}
+            
+            // Remove typing indicator before fallback
+            if (typingIndicator) typingIndicator.remove();
             
             // Enhanced fallback responses with realistic social engineering progression
             setTimeout(() => {{
@@ -3832,7 +3844,7 @@ public class AuthController : Controller
                         headers: {{
                             'Content-Type': 'application/json',
                         }},
-                        body: JSON.stringify({{ userResponse: response }})
+                        body: JSON.stringify({{ userResponse: response, sessionId: currentSessionId }})
                     }});
 
                     // Remove typing indicator
@@ -3848,11 +3860,14 @@ public class AuthController : Controller
                             updateRiskLevel(result.riskLevel);
                             updateSecurityAlerts(result.detectedTactics || []);
                             
-                            // Show new response options
-                            if (result.responseOptions && result.responseOptions.length > 0) {{
+                            // Check if conversation is complete
+                            if (result.isComplete) {{
+                                // End conversation and trigger AI evaluation
+                                setTimeout(() => endConversationWithAIEvaluation(result), 2000);
+                            }} else if (result.responseOptions && result.responseOptions.length > 0) {{
                                 showResponseOptions(result.responseOptions.map(opt => opt.Text || opt));
                             }} else {{
-                                // End conversation if no more options
+                                // End conversation if no more options (fallback)
                                 setTimeout(() => endConversationWithResults(result), 2000);
                             }}
                             return;
@@ -4130,76 +4145,215 @@ public class AuthController : Controller
             }});
         }}
 
-        function endConversationWithResults(results) {{
+        async function endConversationWithResults(results) {{
             isCallActive = false;
             if (timerInterval) clearInterval(timerInterval);
             
-            // Calculate score based on user responses
-            const userMessages = document.querySelectorAll('.user-message');
-            let securityScore = 100;
-            let secureActions = 0;
-            let riskyActions = 0;
+            // Show loading modal first
+            showLoadingModal();
             
-            userMessages.forEach(msg => {{
-                const text = msg.textContent.toLowerCase();
-                if (text.includes('verify') || text.includes('verification') || text.includes('supervisor') || text.includes('cannot') || text.includes('security')) {{
-                    secureActions++;
-                }} else if (text.includes('update') || text.includes('help you right away') || text.includes('sure') || text.includes('employee id')) {{
-                    riskyActions++;
-                    securityScore -= 15;
+            // Try to get AI evaluation if we have a session ID
+            let evaluation = null;
+            if (currentSessionId) {{
+                try {{
+                    const evaluationResponse = await fetch('/PhoneTraining/EvaluateSession', {{
+                        method: 'POST',
+                        headers: {{
+                            'Content-Type': 'application/json',
+                        }},
+                        body: JSON.stringify({{ sessionId: currentSessionId }})
+                    }});
+                    
+                    if (evaluationResponse.ok) {{
+                        const evaluationResult = await evaluationResponse.json();
+                        if (evaluationResult.success) {{
+                            evaluation = evaluationResult.evaluation;
+                        }}
+                    }}
+                }} catch (error) {{
+                    console.error('Failed to get AI evaluation:', error);
                 }}
-            }});
+            }}
             
-            securityScore = Math.max(0, securityScore);
+            // Fallback calculation if AI evaluation failed
+            if (!evaluation) {{
+                const userMessages = document.querySelectorAll('.user-message');
+                let securityScore = 100;
+                let secureActions = 0;
+                let riskyActions = 0;
+                
+                userMessages.forEach(msg => {{
+                    const text = msg.textContent.toLowerCase();
+                    if (text.includes('verify') || text.includes('verification') || text.includes('supervisor') || text.includes('cannot') || text.includes('security')) {{
+                        secureActions++;
+                    }} else if (text.includes('update') || text.includes('help you right away') || text.includes('sure') || text.includes('employee id')) {{
+                        riskyActions++;
+                        securityScore -= 15;
+                    }}
+                }});
+                
+                securityScore = Math.max(0, securityScore);
+                const grade = securityScore >= 90 ? 'A+' : securityScore >= 85 ? 'A' : securityScore >= 80 ? 'A-' : 
+                             securityScore >= 75 ? 'B+' : securityScore >= 70 ? 'B' : securityScore >= 65 ? 'B-' : 
+                             securityScore >= 60 ? 'C+' : securityScore >= 55 ? 'C' : securityScore >= 50 ? 'C-' : 
+                             securityScore >= 40 ? 'D' : 'F';
+                
+                evaluation = {{
+                    securityScore: securityScore,
+                    metrics: {{ grade: grade }},
+                    keyStrengths: secureActions > 0 ? ['Attempted security verification', 'Maintained awareness throughout call'] : ['Completed training session'],
+                    growthAreas: riskyActions > 0 ? ['Resist urgency pressure', 'Verify before taking action'] : ['Continue practicing security procedures'],
+                    futureLearnings: [{{
+                        title: 'Advanced Social Engineering Detection',
+                        description: 'Learn to identify sophisticated manipulation tactics',
+                        estimatedTime: '20 minutes',
+                        resourceType: 'Interactive Training',
+                        priority: 'High'
+                    }}],
+                    detectedTactics: results.detectedTactics || []
+                }};
+            }}
             
-            // Show results modal
+            // Hide loading modal and show results
+            hideLoadingModal();
+            showEnhancedResultsModal(evaluation);
+        }}
+
+        async function endConversationWithAIEvaluation(results) {{
+            isCallActive = false;
+            if (timerInterval) clearInterval(timerInterval);
+            
+            // Show loading modal first
+            const loadingHtml = `
+                <div style='position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000;' id='loadingModal'>
+                    <div style='background: white; border-radius: 16px; padding: 32px; text-align: center; max-width: 400px; width: 90%;'>
+                        <div style='display: inline-block; width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px;'></div>
+                        <h3 style='color: #1f2937; margin: 0 0 8px 0;'>Analyzing Your Performance</h3>
+                        <p style='color: #6b7280; margin: 0;'>AI is evaluating your security awareness...</p>
+                    </div>
+                </div>
+                <style>
+                @keyframes spin {{
+                    0% {{ transform: rotate(0deg); }}
+                    100% {{ transform: rotate(360deg); }}
+                }}
+                </style>
+            `;
+            document.body.insertAdjacentHTML('beforeend', loadingHtml);
+            
+            try {{
+                // Call AI evaluation endpoint
+                const evaluationResponse = await fetch('/PhoneTraining/EvaluateSession', {{
+                    method: 'POST',
+                    headers: {{
+                        'Content-Type': 'application/json',
+                    }},
+                    body: JSON.stringify({{ sessionId: currentSessionId }})
+                }});
+                
+                // Remove loading modal
+                const loadingModal = document.getElementById('loadingModal');
+                if (loadingModal) loadingModal.remove();
+                
+                if (evaluationResponse.ok) {{
+                    const evaluationData = await evaluationResponse.json();
+                    if (evaluationData.success) {{
+                        displayAIEvaluationResults(evaluationData.evaluation);
+                        return;
+                    }}
+                }}
+                
+                // Fallback to basic results if AI evaluation fails
+                endConversationWithResults(results);
+                
+            }} catch (error) {{
+                console.error('AI evaluation failed:', error);
+                // Remove loading modal
+                const loadingModal = document.getElementById('loadingModal');
+                if (loadingModal) loadingModal.remove();
+                // Fallback to basic results
+                endConversationWithResults(results);
+            }}
+        }}
+        
+        function displayAIEvaluationResults(evaluation) {{
+            const securityScore = Math.round(evaluation.securityScore || 0);
+            const breaches = evaluation.securityBreaches || [];
+            const recommendations = evaluation.recommendations || [];
+            const riskAssessment = evaluation.riskAssessment || {{}};
+            
             const resultsHtml = `
-                <div style='position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000;' onclick='hideResults()'>
-                    <div style='background: white; border-radius: 16px; padding: 32px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto;' onclick='event.stopPropagation()'>
-                        <h2 style='color: #1f2937; margin-bottom: 24px; text-align: center;'>Training Complete!</h2>
+                <div style='position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000;' onclick='hideAIResults()'>
+                    <div style='background: white; border-radius: 16px; padding: 32px; max-width: 800px; width: 95%; max-height: 90vh; overflow-y: auto;' onclick='event.stopPropagation()'>
+                        <h2 style='color: #1f2937; margin-bottom: 24px; text-align: center;'>🤖 AI Security Analysis Complete</h2>
                         
+                        <!-- Security Score -->
                         <div style='background: ${{securityScore >= 70 ? '#f0f9ff' : securityScore >= 50 ? '#fef3c7' : '#fef2f2'}}; border: 2px solid ${{securityScore >= 70 ? '#0ea5e9' : securityScore >= 50 ? '#f59e0b' : '#ef4444'}}; border-radius: 12px; padding: 20px; margin-bottom: 24px; text-align: center;'>
                             <h3 style='margin: 0 0 12px 0; color: ${{securityScore >= 70 ? '#0c4a6e' : securityScore >= 50 ? '#92400e' : '#991b1b'}};'>Security Score: ${{securityScore}}/100</h3>
-                            <p style='margin: 0; color: ${{securityScore >= 70 ? '#075985' : securityScore >= 50 ? '#78350f' : '#7f1d1d'}};'>${{
-                                securityScore >= 70 ? '✅ Excellent! You successfully resisted social engineering tactics.' :
-                                securityScore >= 50 ? '⚠️ Good awareness, but some responses could compromise security.' :
-                                '🚨 High risk responses detected. Additional security training recommended.'
-                            }}</p>
+                            <p style='margin: 0; color: ${{securityScore >= 70 ? '#0c4a6e' : securityScore >= 50 ? '#92400e' : '#991b1b'}};'>
+                                Risk Level: ${{riskAssessment.overallRiskLevel || 'Medium'}}
+                            </p>
                         </div>
                         
-                        <div style='display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;'>
-                            <div style='background: #f0f9ff; border-radius: 8px; padding: 16px; text-align: center;'>
-                                <div style='color: #0ea5e9; font-size: 1.5rem; font-weight: bold;'>${{secureActions}}</div>
-                                <div style='color: #075985; font-size: 0.9rem;'>Secure Actions</div>
-                            </div>
-                            <div style='background: #fef2f2; border-radius: 8px; padding: 16px; text-align: center;'>
-                                <div style='color: #ef4444; font-size: 1.5rem; font-weight: bold;'>${{riskyActions}}</div>
-                                <div style='color: #991b1b; font-size: 0.9rem;'>Risky Actions</div>
-                            </div>
-                        </div>
-                        
-                        <div style='margin-bottom: 24px;'>
-                            <h4 style='color: #374151; margin-bottom: 12px;'>Detected Social Engineering Tactics:</h4>
-                            <div style='display: flex; flex-wrap: wrap; gap: 8px;'>
-                                ${{(results.detectedTactics || []).map(tactic => 
-                                    `<span style='background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;'>${{tactic}}</span>`
-                                ).join('')}}
-                            </div>
-                        </div>
-                        
+                        <!-- AI Summary -->
                         <div style='background: #f9fafb; border-radius: 8px; padding: 16px; margin-bottom: 24px;'>
-                            <h4 style='color: #374151; margin: 0 0 8px 0;'>Key Learnings:</h4>
-                            <ul style='margin: 0; padding-left: 20px; color: #6b7280; font-size: 0.9rem;'>
-                                <li>Always verify caller identity before providing information</li>
-                                <li>Don't let urgency pressure bypass security procedures</li>
-                                <li>Escalate suspicious requests to supervisors</li>
-                                <li>Be wary of authority claims and emotional manipulation</li>
-                                <li>Document and report social engineering attempts</li>
-                            </ul>
+                            <h4 style='color: #374151; margin: 0 0 8px 0;'>📝 AI Analysis Summary:</h4>
+                            <p style='margin: 0; color: #6b7280; font-size: 0.9rem; line-height: 1.5;'>
+                                ${{evaluation.summaryFeedback || 'Training session completed successfully.'}}
+                            </p>
                         </div>
                         
-                        <div style='display: flex; gap: 12px; justify-content: center;'>
-                            <button onclick='hideResults()' style='padding: 10px 20px; background: #6b7280; color: white; border: none; border-radius: 6px; cursor: pointer;'>Close</button>
+                        <!-- Security Breaches -->
+                        ${{breaches.length > 0 ? `
+                        <div style='background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; margin-bottom: 24px;'>
+                            <h4 style='color: #991b1b; margin: 0 0 12px 0;'>⚠️ Security Concerns Identified:</h4>
+                            ${{breaches.map(breach => `
+                                <div style='background: white; border-radius: 6px; padding: 12px; margin-bottom: 8px; border-left: 4px solid #ef4444;'>
+                                    <strong style='color: #991b1b; display: block; margin-bottom: 4px;'>Turn ${{breach.turnNumber}}: ${{breach.breachType}}</strong>
+                                    <p style='margin: 0 0 8px 0; color: #6b7280; font-size: 0.9rem;'>${{breach.description}}</p>
+                                    <p style='margin: 0; color: #059669; font-size: 0.8rem; font-style: italic;'>💡 ${{breach.preventionAdvice}}</p>
+                                </div>
+                            `).join('')}}
+                        </div>
+                        ` : ''}}
+                        
+                        <!-- Recommendations -->
+                        ${{recommendations.length > 0 ? `
+                        <div style='background: #f0f9ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 16px; margin-bottom: 24px;'>
+                            <h4 style='color: #1e40af; margin: 0 0 12px 0;'>🎯 Personalized Recommendations:</h4>
+                            ${{recommendations.map(rec => `
+                                <div style='background: white; border-radius: 6px; padding: 12px; margin-bottom: 8px; border-left: 4px solid #3b82f6;'>
+                                    <strong style='color: #1e40af; display: block; margin-bottom: 4px;'>
+                                        ${{rec.title}} 
+                                        <span style='background: ${{rec.priority === 'Critical' ? '#dc2626' : rec.priority === 'High' ? '#ea580c' : rec.priority === 'Medium' ? '#ca8a04' : '#16a34a'}}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; text-transform: uppercase;'>${{rec.priority}}</span>
+                                    </strong>
+                                    <p style='margin: 0 0 8px 0; color: #6b7280; font-size: 0.9rem;'>${{rec.description}}</p>
+                                    <p style='margin: 0; color: #059669; font-size: 0.85rem;'>📋 ${{rec.actionableAdvice}}</p>
+                                </div>
+                            `).join('')}}
+                        </div>
+                        ` : ''}}
+                        
+                        <!-- Risk Profile -->
+                        ${{riskAssessment.riskProfile ? `
+                        <div style='background: #f9fafb; border-radius: 8px; padding: 16px; margin-bottom: 24px;'>
+                            <h4 style='color: #374151; margin: 0 0 8px 0;'>🔍 Risk Assessment:</h4>
+                            <p style='margin: 0; color: #6b7280; font-size: 0.9rem;'>${{riskAssessment.riskProfile}}</p>
+                            ${{riskAssessment.primaryVulnerabilities && riskAssessment.primaryVulnerabilities.length > 0 ? `
+                                <div style='margin-top: 8px;'>
+                                    <strong style='color: #374151; font-size: 0.85rem;'>Key Vulnerabilities:</strong>
+                                    <div style='margin-top: 4px;'>
+                                        ${{riskAssessment.primaryVulnerabilities.map(vuln => 
+                                            `<span style='background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; margin-right: 4px; display: inline-block; margin-bottom: 4px;'>${{vuln}}</span>`
+                                        ).join('')}}
+                                    </div>
+                                </div>
+                            ` : ''}}
+                        </div>
+                        ` : ''}}
+                        
+                        <div style='display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;'>
+                            <button onclick='hideAIResults()' style='padding: 10px 20px; background: #6b7280; color: white; border: none; border-radius: 6px; cursor: pointer;'>Close</button>
                             <button onclick='restartTraining()' style='padding: 10px 20px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer;'>Try Again</button>
                             <button onclick='returnToDashboard()' style='padding: 10px 20px; background: #10b981; color: white; border: none; border-radius: 6px; cursor: pointer;'>Dashboard</button>
                         </div>
@@ -4208,6 +4362,131 @@ public class AuthController : Controller
             `;
             
             document.body.insertAdjacentHTML('beforeend', resultsHtml);
+        }}
+        
+        function hideAIResults() {{
+            const resultsModal = document.querySelector('[style*=""position: fixed""]');
+            if (resultsModal) resultsModal.remove();
+        }}
+        
+        function showLoadingModal() {{
+            const loadingHtml = `
+                <div id='loadingModal' style='position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000;'>
+                    <div style='background: white; border-radius: 16px; padding: 32px; text-align: center; max-width: 400px;'>
+                        <div style='width: 40px; height: 40px; border: 4px solid #e5e7eb; border-top: 4px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px;'></div>
+                        <h3 style='margin: 0 0 8px 0; color: #1f2937;'>Analyzing Your Performance...</h3>
+                        <p style='margin: 0; color: #6b7280; font-size: 14px;'>Our AI is evaluating your responses and generating personalized feedback.</p>
+                    </div>
+                </div>
+                <style>
+                    @keyframes spin {{ 0% {{ transform: rotate(0deg); }} 100% {{ transform: rotate(360deg); }} }}
+                </style>
+            `;
+            document.body.insertAdjacentHTML('beforeend', loadingHtml);
+        }}
+        
+        function hideLoadingModal() {{
+            const loadingModal = document.getElementById('loadingModal');
+            if (loadingModal) loadingModal.remove();
+        }}
+        
+        function showEnhancedResultsModal(evaluation) {{
+            const grade = evaluation.metrics?.grade || 'C';
+            const score = Math.round(evaluation.securityScore || 0);
+            const gradeColor = score >= 80 ? '#10b981' : score >= 70 ? '#3b82f6' : score >= 60 ? '#f59e0b' : '#ef4444';
+            const gradeBg = score >= 80 ? '#d1fae5' : score >= 70 ? '#dbeafe' : score >= 60 ? '#fef3c7' : '#fef2f2';
+            
+            let strengthsHtml = '';
+            const strengths = evaluation.keyStrengths || ['Completed training session'];
+            for (let i = 0; i < strengths.length; i++) {{
+                strengthsHtml += '<div style=""background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 12px 16px; color: #166534; font-size: 14px;"">';
+                strengthsHtml += '<span style=""color: #059669; margin-right: 8px;"">•</span>' + strengths[i];
+                strengthsHtml += '</div>';
+            }}
+            
+            let growthAreasHtml = '';
+            const growthAreas = evaluation.growthAreas || ['Continue practicing security procedures'];
+            for (let i = 0; i < growthAreas.length; i++) {{
+                growthAreasHtml += '<div style=""background: #fefce8; border: 1px solid #fde68a; border-radius: 8px; padding: 12px 16px; color: #92400e; font-size: 14px;"">';
+                growthAreasHtml += '<span style=""color: #f59e0b; margin-right: 8px;"">•</span>' + growthAreas[i];
+                growthAreasHtml += '</div>';
+            }}
+            
+            let learningsHtml = '';
+            const learnings = evaluation.futureLearnings || [];
+            for (let i = 0; i < learnings.length; i++) {{
+                const learning = learnings[i];
+                learningsHtml += '<div style=""background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px;"">';
+                learningsHtml += '<div style=""display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;"">';
+                learningsHtml += '<h4 style=""margin: 0; color: #1e40af; font-size: 16px; font-weight: 600;"">' + learning.title + '</h4>';
+                learningsHtml += '<div style=""display: flex; gap: 8px;"">';
+                learningsHtml += '<span style=""background: #dbeafe; color: #1e40af; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 500;"">' + learning.estimatedTime + '</span>';
+                learningsHtml += '<span style=""background: #f0f9ff; color: #0c4a6e; padding: 2px 8px; border-radius: 12px; font-size: 12px;"">' + learning.resourceType + '</span>';
+                learningsHtml += '</div></div>';
+                learningsHtml += '<p style=""margin: 0; color: #475569; font-size: 14px; line-height: 1.5;"">' + learning.description + '</p>';
+                learningsHtml += '</div>';
+            }}
+            
+            const resultsHtml = 
+                '<div style=""position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px;"" onclick=""hideResults()"">' +
+                '<div style=""background: white; border-radius: 24px; padding: 0; max-width: 800px; width: 100%; max-height: 90vh; overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.25);"" onclick=""event.stopPropagation()"">' +
+                '<div style=""background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 32px; text-align: center; color: white;"">' +
+                '<h2 style=""margin: 0 0 8px 0; font-size: 28px; font-weight: 300;"">Training Performance Analytics</h2>' +
+                '<p style=""margin: 0; opacity: 0.9; font-size: 16px;"">Social Engineering Simulation Complete</p>' +
+                '</div>' +
+                '<div style=""overflow-y: auto; max-height: calc(90vh - 160px); padding: 32px;"">' +
+                '<div style=""display: grid; grid-template-columns: 200px 1fr; gap: 32px; margin-bottom: 32px; align-items: center;"">' +
+                '<div style=""text-align: center;"">' +
+                '<div style=""width: 140px; height: 140px; border-radius: 50%; background: ' + gradeBg + '; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 auto 16px; border: 4px solid ' + gradeColor + ';"">' +
+                '<div style=""font-size: 48px; font-weight: bold; color: ' + gradeColor + ';"">' + grade + '</div>' +
+                '<div style=""font-size: 18px; color: ' + gradeColor + '; font-weight: 600;"">' + score + '%</div>' +
+                '</div>' +
+                '<div style=""font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 4px;"">Overall Performance</div>' +
+                '<div style=""font-size: 12px; color: #6b7280;"">Security Score</div>' +
+                '</div>' +
+                '<div style=""display: grid; grid-template-columns: 1fr 1fr; gap: 16px;"">' +
+                '<div style=""background: #f0f9ff; border-radius: 12px; padding: 20px; text-align: center; border: 1px solid #0ea5e9;"">' +
+                '<div style=""font-size: 24px; font-weight: bold; color: #0ea5e9; margin-bottom: 4px;"">' + strengths.length + '</div>' +
+                '<div style=""font-size: 14px; color: #075985; font-weight: 600;"">Key Strengths</div>' +
+                '<div style=""font-size: 12px; color: #0c4a6e; margin-top: 4px;"">Security behaviors identified</div>' +
+                '</div>' +
+                '<div style=""background: #fef3c7; border-radius: 12px; padding: 20px; text-align: center; border: 1px solid #f59e0b;"">' +
+                '<div style=""font-size: 24px; font-weight: bold; color: #f59e0b; margin-bottom: 4px;"">' + growthAreas.length + '</div>' +
+                '<div style=""font-size: 14px; color: #92400e; font-weight: 600;"">Growth Areas</div>' +
+                '<div style=""font-size: 12px; color: #78350f; margin-top: 4px;"">Improvement opportunities</div>' +
+                '</div></div></div>' +
+                '<div style=""margin-bottom: 32px;"">' +
+                '<h3 style=""color: #1f2937; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;"">' +
+                '<span style=""color: #10b981; font-size: 20px;"">✓</span>Key Strengths</h3>' +
+                '<div style=""display: grid; gap: 8px;"">' + strengthsHtml + '</div></div>' +
+                '<div style=""margin-bottom: 32px;"">' +
+                '<h3 style=""color: #1f2937; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;"">' +
+                '<span style=""color: #f59e0b; font-size: 20px;"">⚠</span>Growth Areas</h3>' +
+                '<div style=""display: grid; gap: 8px;"">' + growthAreasHtml + '</div></div>' +
+                '<div style=""margin-bottom: 32px;"">' +
+                '<h3 style=""color: #1f2937; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;"">' +
+                '<span style=""color: #3b82f6; font-size: 20px;"">🎓</span>AI-Generated Future Learnings</h3>' +
+                '<div style=""display: grid; gap: 12px;"">' + learningsHtml + '</div></div>' +
+                '<div style=""display: flex; gap: 12px; justify-content: center; padding-top: 24px; border-top: 1px solid #e5e7eb;"">' +
+                '<button onclick=""hideResults()"" style=""padding: 12px 24px; background: #f3f4f6; color: #374151; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;"">Close</button>' +
+                '<button onclick=""restartTraining()"" style=""padding: 12px 24px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;"">Try Again</button>' +
+                '<button onclick=""viewDetailedAnalytics()"" style=""padding: 12px 24px; background: #059669; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;"">View Analytics</button>' +
+                '</div></div></div></div>';
+            
+            document.body.insertAdjacentHTML('beforeend', resultsHtml);
+        }}
+
+        function hideResults() {{
+            const resultsModal = document.querySelector('[style*=""position: fixed""]');
+            if (resultsModal) resultsModal.remove();
+        }}
+        
+        function restartTraining() {{
+            location.reload();
+        }}
+        
+        function viewDetailedAnalytics() {{
+            window.location.href = '/Analytics';
         }}
 
         function endCall() {{

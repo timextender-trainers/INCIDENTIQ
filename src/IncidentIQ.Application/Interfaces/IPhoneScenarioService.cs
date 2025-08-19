@@ -8,6 +8,7 @@ public interface IPhoneScenarioService
     Task<PhoneCallScenario> CreateScenarioAsync(string userId, string targetRole, string targetCompany);
     Task<PhoneCallSession> StartSessionAsync(string userId, Guid scenarioId);
     Task<PhoneCallSession> GetActiveSessionAsync(string userId);
+    Task<PhoneCallSession?> GetSessionByIdAsync(Guid sessionId);
     Task<PhoneCallSession> UpdateSessionAsync(Guid sessionId, CallState newState);
     Task EndSessionAsync(Guid sessionId);
     Task<List<PhoneCallScenario>> GetScenariosForRoleAsync(string role);

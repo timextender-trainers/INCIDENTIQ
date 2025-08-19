@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace IncidentIQ.Infrastructure.Services;
 
@@ -61,20 +62,50 @@ public class ClaudeApiService : IClaudeApiService
             var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
 
             _logger.LogInformation("Sending request to Claude API for session {SessionId}. User message: {UserMessage}", session.Id, userMessage);
-            _logger.LogInformation("Claude API Key present: {HasKey}", !string.IsNullOrEmpty(_apiKey));
+            _logger.LogInformation("Claude API Key present: {HasKey}, Key length: {KeyLength}", !string.IsNullOrEmpty(_apiKey), _apiKey?.Length ?? 0);
+            _logger.LogInformation("Claude API Request URL: {Url}", _baseUrl);
+            _logger.LogInformation("Claude API Request Body: {RequestBody}", jsonRequest);
 
             var response = await _httpClient.PostAsync(_baseUrl, content);
+            
+            _logger.LogInformation("Claude API Response Status: {StatusCode}", response.StatusCode);
 
             if (response.IsSuccessStatusCode)
             {
                 var jsonResponse = await response.Content.ReadAsStringAsync();
-                var claudeResponse = JsonSerializer.Deserialize<ClaudeApiResponse>(jsonResponse);
-
-                if (claudeResponse?.Content?.Length > 0 && claudeResponse.Content[0].Type == "text")
+                _logger.LogInformation("Claude API raw response for session {SessionId}: {JsonResponse}", session.Id, jsonResponse);
+                
+                try
                 {
-                    var responseText = claudeResponse.Content[0].Text;
-                    _logger.LogInformation("Successfully received response from Claude API for session {SessionId}. Response: {Response}", session.Id, responseText?.Substring(0, Math.Min(100, responseText?.Length ?? 0)));
-                    return responseText;
+                    var claudeResponse = JsonSerializer.Deserialize<ClaudeApiResponse>(jsonResponse);
+                    _logger.LogInformation("Deserialized Claude response - Type: {Type}, Role: {Role}, Content Count: {Count}", 
+                        claudeResponse?.Type, claudeResponse?.Role, claudeResponse?.Content?.Length);
+
+                    if (claudeResponse?.Content?.Length > 0)
+                    {
+                        var firstContent = claudeResponse.Content[0];
+                        _logger.LogInformation("First content item - Type: {Type}, Text length: {Length}", 
+                            firstContent.Type, firstContent.Text?.Length);
+                            
+                        if (firstContent.Type == "text" && !string.IsNullOrEmpty(firstContent.Text))
+                        {
+                            var responseText = firstContent.Text;
+                            _logger.LogInformation("Successfully received response from Claude API for session {SessionId}. Response: {Response}", session.Id, responseText?.Substring(0, Math.Min(100, responseText?.Length ?? 0)));
+                            return responseText;
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Claude API content type mismatch or empty text. Type: {Type}, Text: {Text}", firstContent.Type, firstContent.Text);
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Claude API response has no content items");
+                    }
+                }
+                catch (JsonException jsonEx)
+                {
+                    _logger.LogError(jsonEx, "Failed to deserialize Claude API response: {JsonResponse}", jsonResponse);
                 }
             }
             else
@@ -267,15 +298,25 @@ Remember: Legitimate customers understand and respect security procedures. Be wa
     // Response models for JSON deserialization
     private class ClaudeApiResponse
     {
+        [JsonPropertyName("id")]
         public string Id { get; set; } = "";
+        
+        [JsonPropertyName("type")]
         public string Type { get; set; } = "";
+        
+        [JsonPropertyName("role")]
         public string Role { get; set; } = "";
+        
+        [JsonPropertyName("content")]
         public ContentItem[] Content { get; set; } = Array.Empty<ContentItem>();
     }
 
     private class ContentItem
     {
+        [JsonPropertyName("type")]
         public string Type { get; set; } = "";
+        
+        [JsonPropertyName("text")]
         public string Text { get; set; } = "";
     }
 }

@@ -1,3 +1,4 @@
+using IncidentIQ.Application.Interfaces;
 using IncidentIQ.Application.Interfaces.AI;
 using IncidentIQ.Application.Interfaces.AI.Agents;
 using IncidentIQ.Domain.Entities;
@@ -239,5 +240,205 @@ public class CoachingAgent : ICoachingAgent
             Type = type,
             ConfidenceScore = 0.5
         };
+    }
+
+    public async Task<SessionEvaluationResult> AnalyzeConversationSessionAsync(PhoneCallSession session)
+    {
+        try
+        {
+            var conversationText = BuildConversationText(session);
+            var prompt = BuildSessionAnalysisPrompt(conversationText, session);
+            
+            var arguments = new KernelArguments
+            {
+                ["conversationText"] = conversationText,
+                ["sessionId"] = session.Id.ToString(),
+                ["scenarioType"] = session.Scenario?.Title ?? "Phone Training"
+            };
+
+            var result = await _kernelService.ExecutePromptAsync(prompt, arguments);
+            
+            return ParseSessionAnalysisResult(result, session);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error analyzing conversation session {SessionId}", session.Id);
+            return CreateBasicSessionAnalysis(session);
+        }
+    }
+
+    private string BuildConversationText(PhoneCallSession session)
+    {
+        var parts = new List<string>();
+        
+        // Add scenario context
+        if (session.Scenario != null)
+        {
+            parts.Add($"TRAINING SCENARIO: {session.Scenario.Title}");
+            parts.Add($"TARGET ROLE: {session.Scenario.TargetRole}");
+            parts.Add($"COMPANY: {session.Scenario.TargetCompany}");
+        }
+        
+        parts.Add("\nCONVERSATION:");
+        parts.Add("CALLER: Hello, this is Jennifer from CustomerCorp. I need immediate access to update my account - we have a major client presentation in 10 minutes and I can't log in!");
+        
+        foreach (var exchange in session.Exchanges.OrderBy(e => e.Timestamp))
+        {
+            if (!string.IsNullOrEmpty(exchange.UserResponse))
+                parts.Add($"EMPLOYEE: {exchange.UserResponse}");
+            if (!string.IsNullOrEmpty(exchange.HackerMessage))
+                parts.Add($"CALLER: {exchange.HackerMessage}");
+        }
+        
+        return string.Join("\n", parts);
+    }
+
+    private string BuildSessionAnalysisPrompt(string conversationText, PhoneCallSession session)
+    {
+        return $@"
+You are a cybersecurity coach analyzing a completed phone-based social engineering training session. 
+The employee was targeted by a simulated phishing attack over the phone.
+
+{conversationText}
+
+Please provide a comprehensive analysis focusing on:
+
+1. SECURITY PERFORMANCE: How well did the employee resist social engineering tactics?
+2. VULNERABILITIES: What specific weaknesses were exploited or could have been exploited?
+3. SECURITY BREACHES: Were any security protocols bypassed or violated?
+4. LEARNING OPPORTUNITIES: What specific improvements should this person focus on?
+
+Provide your analysis in a clear, educational tone that helps the employee understand:
+- What they did well
+- What they could improve
+- Why certain responses were risky
+- How to handle similar situations in the future
+
+Focus on practical, actionable feedback that relates to their role as a customer service representative.
+Be constructive and encouraging while being clear about security risks.
+
+Your response should be 3-5 paragraphs of detailed, personalized feedback.
+";
+    }
+
+    private SessionEvaluationResult ParseSessionAnalysisResult(string analysisText, PhoneCallSession session)
+    {
+        // Calculate basic metrics
+        var userResponses = session.Exchanges.Where(e => !string.IsNullOrEmpty(e.UserResponse)).ToList();
+        var securityKeywords = new[] { "verify", "security", "policy", "supervisor", "manager", "documentation" };
+        var riskKeywords = new[] { "right away", "immediately", "sure", "help", "update", "no problem" };
+        
+        int secureResponses = 0;
+        int riskyResponses = 0;
+        var breaches = new List<SecurityBreach>();
+        
+        for (int i = 0; i < userResponses.Count; i++)
+        {
+            var response = userResponses[i].UserResponse?.ToLower() ?? "";
+            
+            bool hasSecurityKeywords = securityKeywords.Any(k => response.Contains(k));
+            bool hasRiskKeywords = riskKeywords.Any(k => response.Contains(k));
+            
+            if (hasSecurityKeywords && !hasRiskKeywords)
+                secureResponses++;
+            else if (hasRiskKeywords && !hasSecurityKeywords)
+            {
+                riskyResponses++;
+                breaches.Add(new SecurityBreach
+                {
+                    BreachType = "Insufficient Verification",
+                    Description = "Provided assistance without proper security verification",
+                    UserResponse = userResponses[i].UserResponse ?? "",
+                    TurnNumber = i + 1,
+                    Severity = hasRiskKeywords ? RiskLevel.High : RiskLevel.Medium,
+                    ImpactExplanation = "Could lead to unauthorized account access or information disclosure",
+                    PreventionAdvice = "Always verify caller identity before providing assistance"
+                });
+            }
+        }
+        
+        var securityScore = userResponses.Count > 0 
+            ? (double)secureResponses / userResponses.Count * 100 
+            : 50;
+        
+        return new SessionEvaluationResult
+        {
+            SessionId = session.Id,
+            SecurityScore = securityScore,
+            OverallPerformance = securityScore,
+            SummaryFeedback = analysisText,
+            SecurityBreaches = breaches,
+            RiskAssessment = new IncidentIQ.Application.Interfaces.RiskAssessment
+            {
+                OverallRiskLevel = securityScore >= 75 ? RiskLevel.Low : 
+                                 securityScore >= 50 ? RiskLevel.Medium : RiskLevel.High,
+                PhishingResistanceScore = securityScore,
+                PrimaryVulnerabilities = riskyResponses > 0 
+                    ? new List<string> { "Urgency pressure susceptibility", "Insufficient verification practices" }
+                    : new List<string>(),
+                RiskProfile = $"Demonstrated {secureResponses} secure responses and {riskyResponses} risky responses"
+            },
+            Recommendations = GenerateRecommendations(securityScore, breaches)
+        };
+    }
+
+    private SessionEvaluationResult CreateBasicSessionAnalysis(PhoneCallSession session)
+    {
+        return new SessionEvaluationResult
+        {
+            SessionId = session.Id,
+            SecurityScore = 70,
+            OverallPerformance = 70,
+            SummaryFeedback = "Training session completed. You demonstrated awareness of social engineering tactics. Continue to practice verifying caller identity and following security procedures even under pressure.",
+            RiskAssessment = new IncidentIQ.Application.Interfaces.RiskAssessment
+            {
+                OverallRiskLevel = RiskLevel.Medium,
+                PhishingResistanceScore = 70,
+                RiskProfile = "Training session analysis completed with basic evaluation"
+            }
+        };
+    }
+
+    private List<SecurityRecommendation> GenerateRecommendations(double securityScore, List<SecurityBreach> breaches)
+    {
+        var recommendations = new List<SecurityRecommendation>();
+        
+        if (securityScore < 50)
+        {
+            recommendations.Add(new SecurityRecommendation
+            {
+                Title = "Strengthen Verification Procedures",
+                Description = "Multiple security verification steps were bypassed during the conversation",
+                ActionableAdvice = "Always ask for and verify multiple forms of identification before providing any assistance or information",
+                Priority = RecommendationPriority.Critical,
+                RoleSpecificContext = "As customer service, verification is your first line of defense against social engineers"
+            });
+        }
+        
+        if (breaches.Any(b => b.BreachType.Contains("Urgency")))
+        {
+            recommendations.Add(new SecurityRecommendation
+            {
+                Title = "Resist Urgency Pressure",
+                Description = "You were influenced by artificial urgency created by the caller",
+                ActionableAdvice = "Remember that legitimate urgent requests can wait for proper security procedures",
+                Priority = RecommendationPriority.High,
+                RoleSpecificContext = "Attackers often use time pressure to bypass your natural security instincts"
+            });
+        }
+        
+        if (securityScore >= 75)
+        {
+            recommendations.Add(new SecurityRecommendation
+            {
+                Title = "Excellent Security Awareness",
+                Description = "You successfully resisted social engineering attempts",
+                ActionableAdvice = "Continue applying these security practices and consider mentoring colleagues",
+                Priority = RecommendationPriority.Low,
+                RoleSpecificContext = "Your security mindset is a valuable asset to your organization"
+            });
+        }
+        
+        return recommendations;
     }
 }

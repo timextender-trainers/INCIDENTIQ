@@ -19,7 +19,7 @@ public class ConversationFlowService : IConversationFlowService
     private readonly IClaudeApiService _claudeApiService;
     private readonly ILogger<ConversationFlowService> _logger;
     
-    private const int MAX_CONVERSATION_TURNS = 20;
+    private const int MAX_CONVERSATION_TURNS = 6;
 
     public ConversationFlowService(
         ApplicationDbContext context,
@@ -48,11 +48,17 @@ public class ConversationFlowService : IConversationFlowService
                 return GetEndingResponse(session);
             }
 
-            var scenario = await _context.Set<PhoneCallScenario>()
-                .FirstOrDefaultAsync(s => s.Id == session.ScenarioId);
-
+            // Use scenario from session if already loaded (for temporary scenarios)
+            // Otherwise look it up in the database
+            var scenario = session.Scenario;
             if (scenario == null)
-                throw new ArgumentException($"Scenario {session.ScenarioId} not found");
+            {
+                scenario = await _context.Set<PhoneCallScenario>()
+                    .FirstOrDefaultAsync(s => s.Id == session.ScenarioId);
+
+                if (scenario == null)
+                    throw new ArgumentException($"Scenario {session.ScenarioId} not found");
+            }
 
             // Try Claude API first, then fallback to OpenAI, then hardcoded responses
             string hackerResponse;

@@ -1,3 +1,4 @@
+using IncidentIQ.Application.Interfaces;
 using IncidentIQ.Domain.Entities;
 using IncidentIQ.Domain.Enums;
 
@@ -9,6 +10,7 @@ public interface ICoachingAgent
     Task<string> GenerateHintAsync(DecisionPoint decisionPoint, User user, string userContext);
     Task<string> GenerateEncouragementAsync(User user, SessionScoring currentScore);
     Task<string> ExplainConsequenceAsync(UserResponse response, DecisionPoint decisionPoint);
+    Task<SessionEvaluationResult> AnalyzeConversationSessionAsync(PhoneCallSession session);
 }
 
 public class CoachingRequest

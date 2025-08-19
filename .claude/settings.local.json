@@ -38,7 +38,11 @@
       "Bash(docker build:*)",
       "Bash(docker ps:*)",
       "WebFetch(domain:localhost)",
-      "Bash(ASPNETCORE_ENVIRONMENT=Development dotnet run --urls=\"http://0.0.0.0:5001\")"
+      "Bash(ASPNETCORE_ENVIRONMENT=Development dotnet run --urls=\"http://0.0.0.0:5001\")",
+      "Bash(ASPNETCORE_ENVIRONMENT=Development dotnet run --urls=\"http://0.0.0.0:5080\")",
+      "Bash(timeout:*)",
+      "Bash(ASPNETCORE_ENVIRONMENT=Development dotnet run --urls=\"http://localhost:5001\" --no-build)",
+      "Bash(ASPNETCORE_ENVIRONMENT=Development dotnet run --urls=\"http://localhost:5080\" --no-build)"
     ],
     "deny": []
   }

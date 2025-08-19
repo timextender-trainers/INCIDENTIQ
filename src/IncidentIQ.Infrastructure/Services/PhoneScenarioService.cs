@@ -5,23 +5,19 @@ using IncidentIQ.Domain.Enums;
 using IncidentIQ.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.SemanticKernel;
 
 namespace IncidentIQ.Infrastructure.Services;
 
 public class PhoneScenarioService : IPhoneScenarioService
 {
     private readonly ApplicationDbContext _context;
-    private readonly ISemanticKernelService _kernelService;
     private readonly ILogger<PhoneScenarioService> _logger;
 
     public PhoneScenarioService(
         ApplicationDbContext context,
-        ISemanticKernelService kernelService,
         ILogger<PhoneScenarioService> logger)
     {
         _context = context;
-        _kernelService = kernelService;
         _logger = logger;
     }
 
@@ -29,45 +25,8 @@ public class PhoneScenarioService : IPhoneScenarioService
     {
         try
         {
-            var prompt = $@"Create a realistic customer service social engineering attack scenario.
-            
-            Target Details:
-            - Role: {targetRole}
-            - Company: {targetCompany}
-            - User ID: {userId}
-            
-            Generate a JSON response with the following structure:
-            {{
-                ""title"": ""Descriptive title for the scenario"",
-                ""description"": ""Brief description of what the user will experience"",
-                ""callerProfile"": {{
-                    ""name"": ""Fake customer name"",
-                    ""company"": ""Fake company name (not the target company)"",
-                    ""phoneNumber"": ""Fake phone number"",
-                    ""role"": ""Premium customer or similar"",
-                    ""persona"": ""Angry, frustrated, demanding""
-                }},
-                ""learningObjectives"": [
-                    ""What the user should learn from this scenario""
-                ],
-                ""plannedTactics"": [
-                    ""Authority"", ""Urgency"", ""Fear"", ""Reciprocity""
-                ]
-            }}
-            
-            Make it realistic for a {targetRole} at {targetCompany}.
-            The hacker will pretend to be an angry customer trying to get the employee to click a link or provide access.";
-
-            var arguments = new KernelArguments
-            {
-                ["targetRole"] = targetRole,
-                ["targetCompany"] = targetCompany,
-                ["userId"] = userId
-            };
-
-            var jsonResponse = await _kernelService.ExecutePromptAsync(prompt, arguments);
-            
-            // Parse the response and create the scenario
+            // Create a standard scenario without AI generation to avoid OpenAI dependency
+            // The dynamic conversation happens later via Claude API
             var scenario = new PhoneCallScenario
             {
                 Id = Guid.NewGuid(),
@@ -128,7 +87,7 @@ public class PhoneScenarioService : IPhoneScenarioService
             var session = new PhoneCallSession
             {
                 Id = Guid.NewGuid(),
-                UserId = Guid.Parse(userId),
+                UserId = GenerateUserGuid(userId),
                 ScenarioId = scenarioId,
                 CallState = CallState.Incoming,
                 CreatedAt = DateTime.UtcNow,
@@ -152,7 +111,7 @@ public class PhoneScenarioService : IPhoneScenarioService
     {
         return await _context.Set<PhoneCallSession>()
             .Include(s => s.Scenario)
-            .FirstOrDefaultAsync(s => s.UserId == Guid.Parse(userId) && 
+            .FirstOrDefaultAsync(s => s.UserId == GenerateUserGuid(userId) && 
                                     s.CallState != CallState.Ended);
     }
 
@@ -194,5 +153,28 @@ public class PhoneScenarioService : IPhoneScenarioService
             .Where(s => s.TargetRole == role || string.IsNullOrEmpty(s.TargetRole))
             .OrderByDescending(s => s.CreatedAt)
             .ToListAsync();
+    }
+
+    public async Task<PhoneCallSession?> GetSessionByIdAsync(Guid sessionId)
+    {
+        return await _context.Set<PhoneCallSession>()
+            .Include(s => s.Scenario)
+            .FirstOrDefaultAsync(s => s.Id == sessionId);
+    }
+
+    private static Guid GenerateUserGuid(string userId)
+    {
+        // Generate a consistent GUID for demo users
+        if (userId == "demo-user-123")
+            return new Guid("12345678-1234-1234-1234-123456789abc");
+        
+        // For other cases, try to parse as GUID first, then generate from hash
+        if (Guid.TryParse(userId, out var guid))
+            return guid;
+            
+        // Generate deterministic GUID from string hash
+        using var md5 = System.Security.Cryptography.MD5.Create();
+        var hash = md5.ComputeHash(System.Text.Encoding.UTF8.GetBytes(userId));
+        return new Guid(hash);
     }
 }

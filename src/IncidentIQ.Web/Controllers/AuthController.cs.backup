@@ -644,7 +644,7 @@ public class AuthController : Controller
         .logo-icon {{
             width: 36px;
             height: 36px;
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            background: linear-gradient(135deg, #198398 0%, #8b5cf6 100%);
             border-radius: 8px;
             margin-right: 12px;
             display: flex;
@@ -756,7 +756,7 @@ public class AuthController : Controller
         .user-name {{
             font-size: 14px;
             font-weight: 600;
-            color: white;
+            color: #0D2A4C;
             margin-bottom: 2px;
         }}
         
@@ -1563,7 +1563,7 @@ public class AuthController : Controller
             top: 0;
             bottom: 0;
             width: 3px;
-            background: #6366f1;
+            background: #198398;
         }}
         
         /* Main content area with phone training */
@@ -2177,7 +2177,7 @@ public class AuthController : Controller
         .user-name {{
             font-weight: 500;
             font-size: 14px;
-            color: white;
+            color: #0D2A4C;
         }}
 
         .user-role {{

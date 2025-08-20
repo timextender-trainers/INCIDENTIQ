@@ -368,7 +368,7 @@ public class AuthController : Controller
         /* Sidebar Styles */
         .sidebar {{
             width: 280px;
-            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            background: #EFECE4;
             color: white;
             flex-shrink: 0;
             display: flex;
@@ -391,7 +391,7 @@ public class AuthController : Controller
         .logo-icon {{
             width: 36px;
             height: 36px;
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            background: linear-gradient(135deg, #198398 0%, #1B8FA6 100%);
             border-radius: 8px;
             margin-right: 12px;
             display: flex;
@@ -410,7 +410,7 @@ public class AuthController : Controller
             display: flex;
             align-items: center;
             padding: 12px 20px;
-            color: #cbd5e1;
+            color: #0D2A4C;
             text-decoration: none;
             transition: all 0.3s ease;
             position: relative;
@@ -419,13 +419,13 @@ public class AuthController : Controller
         
         .nav-item:hover {{
             background: rgba(255,255,255,0.08);
-            color: white;
+            
             transform: translateX(4px);
         }}
         
         .nav-item.active {{
-            background: linear-gradient(90deg, rgba(99, 102, 241, 0.2) 0%, transparent 100%);
-            color: #a5b4fc;
+            background: linear-gradient(90deg, rgba(25, 131, 152, 0.2) 0%, transparent 100%);
+
         }}
         
         .nav-item.active::before {{
@@ -435,7 +435,7 @@ public class AuthController : Controller
             top: 0;
             bottom: 0;
             width: 3px;
-            background: #6366f1;
+            background: #198398;
         }}
         
         .nav-icon {{
@@ -503,7 +503,7 @@ public class AuthController : Controller
         .user-name {{
             font-size: 14px;
             font-weight: 600;
-            color: white;
+            color: #0D2A4C;
             margin-bottom: 2px;
         }}
         
@@ -548,7 +548,7 @@ public class AuthController : Controller
         }}
         
         .welcome-section {{
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            background: linear-gradient(135deg, #198398 0%, #1B8FA6 100%);
             border-radius: 12px;
             padding: 32px;
             color: white;
@@ -629,7 +629,7 @@ public class AuthController : Controller
         .scenario-card:hover {{
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            border-color: #6366f1;
+            border-color: #198398;
         }}
         
         .scenario-header {{
@@ -699,7 +699,7 @@ public class AuthController : Controller
         .difficulty-advanced {{ background: #ddd6fe; color: #5b21b6; }}
         
         .scenario-btn {{
-            background: #6366f1;
+            background: #198398;
             color: white;
             padding: 10px 20px;
             border-radius: 8px;
@@ -1002,7 +1002,7 @@ public class AuthController : Controller
         /* Left Sidebar Navigation */
         .sidebar {{
             width: 280px;
-            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            background: #EFECE4;
             color: white;
             flex-shrink: 0;
             display: flex;
@@ -1025,7 +1025,7 @@ public class AuthController : Controller
         .logo-icon {{
             width: 36px;
             height: 36px;
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            background: linear-gradient(135deg, #198398 0%, #1B8FA6 100%);
             border-radius: 8px;
             margin-right: 12px;
             display: flex;
@@ -1044,7 +1044,7 @@ public class AuthController : Controller
             display: flex;
             align-items: center;
             padding: 12px 20px;
-            color: #cbd5e1;
+            color: #0D2A4C;
             text-decoration: none;
             transition: all 0.3s ease;
             position: relative;
@@ -1053,13 +1053,12 @@ public class AuthController : Controller
         
         .nav-item:hover {{
             background: rgba(255,255,255,0.08);
-            color: white;
+            
             transform: translateX(4px);
         }}
         
         .nav-item.active {{
-            background: linear-gradient(90deg, rgba(99, 102, 241, 0.2) 0%, transparent 100%);
-            color: #a5b4fc;
+            background: linear-gradient(90deg, rgba(25, 131, 152, 0.2) 0%, transparent 100%);
         }}
         
         .nav-item.active::before {{
@@ -1069,7 +1068,7 @@ public class AuthController : Controller
             top: 0;
             bottom: 0;
             width: 3px;
-            background: #6366f1;
+            background: #198398;
         }}
         
         .nav-icon {{
@@ -1137,7 +1136,7 @@ public class AuthController : Controller
         .user-name {{
             font-size: 14px;
             font-weight: 600;
-            color: white;
+            color: #0D2A4C;
             margin-bottom: 2px;
         }}
         
@@ -1176,7 +1175,7 @@ public class AuthController : Controller
         
         /* Hero Section */
         .hero-section {{
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            background: linear-gradient(135deg, #198398 0%, #1B8FA6 100%);
             border-radius: 12px;
             padding: 40px;
             color: white;
@@ -1276,7 +1275,7 @@ public class AuthController : Controller
         }}
         
         .role-icon {{
-            color: #6366f1;
+            color: #198398;
             margin-right: 8px;
         }}
         
@@ -1311,8 +1310,7 @@ public class AuthController : Controller
         }}
         
         .related-item:hover {{
-            border-color: #6366f1;
-            transform: translateY(-1px);
+198398            transform: translateY(-1px);
         }}
         
         .related-icon {{
@@ -1386,7 +1384,7 @@ public class AuthController : Controller
         }}
         
         .btn-primary {{
-            background: #6366f1;
+            background: #198398;
             color: white;
         }}
         
@@ -1396,7 +1394,7 @@ public class AuthController : Controller
         
         .btn-secondary {{
             background: transparent;
-            color: #6366f1;
+            color: #198398;
             border: 1px solid #e2e8f0;
         }}
         
@@ -1456,7 +1454,7 @@ public class AuthController : Controller
             align-items: center;
             padding: 8px 0;
             text-decoration: none;
-            color: #6366f1;
+            color: #198398;
             font-size: 14px;
         }}
         
@@ -1876,7 +1874,7 @@ public class AuthController : Controller
         /* Sidebar Styles */
         .sidebar {{
             width: 280px;
-            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            background: #EFECE4;
             color: white;
             flex-shrink: 0;
             display: flex;
@@ -1899,7 +1897,7 @@ public class AuthController : Controller
         .logo-icon {{
             width: 36px;
             height: 36px;
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            background: linear-gradient(135deg, #198398 0%, #1B8FA6 100%);
             border-radius: 8px;
             margin-right: 12px;
             display: flex;
@@ -1918,7 +1916,7 @@ public class AuthController : Controller
             display: flex;
             align-items: center;
             padding: 12px 20px;
-            color: #cbd5e1;
+            color: #0D2A4C;
             text-decoration: none;
             transition: all 0.3s ease;
             position: relative;
@@ -1927,13 +1925,12 @@ public class AuthController : Controller
         
         .nav-item:hover {{
             background: rgba(255,255,255,0.08);
-            color: white;
+            
             transform: translateX(4px);
         }}
         
         .nav-item.active {{
-            background: linear-gradient(90deg, rgba(99, 102, 241, 0.2) 0%, transparent 100%);
-            color: #a5b4fc;
+            background: linear-gradient(90deg, rgba(25, 131, 152, 0.2) 0%, transparent 100%);
         }}
         
         .nav-item.active::before {{
@@ -1943,7 +1940,7 @@ public class AuthController : Controller
             top: 0;
             bottom: 0;
             width: 3px;
-            background: #6366f1;
+            background: #198398;
         }}
         
         /* Main content area with phone training */
@@ -3322,7 +3319,7 @@ public class AuthController : Controller
         /* Sidebar Styles - Same as description page */
         .sidebar {{
             width: 280px;
-            background: #1e293b;
+            background: #EFECE4;
             color: white;
             flex-shrink: 0;
             display: flex;
@@ -3346,7 +3343,7 @@ public class AuthController : Controller
         .logo-icon {{
             width: 40px;
             height: 40px;
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            background: linear-gradient(135deg, #198398, #1B8FA6);
             border-radius: 8px;
             display: flex;
             align-items: center;
@@ -3379,7 +3376,7 @@ public class AuthController : Controller
             gap: 12px;
             padding: 8px 16px;
             border-radius: 6px;
-            color: #cbd5e1;
+            color: #0D2A4C;
             text-decoration: none;
             font-size: 14px;
             transition: all 0.2s;
@@ -3388,12 +3385,11 @@ public class AuthController : Controller
 
         .nav-item:hover {{
             background: #334155;
-            color: white;
+            
         }}
 
         .nav-item.active {{
-            background: #3b82f6;
-            color: white;
+            background: linear-gradient(90deg, rgba(25, 131, 152, 0.2) 0%, transparent 100%);
         }}
 
         .nav-icon {{
@@ -3432,7 +3428,7 @@ public class AuthController : Controller
         .user-name {{
             font-weight: 500;
             font-size: 14px;
-            color: white;
+            color: #0D2A4C;
         }}
 
         .user-role {{

@@ -147,7 +147,7 @@ function initializeDepartmentChart() {
                 backgroundColor: [
                     '#10b981',
                     '#3b82f6',
-                    '#8b5cf6',
+                    '#1B8FA6',
                     '#ef4444',
                     '#f59e0b',
                     '#06b6d4'
@@ -495,11 +495,11 @@ function initializeTrainingEffectivenessChart() {
             datasets: [{
                 label: 'Individual Progress',
                 data: [45, 52, 61, 68, 74, 81, 87, 94],
-                borderColor: '#8b5cf6',
+                borderColor: '#1B8FA6',
                 backgroundColor: gradient,
                 fill: true,
                 tension: 0.4,
-                pointBackgroundColor: '#8b5cf6',
+                pointBackgroundColor: '#1B8FA6',
                 pointBorderColor: '#fff',
                 pointBorderWidth: 2,
                 pointRadius: 5

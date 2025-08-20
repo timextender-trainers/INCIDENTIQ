@@ -751,8 +751,7 @@ public class AuthController : Controller
     <div class='sidebar'>
         <div class='sidebar-header'>
             <div class='logo'>
-                <div class='logo-icon'>S</div>
-                SecureTraining
+                <img src='/images/incidentiq-logo.png' alt='IncidentIQ' style='max-height: 60px; height: auto; display: block; margin: 0 auto;' />
             </div>
         </div>
         <nav class='nav-menu'>
@@ -974,17 +973,17 @@ public class AuthController : Controller
         // Get scenario details based on type
         var scenarioDetails = GetScenarioDetails(scenario, user);
         
-        // If this is phone training in training mode, embed the phone interface with sidebar
+        // If this is phone training in training mode, redirect to PhoneTrainingController
         if (scenario == "phone-training" && mode == "training")
         {
-            return Content(GeneratePhoneTrainingWithSidebar(scenarioDetails), "text/html");
+            return Redirect("/PhoneTraining");
         }
 
         return Content($@"
 <!DOCTYPE html>
 <html>
 <head>
-    <title>{scenarioDetails.Title} - SecureTraining</title>
+    <title>{scenarioDetails.Title} - IncidentIQ</title>
     <meta charset='utf-8' />
     <style>
         * {{ margin: 0; padding: 0; box-sizing: border-box; }}
@@ -1476,8 +1475,7 @@ public class AuthController : Controller
         <div class='sidebar'>
             <div class='sidebar-header'>
                 <div class='logo'>
-                    <div class='logo-icon'>S</div>
-                    SecureTraining
+                    <img src='/images/incidentiq-logo.png' alt='IncidentIQ' style='max-height: 60px; height: auto; display: block; margin: 0 auto;' />
                 </div>
             </div>
             <nav class='nav-menu'>
@@ -2589,8 +2587,7 @@ public class AuthController : Controller
     <div class='sidebar'>
         <div class='sidebar-header'>
             <div class='logo'>
-                <div class='logo-icon'>S</div>
-                SecureTraining
+                <img src='/images/incidentiq-logo.png' alt='IncidentIQ' style='max-height: 60px; height: auto; display: block; margin: 0 auto;' />
             </div>
         </div>
         <nav class='nav-menu'>
@@ -3306,7 +3303,7 @@ public class AuthController : Controller
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Link Phishing Defense Training - SecureTraining</title>
+    <title>Link Phishing Defense Training - IncidentIQ</title>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <style>
         * {{
@@ -3814,8 +3811,7 @@ public class AuthController : Controller
     <div class='sidebar'>
         <div class='sidebar-header'>
             <div class='logo'>
-                <div class='logo-icon'>S</div>
-                SecureTraining
+                <img src='/images/incidentiq-logo.png' alt='IncidentIQ' style='max-height: 60px; height: auto; display: block; margin: 0 auto;' />
             </div>
         </div>
         <nav class='nav-menu'>

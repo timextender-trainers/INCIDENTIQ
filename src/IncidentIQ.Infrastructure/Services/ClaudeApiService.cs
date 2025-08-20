@@ -31,10 +31,8 @@ public class ClaudeApiService : IClaudeApiService
             !string.IsNullOrEmpty(_apiKey), 
             _apiKey?.Length > 10 ? _apiKey.Substring(0, 10) + "..." : "NONE");
 
-        // Configure HttpClient
-        _httpClient.DefaultRequestHeaders.Add("x-api-key", _apiKey);
-        _httpClient.DefaultRequestHeaders.Add("anthropic-version", "2023-06-01");
-        _httpClient.DefaultRequestHeaders.Add("User-Agent", "IncidentIQ-Training/1.0");
+        // Clear any existing headers first
+        _httpClient.DefaultRequestHeaders.Clear();
     }
 
     public async Task<string> GeneratePhishingResponseAsync(PhoneCallSession session, string userMessage, List<string> conversationHistory)
@@ -66,7 +64,15 @@ public class ClaudeApiService : IClaudeApiService
             _logger.LogInformation("Claude API Request URL: {Url}", _baseUrl);
             _logger.LogInformation("Claude API Request Body: {RequestBody}", jsonRequest);
 
-            var response = await _httpClient.PostAsync(_baseUrl, content);
+            // Create a new request message with proper headers
+            using var request = new HttpRequestMessage(HttpMethod.Post, _baseUrl)
+            {
+                Content = content
+            };
+            request.Headers.Add("x-api-key", _apiKey);
+            request.Headers.Add("anthropic-version", "2023-06-01");
+
+            var response = await _httpClient.SendAsync(request);
             
             _logger.LogInformation("Claude API Response Status: {StatusCode}", response.StatusCode);
 
@@ -90,7 +96,7 @@ public class ClaudeApiService : IClaudeApiService
                         if (firstContent.Type == "text" && !string.IsNullOrEmpty(firstContent.Text))
                         {
                             var responseText = firstContent.Text;
-                            _logger.LogInformation("Successfully received response from Claude API for session {SessionId}. Response: {Response}", session.Id, responseText?.Substring(0, Math.Min(100, responseText?.Length ?? 0)));
+                            _logger.LogInformation("✅ CLAUDE API SUCCESS: Received response from Claude API for session {SessionId}. Response: {Response}", session.Id, responseText?.Substring(0, Math.Min(100, responseText?.Length ?? 0)));
                             return responseText;
                         }
                         else
@@ -120,7 +126,7 @@ public class ClaudeApiService : IClaudeApiService
         }
 
         // Fallback to hardcoded response
-        _logger.LogWarning("Using fallback hardcoded response for session {SessionId}", session.Id);
+        _logger.LogWarning("❌ CLAUDE API FALLBACK: Using hardcoded response for session {SessionId}", session.Id);
         return GetFallbackResponse(session, userMessage);
     }
 
@@ -170,7 +176,15 @@ public class ClaudeApiService : IClaudeApiService
             var jsonRequest = JsonSerializer.Serialize(requestBody);
             var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PostAsync(_baseUrl, content);
+            // Create a new request message with proper headers
+            using var request = new HttpRequestMessage(HttpMethod.Post, _baseUrl)
+            {
+                Content = content
+            };
+            request.Headers.Add("x-api-key", _apiKey);
+            request.Headers.Add("anthropic-version", "2023-06-01");
+
+            var response = await _httpClient.SendAsync(request);
 
             if (response.IsSuccessStatusCode)
             {

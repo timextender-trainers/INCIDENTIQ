@@ -104,19 +104,22 @@ body {
 .logo-container {
     display: flex;
     align-items: center;
-    gap: var(--space-3);
+    justify-content: center;
+    padding: var(--space-4) 0;
 }
 
-.logo-icon {
-    font-size: 2rem;
-    color: var(--primary-blue-light);
+.logo-image {
+    max-width: 180px;
+    height: auto;
+    display: block;
+    object-fit: contain;
 }
 
-.logo-text {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--white);
-    letter-spacing: -0.025em;
+/* Responsive logo sizing */
+@media (max-width: 768px) {
+    .logo-image {
+        max-width: 150px;
+    }
 }
 
 .sidebar-content {

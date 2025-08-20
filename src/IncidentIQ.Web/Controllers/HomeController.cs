@@ -25,7 +25,9 @@ public class HomeController : Controller
 </head>
 <body>
     <div class='container'>
-        <h1>🛡️ IncidentIQ Security Training Platform</h1>
+        <div style='text-align: center; margin-bottom: 30px;'>
+            <img src='/images/incidentiq-logo.png' alt='IncidentIQ Security Training Platform' style='max-height: 120px; height: auto; display: block; margin: 0 auto;' />
+        </div>
         <div class='status'>
             <strong>✅ Application is running successfully!</strong>
             <p>The role-based authentication system is ready for testing.</p>

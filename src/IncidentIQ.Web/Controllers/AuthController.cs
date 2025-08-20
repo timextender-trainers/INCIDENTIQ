@@ -752,7 +752,7 @@ public class AuthController : Controller
         <div class='sidebar-header'>
             <div class='logo'>
                 <div class='logo-icon'>S</div>
-                SecureTraining
+                IncidentIQ
             </div>
         </div>
         <nav class='nav-menu'>
@@ -984,7 +984,7 @@ public class AuthController : Controller
 <!DOCTYPE html>
 <html>
 <head>
-    <title>{scenarioDetails.Title} - SecureTraining</title>
+    <title>{scenarioDetails.Title} - IncidentIQ</title>
     <meta charset='utf-8' />
     <style>
         * {{ margin: 0; padding: 0; box-sizing: border-box; }}
@@ -1477,7 +1477,7 @@ public class AuthController : Controller
             <div class='sidebar-header'>
                 <div class='logo'>
                     <div class='logo-icon'>S</div>
-                    SecureTraining
+                    IncidentIQ
                 </div>
             </div>
             <nav class='nav-menu'>
@@ -2590,7 +2590,7 @@ public class AuthController : Controller
         <div class='sidebar-header'>
             <div class='logo'>
                 <div class='logo-icon'>S</div>
-                SecureTraining
+                IncidentIQ
             </div>
         </div>
         <nav class='nav-menu'>
@@ -3306,7 +3306,7 @@ public class AuthController : Controller
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Link Phishing Defense Training - SecureTraining</title>
+    <title>Link Phishing Defense Training - IncidentIQ</title>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <style>
         * {{
@@ -3815,7 +3815,7 @@ public class AuthController : Controller
         <div class='sidebar-header'>
             <div class='logo'>
                 <div class='logo-icon'>S</div>
-                SecureTraining
+                IncidentIQ
             </div>
         </div>
         <nav class='nav-menu'>

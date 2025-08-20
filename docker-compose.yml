@@ -16,6 +16,7 @@ services:
       - sqlserver_data:/var/opt/mssql
     networks:
       - incidentiq-network
+    user: "0:0"  # Add this line to run as root
     healthcheck:
       test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P IncidentIQ123! -Q 'SELECT 1' || exit 1"]
       interval: 10s
